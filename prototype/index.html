@@ -414,6 +414,15 @@
     z-index: 3;
   }
 
+  /* Atom 待机：打卡周点（绿点=已打卡，描边=今天） */
+  .a-week { display: flex; gap: .4em; z-index: 3; }
+  .adot {
+    width: .6em; height: .6em; border-radius: 50%;
+    background: rgba(255,255,255,.14);
+  }
+  .adot.done { background: var(--accent); }
+  .adot.today { box-shadow: 0 0 0 2px var(--accent); }
+
   /* Atom 准备：无取景器，靠边缘光 + 语音 */
   #a-ready { gap: .6em; z-index: 2; }
   #a-ready .status { font-size: 1.75em; font-weight: 700; max-width: 76%; line-height: 1.45; }
@@ -423,13 +432,20 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Atom 跳绳中：上 2/5 计数，下 3/5 纯火柴人 */
+  /* Atom 跳绳中：第一行计时(小字) → 第二行大数字+🌟目标倍数 → 下 3/5 纯火柴人 */
   #a-jump { z-index: 2; }
   #a-jump .ring-svg { position: absolute; inset: 3%; z-index: 2; width: 94%; height: 94%; }
-  #a-jump .a-top {
-    position: absolute; top: 5.5%; left: 0; right: 0; height: 40%; z-index: 3;
-    display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: .1em;
+  .a-timer {
+    position: absolute; top: 6.5%; left: 0; right: 0; z-index: 3;
+    text-align: center;
+    font-size: 1.375em; color: var(--stage-soft); font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
+  #a-jump .a-top {
+    position: absolute; top: 12%; left: 0; right: 0; height: 33%; z-index: 3;
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .a-count-row { display: flex; align-items: flex-start; gap: .35em; }
   .a-count {
     font-size: 6.6em; font-weight: 800; line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -437,14 +453,9 @@
   }
   .a-count.pop { transform: scale(1.09); }
   .a-count.over { color: #FFB020; }   /* 达标后计数转暖色，与火焰呼应 */
-  .a-count-sub { font-size: 1.5em; color: var(--stage-soft); font-weight: 700; }
-  #a-jump .a-star {
-    font-size: 1.375em; font-weight: 700; color: var(--gold);
-    font-variant-numeric: tabular-nums;
-  }
   .a-lapstars {
     color: var(--accent); font-size: 1.5em; font-weight: 700;
-    letter-spacing: .15em; min-height: 1.2em;
+    letter-spacing: .05em; margin-top: .4em;
     font-variant-numeric: tabular-nums;
   }
   #a-jump .a-bono-slot {
@@ -634,7 +645,9 @@
         <div id="a-bono-idle"></div>
         <div class="big-tip">站到镜头前<br>开始今天的跳绳</div>
         <div class="sub-tip"><span id="a-streak-txt">🔥 0 天</span> · ⭐ <span id="a-stars-txt">0</span><span id="a-daily"></span></div>
-        <button class="a-goal-chip" id="a-goal-cycle">目标 <span id="a-goal-txt">50</span> · 点按切换</button>
+        <div class="a-week" id="a-week"></div>
+        <div class="sub-tip" id="a-today"></div>
+        <button class="a-goal-chip" id="a-goal-cycle">目标 <span id="a-goal-txt">100</span> · 点按切换</button>
         <button class="atom-cta" id="a-start">开始</button>
       </div>
 
@@ -653,11 +666,12 @@
                   stroke-linecap="round" stroke-dasharray="1357.2" stroke-dashoffset="1357.2"
                   transform="rotate(-90 233 233)"></circle>
         </svg>
+        <div class="a-timer" id="a-timer"></div>
         <div class="a-top">
-          <div class="a-star" id="a-star-chip">⭐ 0</div>
-          <div class="a-count" id="a-count">0</div>
-          <div class="a-count-sub" id="a-count-sub">/ 50</div>
-          <div class="a-lapstars" id="a-lapstars"></div>
+          <div class="a-count-row">
+            <div class="a-count" id="a-count">0</div>
+            <div class="a-lapstars" id="a-lapstars"></div>
+          </div>
         </div>
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
         <div class="milestone-toast" id="a-toast"></div>
@@ -1184,12 +1198,13 @@ function render() {
   $('a-count').classList.toggle('over', S.goalHit);
   $('p-goal-chip').textContent = S.goal === 0 ? '自由跳' : '目标 ' + S.goal;
   $('p-star-live').textContent = profile.stars + S.earned;
-  $('a-star-chip').textContent = '⭐ ' + (profile.stars + S.earned);
 
   const inJump = S.screen === 'jump' || S.screen === 'celebrate';
 
-  /* 圆环：每 50 下一圈，跳满即清零、从头再画；累计的圈数用星星表示 */
-  const lap = Math.floor(S.count / 50), lapPct = (S.count % 50) / 50;
+  /* 圆环：一圈 = 一个目标（自由跳时一圈 = 50），跳满即清零、从头再画；
+     🌟 = 目标倍数，显示在大数字旁边 */
+  const unit = S.goal > 0 ? S.goal : 50;
+  const lap = Math.floor(S.count / unit), lapPct = (S.count % unit) / unit;
   $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - lapPct);
   $('p-pct').textContent = Math.round(lapPct * 100) + '%';
   $('a-ring-arc').style.strokeDashoffset = 1357.2 * (1 - lapPct);
@@ -1203,10 +1218,25 @@ function render() {
   $('a-rays').className = rayCls;
   $('p-rays').className = rayCls;
 
-  /* 课中计时（二级信息，占用原 /50 副标的位置） */
+  /* 课中计时（第一行，小字） */
   const timeTxt = inJump ? '⏱ ' + fmtTime(sessionElapsed()) : '';
-  $('a-count-sub').textContent = timeTxt;
+  $('a-timer').textContent = timeTxt;
   $('p-count-sub').textContent = timeTxt ? ' ' + timeTxt : '';
+
+  /* Atom 待机：打卡周点 + 今日数据（闭环信息） */
+  if (S.screen === 'idle') {
+    const wk = $('a-week'); wk.innerHTML = '';
+    for (let i = -6; i <= 0; i++) {
+      const rec = profile.history[dayKeyOffset(i)];
+      const dot = document.createElement('span');
+      dot.className = 'adot' + (rec && rec.done ? ' done' : '') + (i === 0 ? ' today' : '');
+      wk.appendChild(dot);
+    }
+    const tc = todayCount();
+    $('a-today').textContent = tc > 0
+      ? `今日 ${tc} 下 · 🏆 全球第 ${myRank('global').rank} 名`
+      : '今天还没跳，第一下从现在开始';
+  }
 
   /* 背景：跳绳中用纯黑舞台（给火焰让路）；待机/首页展示"今日主打场景"（每天轮换） */
   const unlockedN = Math.max(1, Math.min(profile.scenes, SCENES.length));
@@ -1336,7 +1366,7 @@ function standLocked() {              /* 站进框稳定 → 开始倒计时 */
 }
 
 /* 一圈 = 50 下；跳满一圈点亮一颗星 */
-const fmtStars = (lap) => lap <= 0 ? '' : (lap <= 8 ? '★'.repeat(lap) : `★×${lap}`);
+const fmtStars = (lap) => lap <= 0 ? '' : (lap <= 4 ? '★'.repeat(lap) : `★×${lap}`);
 
 /* 课中计时 */
 const fmtTime = (ms) => {
@@ -1347,7 +1377,7 @@ const sessionElapsed = () => S.elapsedMs + (S.runSince ? Date.now() - S.runSince
 setInterval(() => {
   if (S.screen === 'jump' && !S.paused && S.runSince) {
     const t = '⏱ ' + fmtTime(sessionElapsed());
-    $('a-count-sub').textContent = t;
+    $('a-timer').textContent = t;
     $('p-count-sub').textContent = ' ' + t;
   }
 }, 500);
@@ -1372,14 +1402,15 @@ function registerJump() {
       S.earned += gain;
       sndStar(); flyStar($('phoneRoot')); flyStar($('atomRoot'));
     }
-    if (S.count % 50 === 0) {
-      msg = `⭐ 第 ${S.count / 50} 圈完成，点亮一颗星！`;
+    const unit = S.goal > 0 ? S.goal : 50;
+    if (S.count % unit === 0) {
+      msg = `🌟 点亮第 ${S.count / unit} 颗星！`;
       sndStar();
     }
     toast(msg);
-    /* 教练语音分层：整 50 报"点亮一颗星"，整 30 带一句鼓励，其余整 10 只报数 */
+    /* 教练语音分层：满一个目标倍数报"点亮一颗星"，整 30 带一句鼓励，其余整 10 只报数 */
     if (!(S.goal > 0 && S.count === S.goal)) {
-      if (S.count % 50 === 0) speak(`${S.count} 下，点亮一颗星！`);
+      if (S.count % unit === 0) speak(`${S.count} 下，点亮第 ${S.count / unit} 颗星！`);
       else if (S.count % 30 === 0) speak(`${S.count} 下，${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`);
       else speak(String(S.count));
     }
