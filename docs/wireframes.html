@@ -1,0 +1,615 @@
+<title>跳绳小挑战 · 核心界面线框图</title>
+<style>
+  :root {
+    --paper: #F7F6F2;
+    --panel: #FFFFFF;
+    --ink: #23282E;
+    --ink-soft: #6B7078;
+    --wire: #B9BFC6;
+    --wire-fill: #ECEDEF;
+    --accent: #FF5C38;
+    --accent-soft: #FFE9E2;
+    --note: #3B66E0;
+    --mint: #1F9E7C;
+    --frame-shadow: 0 2px 14px rgba(35, 40, 46, 0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #15181C;
+      --panel: #1E2329;
+      --ink: #E9E7E2;
+      --ink-soft: #9BA1A8;
+      --wire: #4A515A;
+      --wire-fill: #2A3037;
+      --accent: #FF6B47;
+      --accent-soft: #3A2620;
+      --note: #7C9BFF;
+      --mint: #3DBD99;
+      --frame-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+    }
+  }
+  :root[data-theme="light"] {
+    --paper: #F7F6F2;
+    --panel: #FFFFFF;
+    --ink: #23282E;
+    --ink-soft: #6B7078;
+    --wire: #B9BFC6;
+    --wire-fill: #ECEDEF;
+    --accent: #FF5C38;
+    --accent-soft: #FFE9E2;
+    --note: #3B66E0;
+    --mint: #1F9E7C;
+    --frame-shadow: 0 2px 14px rgba(35, 40, 46, 0.08);
+  }
+  :root[data-theme="dark"] {
+    --paper: #15181C;
+    --panel: #1E2329;
+    --ink: #E9E7E2;
+    --ink-soft: #9BA1A8;
+    --wire: #4A515A;
+    --wire-fill: #2A3037;
+    --accent: #FF6B47;
+    --accent-soft: #3A2620;
+    --note: #7C9BFF;
+    --mint: #3DBD99;
+    --frame-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 56px;
+  }
+
+  /* ---------- header ---------- */
+  header .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  header h1 {
+    font-size: clamp(26px, 4vw, 36px);
+    font-weight: 700;
+    margin: 6px 0 10px;
+    text-wrap: balance;
+  }
+  header p {
+    color: var(--ink-soft);
+    max-width: 40em;
+    margin: 0;
+  }
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 22px;
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 7px; }
+  .key {
+    width: 22px; height: 13px; border-radius: 3px; flex: none;
+  }
+  .key.solid  { border: 1.5px solid var(--wire); background: var(--wire-fill); }
+  .key.dashed { border: 1.5px dashed var(--wire); }
+  .key.hot    { background: var(--accent); }
+  .key.dot {
+    width: 15px; height: 15px; border-radius: 50%;
+    background: var(--note); color: #fff;
+    font-size: 10px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+
+  /* ---------- flow strip ---------- */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 20px;
+    background: var(--panel);
+    border: 1px solid var(--wire-fill);
+    border-radius: 12px;
+    font-size: 13.5px;
+  }
+  .flow b { font-weight: 600; }
+  .flow .step {
+    padding: 5px 12px;
+    border: 1.5px solid var(--wire);
+    border-radius: 999px;
+    background: var(--wire-fill);
+    white-space: nowrap;
+  }
+  .flow .step.hot { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .flow .arrow { color: var(--wire); }
+
+  /* ---------- screen sections ---------- */
+  .screen {
+    display: grid;
+    grid-template-columns: minmax(280px, 340px) 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  .screen.wide { grid-template-columns: 1fr; }
+  @media (max-width: 720px) {
+    .screen { grid-template-columns: 1fr; }
+  }
+  .screen h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .screen h2 .no {
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 13px;
+    color: var(--accent);
+    margin-right: 10px;
+    letter-spacing: 0.05em;
+  }
+  .screen .purpose {
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin: 0 0 16px;
+  }
+  .notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  .notes li { display: flex; gap: 12px; font-size: 14px; }
+  .notes .dot {
+    flex: none;
+    width: 20px; height: 20px; margin-top: 2px;
+    border-radius: 50%;
+    background: var(--note); color: #fff;
+    font-size: 11px; font-weight: 700;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .notes b { font-weight: 600; }
+
+  /* ---------- phone frame ---------- */
+  .phone {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    aspect-ratio: 9 / 18.5;
+    background: var(--panel);
+    border: 2px solid var(--ink);
+    border-radius: 26px;
+    box-shadow: var(--frame-shadow);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+  .atom-frame {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 16 / 9;
+    background: var(--panel);
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    box-shadow: var(--frame-shadow);
+    padding: 16px;
+    box-sizing: border-box;
+    display: flex;
+    gap: 14px;
+  }
+
+  /* wireframe atoms */
+  .box, .box-d, .btn-hot {
+    border-radius: 10px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 12px;
+    line-height: 1.45;
+    padding: 6px;
+  }
+  .box   { border: 1.5px solid var(--wire); background: var(--wire-fill); }
+  .box-d { border: 1.5px dashed var(--wire); background: transparent; }
+  .btn-hot {
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    border-radius: 999px;
+  }
+  .pill {
+    border: 1.5px solid var(--wire);
+    background: var(--wire-fill);
+    border-radius: 999px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    padding: 3px 10px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pill.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); font-weight: 600; }
+  .bignum {
+    font-size: 64px;
+    font-weight: 800;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .bignum small { font-size: 16px; font-weight: 600; color: var(--ink-soft); }
+
+  /* mascot placeholder */
+  .mascot {
+    position: relative;
+    width: 74px; height: 74px;
+    border: 1.5px solid var(--wire);
+    border-radius: 50%;
+    background: var(--wire-fill);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--ink-soft); font-size: 11px; text-align: center;
+    flex: none;
+    margin: 0 auto;
+  }
+  .mascot::before, .mascot::after {
+    content: "";
+    position: absolute;
+    top: -12px;
+    width: 14px; height: 20px;
+    border: 1.5px solid var(--wire);
+    border-radius: 50% 50% 40% 40%;
+    background: var(--wire-fill);
+  }
+  .mascot::before { left: 13px; transform: rotate(-14deg); }
+  .mascot::after  { right: 13px; transform: rotate(14deg); }
+  .mascot.small { width: 56px; height: 56px; }
+  .mascot.small::before, .mascot.small::after { top: -10px; width: 11px; height: 16px; }
+
+  /* streak calendar */
+  .week { display: flex; gap: 5px; justify-content: center; }
+  .day {
+    width: 18px; height: 18px; border-radius: 5px;
+    border: 1.5px solid var(--wire); background: var(--wire-fill);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; color: var(--ink-soft);
+  }
+  .day.done { background: var(--mint); border-color: var(--mint); color: #fff; }
+  .day.today { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+
+  /* progress ring (CSS conic) */
+  .ring {
+    width: 88px; height: 88px; border-radius: 50%;
+    background: conic-gradient(var(--accent) 0 46%, var(--wire-fill) 46% 100%);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto;
+    flex: none;
+  }
+  .ring > div {
+    width: 68px; height: 68px; border-radius: 50%;
+    background: var(--panel);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--ink-soft);
+  }
+  .ring b { font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+  /* callout chips on frames */
+  .co {
+    position: absolute;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    background: var(--note);
+    color: #fff;
+    font-size: 12px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    z-index: 2;
+  }
+
+  /* camera viewfinder texture */
+  .cam {
+    position: relative;
+    flex: 1;
+    border: 1.5px solid var(--wire);
+    border-radius: 12px;
+    background:
+      repeating-linear-gradient(45deg, transparent 0 10px, var(--wire-fill) 10px 12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .silhouette {
+    width: 46%;
+    height: 78%;
+    border: 2px dashed var(--accent);
+    border-radius: 40% 40% 18% 18% / 26% 26% 10% 10%;
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    text-align: center;
+  }
+  .cam .badge {
+    position: absolute;
+    left: 50%; top: 12px; transform: translateX(-50%);
+    background: var(--panel);
+    border: 1.5px solid var(--wire);
+    border-radius: 999px;
+    padding: 3px 12px;
+    font-size: 11px;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .confetti {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(circle 3px at 18% 22%, var(--accent) 98%, transparent),
+      radial-gradient(circle 3px at 78% 14%, var(--mint) 98%, transparent),
+      radial-gradient(circle 2.5px at 60% 30%, var(--note) 98%, transparent),
+      radial-gradient(circle 3px at 32% 10%, var(--mint) 98%, transparent),
+      radial-gradient(circle 2.5px at 88% 38%, var(--accent) 98%, transparent);
+    pointer-events: none;
+  }
+
+  .rowline { display: flex; gap: 8px; align-items: center; justify-content: space-between; }
+  .stack { display: flex; flex-direction: column; gap: 8px; }
+  .grow { flex: 1; }
+
+  footer {
+    border-top: 1px solid var(--wire-fill);
+    padding-top: 20px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+</style>
+
+<div class="page">
+
+  <header>
+    <div class="eyebrow">Body Park · App + Atom</div>
+    <h1>跳绳小挑战 —— 核心界面线框图</h1>
+    <p>低保真线框，标注交互逻辑与自动行为。设计铁律：零决策启动、跳绳全程免触屏、反馈先于数字。完整产品思路见 <code>product-design.md</code>。</p>
+    <div class="legend">
+      <span><i class="key solid"></i>普通元素 / 可点击</span>
+      <span><i class="key dashed"></i>自动触发（无需操作）</span>
+      <span><i class="key hot"></i>唯一主操作</span>
+      <span><i class="key dot">n</i>标注编号</span>
+    </div>
+  </header>
+
+  <section class="flow">
+    <b>体验闭环：</b>
+    <span class="step">打开</span><span class="arrow">→</span>
+    <span class="step hot">开始跳绳</span><span class="arrow">→</span>
+    <span class="step">站进框 · 自动倒计时</span><span class="arrow">→</span>
+    <span class="step">跳 · 每 10 下小惊喜</span><span class="arrow">→</span>
+    <span class="step">达标庆祝</span><span class="arrow">→</span>
+    <span class="step">打卡 + 星星</span><span class="arrow">→</span>
+    <span class="step">明天再来</span>
+  </section>
+
+  <!-- ============ W1 今日页 ============ -->
+  <section class="screen">
+    <div class="phone">
+      <i class="co" style="top: 40px; right: -11px;">1</i>
+      <i class="co" style="top: 128px; left: -11px;">2</i>
+      <i class="co" style="top: 55%; right: -11px;">3</i>
+      <i class="co" style="bottom: 66px; left: -11px;">4</i>
+
+      <div class="rowline">
+        <span class="pill">🔥 连续 4 天</span>
+        <span class="pill">⭐ 128</span>
+      </div>
+      <div class="week">
+        <span class="day done">一</span><span class="day done">二</span><span class="day done">三</span>
+        <span class="day done">四</span><span class="day today">五</span><span class="day">六</span><span class="day">日</span>
+      </div>
+      <div class="box-d grow stack" style="justify-content: center; gap: 12px;">
+        <div class="mascot">吉祥物<br>Bono</div>
+        <span style="font-size: 12px; color: var(--ink-soft);">待机动画：拉伸热身<br>点击有彩蛋反应</span>
+      </div>
+      <div class="rowline">
+        <span class="pill on">50 下</span>
+        <span class="pill">100 下</span>
+        <span class="pill">自由跳</span>
+      </div>
+      <div class="btn-hot" style="height: 52px;">开始跳绳</div>
+    </div>
+
+    <div>
+      <h2><span class="no">W1</span>今日页（首页）</h2>
+      <p class="purpose">打开即到达。整页只有一个决策点，而且已替用户做好默认选择。</p>
+      <ul class="notes">
+        <li><span class="dot">1</span><div><b>打卡状态常驻顶部</b>：连续天数火苗 + 星星余额 + 最近 7 天打卡条，是每天回来的理由。</div></li>
+        <li><span class="dot">2</span><div><b>打卡条</b>：绿色 = 已完成，橙描边 = 今天。跳满目标自动点亮，不需要手动"签到"。</div></li>
+        <li><span class="dot">3</span><div><b>吉祥物是主视觉</b>：占屏幕一半，待机时做热身/打瞌睡动画，建立情感连接。</div></li>
+        <li><span class="dot">4</span><div><b>目标默认选中上次的选择</b>（首次默认 50）。用户可以完全不看这一行，直接按大按钮。</div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ W2 准备页 ============ -->
+  <section class="screen">
+    <div class="phone">
+      <i class="co" style="top: 90px; right: -11px;">1</i>
+      <i class="co" style="top: 48%; left: -11px;">2</i>
+      <i class="co" style="bottom: 100px; right: -11px;">3</i>
+
+      <div class="cam">
+        <span class="badge">把手机立好 · 退后 2 米</span>
+        <div class="silhouette">站进框内<br>自动开始</div>
+      </div>
+      <div class="box-d" style="height: 64px; font-size: 20px; font-weight: 700; color: var(--ink);">
+        3 · 2 · 1
+      </div>
+      <div class="box" style="height: 34px;">返回（唯一按钮）</div>
+    </div>
+
+    <div>
+      <h2><span class="no">W2</span>准备页</h2>
+      <p class="purpose">手里要拿绳，所以"开始"不能是按钮 —— 站进框就是开始。</p>
+      <ul class="notes">
+        <li><span class="dot">1</span><div><b>取景器 + 摆放引导</b>：顶部一句话提示摆放方式。检测到人形但距离太近/太远时，提示语实时更新。</div></li>
+        <li><span class="dot">2</span><div><b>人形轮廓框（橙色虚线）</b>：全身进框并稳定 1 秒 → 自动触发倒计时。Atom 端同步语音播报"三、二、一，跳！"。</div></li>
+        <li><span class="dot">3</span><div><b>倒计时区</b>：大数字 + 节拍音效，帮用户找到起跳节奏。中途离开框则倒计时取消，回框重来。</div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ W3 跳绳中 ============ -->
+  <section class="screen">
+    <div class="phone">
+      <i class="co" style="top: 84px; left: -11px;">1</i>
+      <i class="co" style="top: 40px; right: -11px;">2</i>
+      <i class="co" style="bottom: 150px; right: -11px;">3</i>
+      <i class="co" style="bottom: 44px; left: -11px;">4</i>
+
+      <div class="rowline">
+        <span class="pill">目标 50</span>
+        <span class="pill">⭐ 132</span>
+      </div>
+      <div class="stack grow" style="justify-content: center; align-items: center; gap: 14px;">
+        <div class="bignum">23<small> / 50</small></div>
+        <div class="ring"><div><b>46%</b>进度环</div></div>
+        <div class="mascot small">Bono<br>同步跳</div>
+      </div>
+      <div class="box-d" style="height: 56px;">相机小窗（可选显示自己）<br>置信度低时提示"往后站一点"</div>
+    </div>
+
+    <div>
+      <h2><span class="no">W3</span>跳绳中</h2>
+      <p class="purpose">核心界面。没有任何按钮 —— 唯一的任务就是跳。</p>
+      <ul class="notes">
+        <li><span class="dot">1</span><div><b>超大计数</b>：屏高约 1/4，2 米外可读。每跳一下：数字弹跳 + 短促"叮"声，全链路反馈延迟 &lt; 100ms。</div></li>
+        <li><span class="dot">2</span><div><b>星星余额实时可见</b>：里程碑掉落的星星飘到这里，强化"边跳边赚"的感觉。</div></li>
+        <li><span class="dot">3</span><div><b>吉祥物同步蹦跳</b>：跟随用户实际节奏，是"陪练"。用户停下，它也停下来喘气。</div></li>
+        <li><span class="dot">4</span><div><b>暂停 = 离开画面</b>：离框 5 秒自动暂停并保留进度，回框继续。不设暂停按钮。</div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ W4 惊喜时刻 ============ -->
+  <section class="screen">
+    <div class="phone" style="background: color-mix(in srgb, var(--mint) 10%, var(--panel));">
+      <div class="confetti"></div>
+      <i class="co" style="top: 30%; left: -11px;">1</i>
+      <i class="co" style="top: 108px; right: -11px;">2</i>
+      <i class="co" style="bottom: 120px; right: -11px;">3</i>
+
+      <div class="rowline">
+        <span class="pill">目标 50</span>
+        <span class="pill on">⭐ +2</span>
+      </div>
+      <div class="stack grow" style="justify-content: center; align-items: center; gap: 14px;">
+        <div class="bignum" style="color: var(--accent);">30<small> / 50</small></div>
+        <div class="box-d" style="width: 80%; height: 44px; border-color: var(--mint); color: var(--mint); font-weight: 600;">
+          背景切换 + 上扬音效
+        </div>
+        <div class="mascot small">Bono<br>搞怪姿势</div>
+      </div>
+      <div class="box-d" style="height: 44px;">随机彩蛋位：双倍星星 / 彩带雨（约 15% 概率）</div>
+    </div>
+
+    <div>
+      <h2><span class="no">W4</span>惊喜时刻（W3 的瞬时状态）</h2>
+      <p class="purpose">不是独立页面，是跳到 10 的倍数时叠加在 W3 上的 1–2 秒演出。节奏感不能被打断。</p>
+      <ul class="notes">
+        <li><span class="dot">1</span><div><b>每 10 下</b>：背景整体渐变换色（不换布局），数字短暂变橙放大，配上扬音效 —— "再跳 10 下"永远有盼头。</div></li>
+        <li><span class="dot">2</span><div><b>每 20 下</b>：+2⭐ 从画面中心飘向右上角余额，叮咚一声。</div></li>
+        <li><span class="dot">3</span><div><b>随机彩蛋</b>：小概率触发双倍星星或彩带雨，吉祥物摆搞怪姿势。可变奖励是"还想再跳"的关键。</div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ W5 结算页 ============ -->
+  <section class="screen">
+    <div class="phone">
+      <i class="co" style="top: 120px; right: -11px;">1</i>
+      <i class="co" style="top: 47%; left: -11px;">2</i>
+      <i class="co" style="bottom: 118px; right: -11px;">3</i>
+      <i class="co" style="bottom: 40px; left: -11px;">4</i>
+
+      <div class="confetti" style="height: 40%;"></div>
+      <div class="stack" style="align-items: center; gap: 10px; padding-top: 6px;">
+        <div class="mascot">Bono<br>后空翻庆祝</div>
+        <div class="bignum" style="font-size: 44px;">50<small> 下 · 达成！</small></div>
+        <span class="pill on">⭐ +10 · 今日打卡成功</span>
+      </div>
+      <div class="box" style="height: 58px;">
+        <div class="week">
+          <span class="day done">一</span><span class="day done">二</span><span class="day done">三</span>
+          <span class="day done">四</span><span class="day done">五</span><span class="day">六</span><span class="day">日</span>
+        </div>
+      </div>
+      <div class="box-d" style="height: 40px;">运营位（低调）：连续 21 天可兑换周边</div>
+      <div class="rowline" style="margin-top: auto;">
+        <div class="box grow" style="height: 46px;">分享</div>
+        <div class="btn-hot grow" style="height: 46px;">再跳一轮</div>
+      </div>
+    </div>
+
+    <div>
+      <h2><span class="no">W5</span>结算页</h2>
+      <p class="purpose">庆祝 → 打卡 → 埋下明天的钩子。达标后自动进入，不需要按任何键。</p>
+      <ul class="notes">
+        <li><span class="dot">1</span><div><b>成绩 + 收益一屏讲完</b>：本次次数、星星收入、"今日打卡成功"。打卡是结果不是操作。</div></li>
+        <li><span class="dot">2</span><div><b>打卡日历更新动画</b>：今天的格子当场从橙描边变绿，连续天数 +1 —— 让坚持"看得见"。</div></li>
+        <li><span class="dot">3</span><div><b>奖品运营位</b>：放最下面、可关。第一版可以只挂"连续 21 天兑周边"，不做商城。</div></li>
+        <li><span class="dot">4</span><div><b>主操作是"再跳一轮"</b>：意犹未尽的人一键续跳（进入自由跳），分享是次操作。</div></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ W6 Atom 端 ============ -->
+  <section class="screen wide">
+    <div>
+      <h2><span class="no">W6</span>Atom 端 · 跳绳中（横屏）</h2>
+      <p class="purpose">同一套组件、横向排版。观看距离 2–3 米，一切再放大一档；交互完全免触屏，语音播报兜底。</p>
+    </div>
+    <div class="atom-frame">
+      <i class="co" style="top: 36%; left: -11px;">1</i>
+      <i class="co" style="top: -11px; left: 50%;">2</i>
+      <i class="co" style="top: 36%; right: -11px;">3</i>
+      <i class="co" style="bottom: -11px; right: 24%;">4</i>
+
+      <div class="stack" style="width: 22%; justify-content: center; align-items: center; gap: 12px;">
+        <div class="mascot">Bono<br>同步跳</div>
+        <span class="pill">🔥 4 天</span>
+      </div>
+      <div class="stack grow" style="justify-content: center; align-items: center; gap: 12px;">
+        <div class="bignum" style="font-size: 88px;">23<small style="font-size: 22px;"> / 50</small></div>
+        <div class="ring"><div><b>46%</b>进度环</div></div>
+      </div>
+      <div class="stack" style="width: 24%; justify-content: center; gap: 10px;">
+        <span class="pill" style="align-self: stretch;">⭐ 132</span>
+        <div class="box-d grow" style="min-height: 90px;">相机小窗<br>（默认显示自己）</div>
+        <div class="box-d" style="height: 40px;">结算时此处出二维码<br>手机扫码看详情</div>
+      </div>
+    </div>
+    <ul class="notes" style="max-width: 640px;">
+      <li><span class="dot">1</span><div><b>吉祥物移到侧栏</b>：横屏三栏布局，中央让位给计数 —— 远距离下数字是唯一必须看清的东西。</div></li>
+      <li><span class="dot">2</span><div><b>计数字号再放大一档</b>（约屏高 40%），配<b>语音播报</b>：每 10 下报一次数，倒计时和达标也有语音。</div></li>
+      <li><span class="dot">3</span><div><b>相机小窗默认开启</b>：设备放在电视柜上，用户想确认自己有没有站好。</div></li>
+      <li><span class="dot">4</span><div><b>跨端衔接</b>：Atom 结算页显示二维码，手机扫码查看记录/分享；打卡与星星双端实时同步。</div></li>
+    </ul>
+  </section>
+
+  <footer>
+    Body Park · 跳绳小挑战 · 线框图 v0.1 —— 隐私原则：视频帧全部端上处理，不上传任何影像。
+  </footer>
+
+</div>
