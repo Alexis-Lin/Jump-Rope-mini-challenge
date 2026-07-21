@@ -454,6 +454,29 @@
   .flip-hint { color: var(--stage-soft); font-size: .62em; margin-top: .3em; }
   #a-r-page2 canvas { width: 9.5em; height: 9.5em; background: #fff; border-radius: .5em; padding: .4em; }
 
+  /* 漫画放射光背景：跳绳中淡淡的太阳光芒，达标后"燃起来" */
+  .rays {
+    position: absolute; inset: -50%;
+    background: repeating-conic-gradient(from 0deg,
+      rgba(35,199,102,.07) 0deg 9deg, transparent 9deg 22deg);
+    animation: rayspin 26s linear infinite;
+    opacity: 0; transition: opacity .8s;
+    pointer-events: none; z-index: 1;
+  }
+  .rays.on { opacity: 1; }
+  .rays.fired {
+    background: repeating-conic-gradient(from 0deg,
+      rgba(35,199,102,.30) 0deg 10deg,
+      rgba(255,255,255,.06) 10deg 14deg,
+      transparent 14deg 24deg);
+    animation: rayspin 5s linear infinite, raypulse 1.1s ease-in-out infinite;
+  }
+  @keyframes rayspin  { to { transform: rotate(360deg); } }
+  @keyframes raypulse { 50% { opacity: .6; filter: brightness(1.4); } }
+  @media (prefers-reduced-motion: reduce) {
+    .rays, .rays.fired { animation: none; }
+  }
+
   /* 圆屏内的覆盖层字号 */
   #atomRoot .milestone-toast { font-size: .9em; top: 30%; }
   #atomRoot .pauseveil { font-size: 1em; }
@@ -568,6 +591,7 @@
   <div id="atomWrap">
     <div id="atomRoot">
       <div class="atom-bg" id="atomBg"></div>
+      <div class="rays" id="a-rays"></div>
       <div class="atom-badge">BODY PARK · ATOM</div>
       <div class="edge"></div>
 
@@ -591,7 +615,7 @@
       <div class="ascreen" id="a-jump">
         <svg class="ring-svg" viewBox="0 0 466 466">
           <circle id="a-ring-base" cx="233" cy="233" r="216" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="11"></circle>
-          <circle id="a-ring-arc" cx="233" cy="233" r="216" fill="none" stroke="#B9F0D0" stroke-width="11"
+          <circle id="a-ring-arc" cx="233" cy="233" r="216" fill="none" stroke="#23C766" stroke-width="11"
                   stroke-linecap="round" stroke-dasharray="1357.2" stroke-dashoffset="1357.2"
                   transform="rotate(-90 233 233)"></circle>
         </svg>
@@ -677,6 +701,7 @@
     <!-- 跳绳中 -->
     <div class="pscreen" id="p-jump" style="padding:0;">
       <div class="jump-bg" id="p-jump-bg"></div>
+      <div class="rays" id="p-rays"></div>
       <div class="jump-layer" style="padding:20px 18px 14px;">
         <div class="topline">
           <span class="chip" id="p-goal-chip">目标 50</span>
@@ -687,7 +712,7 @@
         <div class="goal-ring" id="p-ring">
           <svg width="108" height="108" viewBox="0 0 108 108">
             <circle id="p-ring-base" cx="54" cy="54" r="47" fill="none" stroke="#E4E7E5" stroke-width="9"></circle>
-            <circle id="p-ring-arc" cx="54" cy="54" r="47" fill="none" stroke="#B9F0D0" stroke-width="9"
+            <circle id="p-ring-arc" cx="54" cy="54" r="47" fill="none" stroke="#23C766" stroke-width="9"
                     stroke-linecap="round" stroke-dasharray="295.3" stroke-dashoffset="295.3"></circle>
           </svg>
           <span class="pct" id="p-pct">0%</span>
@@ -1067,19 +1092,21 @@ function render() {
   $('p-star-live').textContent = profile.stars + S.earned;
   $('a-star-chip').textContent = '⭐ ' + (profile.stars + S.earned);
 
-  /* 嵌套环：每 50 下一圈。上一圈的颜色沉淀为底色，本圈用更深一档的绿覆盖着画 */
+  /* 圆环：每 50 下一圈，跳满即清零、从头再画；累计的圈数用星星表示 */
   const lap = Math.floor(S.count / 50), lapPct = (S.count % 50) / 50;
-  const shade = (i) => RING_SHADES[Math.min(i, RING_SHADES.length - 1)];
-  $('p-ring-base').style.stroke = lap > 0 ? shade(lap - 1) : '#E4E7E5';
-  $('p-ring-arc').style.stroke = shade(lap);
   $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - lapPct);
-  $('p-pct').textContent = lap > 0 ? '★' + lap : Math.round(lapPct * 100) + '%';
-  $('a-ring-base').style.stroke = lap > 0 ? shade(lap - 1) : 'rgba(255,255,255,.09)';
-  $('a-ring-arc').style.stroke = shade(lap);
+  $('p-pct').textContent = Math.round(lapPct * 100) + '%';
   $('a-ring-arc').style.strokeDashoffset = 1357.2 * (1 - lapPct);
-  /* 每 50 下点亮一颗星 */
+  /* 每跳满 50 就多点一颗星 */
   $('a-lapstars').textContent = fmtStars(lap);
   $('p-lapstars').textContent = fmtStars(lap);
+
+  /* 漫画放射光：跳绳中淡淡的，达标后"燃起来" */
+  const inJump = S.screen === 'jump' || S.screen === 'celebrate';
+  $('a-rays').classList.toggle('on', inJump);
+  $('p-rays').classList.toggle('on', inJump);
+  $('a-rays').classList.toggle('fired', inJump && S.goalHit);
+  $('p-rays').classList.toggle('fired', inJump && S.goalHit);
 
   /* 背景：只在已解锁的场景之间轮换（JRC 式收集） */
   const scene = SCENES[S.bgStep % Math.max(1, Math.min(profile.scenes, SCENES.length))];
@@ -1204,8 +1231,7 @@ function standLocked() {              /* 站进框稳定 → 开始倒计时 */
   }, 900);
 }
 
-/* 嵌套环配色：一圈 = 50 下，颜色逐圈加深 */
-const RING_SHADES = ['#B9F0D0', '#6FDE9E', '#23C766', '#16A353', '#0E7A3C', '#0A5C2E'];
+/* 一圈 = 50 下；跳满一圈点亮一颗星 */
 const fmtStars = (lap) => lap <= 0 ? '' : (lap <= 8 ? '★'.repeat(lap) : `★×${lap}`);
 
 const CHEERS = ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'];
@@ -1386,8 +1412,8 @@ function setAuto(on) {
     if (S.screen === 'idle') startSession();
     else if (S.screen === 'ready' && S.countdown === 0) standLocked();
     else if (S.screen === 'jump' && !S.paused) {
-      /* 演示时达标后再超额跳 12 下，模拟"用户自己停下来" */
-      if (S.goal > 0 && S.goalHit && S.count >= S.goal + 12) endSession();
+      /* 演示跳到 105 下再停：能看到两颗星点亮 + 第三圈开始 + 达标"燃起来" */
+      if (S.count >= 105) endSession();
       else registerJump();
     }
   }, 460);
