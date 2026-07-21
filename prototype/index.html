@@ -363,9 +363,10 @@
   }
   .ascreen.show { display: flex; }
   .atom-bg { position: absolute; inset: 0; transition: background 1.2s; }
+  /* 字阶（466 设计稿 px → em）：22=1.375 / 24=1.5 / 28=1.75 / 32=2 / 36=2.25 */
   .atom-badge {
     position: absolute; top: 7.5%; left: 0; right: 0; z-index: 5;
-    font-size: .55em; letter-spacing: .3em; color: var(--stage-soft); font-weight: 700;
+    font-size: 1.375em; letter-spacing: .1em; color: var(--stage-soft); font-weight: 700;
     text-align: center;
   }
   /* 边缘光：圆屏的"站位状态灯"（取代相机小窗） */
@@ -384,26 +385,26 @@
   .atom-cta {
     z-index: 3;
     background: linear-gradient(180deg, var(--accent), var(--accent-deep));
-    color: #fff; font-size: .9em; font-weight: 700;
-    border-radius: 999px; padding: .55em 1.8em;
+    color: #fff; font-size: 1.5em; font-weight: 700;
+    border-radius: 999px; padding: .45em 1.5em;
     box-shadow: 0 .3em 1.2em rgba(35,199,102,.4);
   }
 
   /* Atom 待机 */
-  #a-idle { gap: .55em; z-index: 2; }
-  #a-idle .big-tip { font-size: 1.12em; font-weight: 700; line-height: 1.5; max-width: 72%; }
-  #a-idle .sub-tip { color: var(--stage-soft); font-size: .78em; }
+  #a-idle { gap: .5em; z-index: 2; }
+  #a-idle .big-tip { font-size: 2em; font-weight: 700; line-height: 1.4; max-width: 78%; }
+  #a-idle .sub-tip { color: var(--stage-soft); font-size: 1.375em; }
   .a-goal-chip {
     background: #1B201D; color: var(--accent);
     border: 1.5px solid var(--accent); border-radius: 999px;
-    padding: .32em 1.1em; font-size: .85em; font-weight: 700;
+    padding: .28em .9em; font-size: 1.5em; font-weight: 700;
     z-index: 3;
   }
 
   /* Atom 准备：无取景器，靠边缘光 + 语音 */
   #a-ready { gap: .6em; z-index: 2; }
-  #a-ready .status { font-size: 1.05em; font-weight: 700; max-width: 70%; line-height: 1.5; }
-  #a-ready .hint { font-size: .72em; color: var(--stage-soft); }
+  #a-ready .status { font-size: 1.75em; font-weight: 700; max-width: 76%; line-height: 1.45; }
+  #a-ready .hint { font-size: 1.375em; color: var(--stage-soft); }
   .countdown-big {
     font-size: 8.5em; font-weight: 800; line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -423,13 +424,13 @@
   }
   .a-count.pop { transform: scale(1.09); }
   .a-count.over { color: #FFB020; }   /* 达标后计数转暖色，与火焰呼应 */
-  .a-count-sub { font-size: .85em; color: var(--stage-soft); font-weight: 700; }
+  .a-count-sub { font-size: 1.5em; color: var(--stage-soft); font-weight: 700; }
   #a-jump .a-star {
-    font-size: .78em; font-weight: 700; color: var(--gold);
+    font-size: 1.375em; font-weight: 700; color: var(--gold);
     font-variant-numeric: tabular-nums;
   }
   .a-lapstars {
-    color: var(--accent); font-size: .85em; font-weight: 700;
+    color: var(--accent); font-size: 1.5em; font-weight: 700;
     letter-spacing: .15em; min-height: 1.2em;
     font-variant-numeric: tabular-nums;
   }
@@ -439,8 +440,8 @@
   }
   /* Bono 用 em 定尺寸，跟随圆屏等比缩放 */
   #a-bono-jump svg { width: 16.5em; height: 16.5em; }
-  #a-bono-idle svg { width: 6.2em; height: 6.2em; }
-  #a-bono-result svg { width: 4.2em; height: 4.2em; }
+  #a-bono-idle svg { width: 5.5em; height: 5.5em; }
+  #a-bono-result svg { width: 2.8em; height: 2.8em; }
   /* 火柴人线条颜色：深色屏白线，浅色屏黑线 */
   .bono { color: var(--ink); }
   #atomRoot .bono, #launcher .bono { color: var(--stage-ink); }
@@ -452,12 +453,13 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: .3em;
   }
-  #a-result .num { font-size: 4.4em; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
-  #a-result .lab { font-size: .95em; font-weight: 700; }
-  #a-result .earn { color: var(--gold); font-size: .85em; font-weight: 700; }
-  #a-result .streak { color: var(--mint); font-size: .78em; }
-  #a-result .unlock { color: #7FE3A8; font-size: .74em; font-weight: 600; min-height: 1em; }
-  .flip-hint { color: var(--stage-soft); font-size: .62em; margin-top: .3em; }
+  #a-result .num { font-size: 3.6em; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  #a-result .lab { font-size: 1.75em; font-weight: 700; }
+  #a-result .earn { color: var(--gold); font-size: 1.5em; font-weight: 700; }
+  #a-result .streak { color: var(--mint); font-size: 1.375em; }
+  #a-result .unlock { color: #7FE3A8; font-size: 1.375em; font-weight: 600; }
+  #a-result .unlock:empty, #a-result .streak:empty { display: none; }
+  .flip-hint { color: var(--stage-soft); font-size: 1.375em; margin-top: .2em; }
   #a-r-page2 canvas { width: 9.5em; height: 9.5em; background: #fff; border-radius: .5em; padding: .4em; }
 
   /* 漫画放射光背景（燃起来）：前 50 纯黑；每满 50 火焰升一级，暖橙黄色系 */
@@ -496,10 +498,11 @@
   }
 
   /* 圆屏内的覆盖层字号 */
-  #atomRoot .milestone-toast { font-size: .9em; top: 30%; }
-  #atomRoot .pauseveil { font-size: 1em; }
-  #atomRoot .pauseveil span { font-size: .68em; }
-  #atomRoot .celebrate .txt { font-size: 2.1em; }
+  #atomRoot .milestone-toast { font-size: 1.5em; top: 30%; max-width: 86%; white-space: normal; }
+  #atomRoot .pauseveil { font-size: 1.75em; }
+  #atomRoot .pauseveil span { font-size: .786em; }   /* 22px */
+  #atomRoot .pauseveil .atom-cta { font-size: .857em; }  /* 24px */
+  #atomRoot .celebrate .txt { font-size: 2.25em; }
 
   /* 达标庆祝覆盖层（两端共用样式） */
   .celebrate {
@@ -663,11 +666,11 @@
           <div class="streak" id="a-r-rank" style="color: var(--stage-soft);"></div>
           <div class="unlock" id="a-r-unlock"></div>
           <button class="atom-cta" data-act="again">再跳一轮</button>
-          <div class="flip-hint">点按屏幕 → 手机扫码看详情</div>
+          <div class="flip-hint">点按翻面看二维码</div>
         </div>
         <div class="r-page hidden" id="a-r-page2">
           <canvas id="a-qr" width="120" height="120"></canvas>
-          <div class="flip-hint">手机扫码查看记录（示意）· 点按返回</div>
+          <div class="flip-hint">扫码看详情 · 点按返回</div>
         </div>
       </div>
 
