@@ -1,0 +1,1214 @@
+<title>跳绳小挑战 · 可交互原型</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* ============================================================
+     Body Park · 跳绳小挑战 可交互原型
+     单文件、零依赖。手机端 / Atom 端 / 双端同屏 三种模式。
+     ============================================================ */
+  :root {
+    --ink: #1F262E;
+    --ink-soft: #67707B;
+    --paper: #F4F6F8;
+    --card: #FFFFFF;
+    --accent: #FF5C38;
+    --accent-deep: #E64425;
+    --accent-soft: #FFE9E2;
+    --mint: #1FA883;
+    --mint-soft: #DFF5EE;
+    --gold: #F5A623;
+    --stage: #0F1622;       /* Atom 的深色舞台 */
+    --stage-ink: #F2EFE9;
+    --stage-soft: #8E97A6;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--stage);
+    color: var(--stage-ink);
+    font-family: "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", "Microsoft YaHei", system-ui, sans-serif;
+    overflow-x: hidden;
+  }
+  button { font-family: inherit; cursor: pointer; border: none; }
+  .hidden { display: none !important; }
+
+  /* ---------------- 启动器 ---------------- */
+  #launcher {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 40px 20px;
+    text-align: center;
+  }
+  #launcher .logo { font-size: 52px; }
+  #launcher h1 { font-size: 26px; margin: 0; font-weight: 700; }
+  #launcher p  { margin: 0; color: var(--stage-soft); font-size: 14px; max-width: 34em; line-height: 1.7; }
+  .mode-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .mode-card {
+    width: 180px;
+    padding: 22px 16px 18px;
+    border-radius: 18px;
+    background: #1A2330;
+    color: var(--stage-ink);
+    border: 1.5px solid #2A3648;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    transition: transform .15s, border-color .15s;
+  }
+  .mode-card:hover { transform: translateY(-3px); border-color: var(--accent); }
+  .mode-card .ic { font-size: 34px; }
+  .mode-card b { font-size: 16px; }
+  .mode-card span { font-size: 12px; color: var(--stage-soft); line-height: 1.5; }
+  .mode-card.primary { border-color: var(--accent); background: linear-gradient(160deg, #2A1B16, #1A2330); }
+  .link-hint {
+    font-size: 12.5px; color: var(--stage-soft);
+    border: 1px dashed #2A3648; border-radius: 12px;
+    padding: 10px 16px; max-width: 46em; line-height: 1.7;
+  }
+  .link-hint b { color: var(--stage-ink); }
+
+  /* ---------------- 原型控制条（页面底部，非产品 UI） ---------------- */
+  #protobar {
+    position: fixed;
+    left: 50%; bottom: 10px; transform: translateX(-50%);
+    z-index: 90;
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
+    background: rgba(16, 22, 34, 0.92);
+    border: 1px solid #2A3648;
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-size: 12px;
+    color: var(--stage-soft);
+    backdrop-filter: blur(6px);
+    max-width: calc(100vw - 16px);
+  }
+  #protobar .tag { color: var(--accent); font-weight: 700; letter-spacing: .08em; }
+  #protobar button {
+    background: #223047; color: var(--stage-ink);
+    border-radius: 999px; padding: 5px 11px; font-size: 12px;
+  }
+  #protobar button.on { background: var(--accent); color: #fff; }
+  #protobar .sep { width: 1px; height: 16px; background: #2A3648; }
+  #peers { color: var(--mint); }
+
+  /* ---------------- 舞台布局 ---------------- */
+  #stage {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    padding: 18px 14px 64px;
+    flex-wrap: wrap;
+  }
+  body[data-mode="phone"] #atomRoot { display: none; }
+  body[data-mode="atom"]  #phoneRoot { display: none; }
+  body[data-mode="atom"] #stage { padding: 10px 10px 60px; }
+
+  /* ================= 手机端 ================= */
+  #phoneRoot {
+    width: min(385px, 100vw - 16px);
+    height: min(760px, 100vh - 84px);
+    min-height: 560px;
+    background: var(--paper);
+    color: var(--ink);
+    border-radius: 30px;
+    border: 3px solid #060A10;
+    box-shadow: 0 18px 60px rgba(0,0,0,.5);
+    overflow: hidden;
+    position: relative;
+    flex: none;
+    display: flex;
+    flex-direction: column;
+  }
+  .pscreen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 20px 18px 18px; }
+  .pscreen.show { display: flex; }
+
+  .topline { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--card); border-radius: 999px;
+    padding: 5px 12px; font-size: 13px; font-weight: 600;
+    box-shadow: 0 1px 4px rgba(31,38,46,.08);
+    font-variant-numeric: tabular-nums;
+  }
+  .chip .fl { color: var(--accent); }
+  .chip .st { color: var(--gold); }
+
+  .week { display: flex; gap: 6px; justify-content: center; margin: 14px 0 4px; }
+  .day {
+    width: 30px; height: 34px; border-radius: 9px;
+    background: var(--card); color: var(--ink-soft);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-size: 10px; gap: 1px;
+    box-shadow: 0 1px 3px rgba(31,38,46,.06);
+  }
+  .day b { font-size: 11px; }
+  .day.done { background: var(--mint); color: #fff; }
+  .day.today { outline: 2px solid var(--accent); outline-offset: 1px; color: var(--accent); }
+  .day.today.done { color: #fff; }
+
+  .mascot-zone {
+    flex: 1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+    min-height: 0;
+  }
+  .hello { font-size: 15px; color: var(--ink-soft); }
+
+  .goal-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
+  .goal-pill {
+    background: var(--card); color: var(--ink-soft);
+    border: 1.5px solid transparent;
+    border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 600;
+  }
+  .goal-pill.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+  .cta {
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    color: #fff; font-size: 17px; font-weight: 700;
+    border-radius: 999px; padding: 15px;
+    box-shadow: 0 6px 18px rgba(255,92,56,.35);
+    transition: transform .1s;
+  }
+  .cta:active { transform: scale(.97); }
+  .ghost {
+    background: var(--card); color: var(--ink-soft);
+    border-radius: 999px; padding: 13px; font-size: 14px; font-weight: 600;
+  }
+
+  /* 准备页 */
+  .viewfinder {
+    flex: 1;
+    border-radius: 18px;
+    background:
+      linear-gradient(rgba(15,22,34,.55), rgba(15,22,34,.55)),
+      repeating-linear-gradient(45deg, #202B3B 0 12px, #26324a 12px 24px);
+    position: relative;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 0;
+  }
+  .viewfinder video {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; transform: scaleX(-1); opacity: .85;
+  }
+  .silhouette {
+    width: 45%; height: 80%;
+    border: 2.5px dashed var(--accent);
+    border-radius: 42% 42% 16% 16% / 26% 26% 9% 9%;
+    background: rgba(255,92,56,.10);
+    display: flex; align-items: flex-end; justify-content: center;
+    padding-bottom: 12px;
+    color: #FFD9CE; font-size: 13px; font-weight: 600; text-align: center;
+    position: relative; z-index: 2;
+    transition: border-color .3s, background .3s;
+  }
+  .silhouette.locked { border-color: var(--mint); background: rgba(31,168,131,.16); color: #C8F2E5; }
+  .vf-tip {
+    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    background: rgba(16,22,34,.8); color: var(--stage-ink);
+    border-radius: 999px; padding: 5px 14px; font-size: 12px; white-space: nowrap; z-index: 2;
+  }
+  .countdown-num {
+    position: absolute; inset: 0; z-index: 3;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 120px; font-weight: 800; color: #fff;
+    text-shadow: 0 4px 30px rgba(0,0,0,.5);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 跳绳中（手机） */
+  .jump-bg {
+    position: absolute; inset: 0;
+    transition: background 1s;
+  }
+  .jump-layer { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; }
+  .bigcount {
+    text-align: center;
+    font-size: 92px; font-weight: 800; line-height: 1;
+    font-variant-numeric: tabular-nums;
+    margin-top: 12px;
+    transition: transform .12s, color .3s;
+  }
+  .bigcount small { font-size: 22px; font-weight: 700; color: var(--ink-soft); }
+  .bigcount.pop { transform: scale(1.12); }
+  .goal-ring {
+    width: 108px; height: 108px; border-radius: 50%;
+    margin: 14px auto 0;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; flex: none;
+  }
+  .goal-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+  .goal-ring .pct { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .milestone-toast {
+    position: absolute; left: 50%; top: 34%; transform: translate(-50%,-50%) scale(.8);
+    background: rgba(16,22,34,.85); color: #fff;
+    border-radius: 16px; padding: 12px 22px;
+    font-size: 17px; font-weight: 700; white-space: nowrap;
+    opacity: 0; pointer-events: none; z-index: 5;
+    transition: opacity .25s, transform .25s;
+  }
+  .milestone-toast.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  .tap-hint { text-align: center; font-size: 12.5px; color: var(--ink-soft); padding: 8px 0 2px; }
+
+  /* 结算页 */
+  .result-hero { text-align: center; margin-top: 6px; }
+  .result-hero .num { font-size: 60px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .result-hero .lab { font-size: 16px; color: var(--ink-soft); font-weight: 600; }
+  .earn-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--accent-soft); color: var(--accent-deep);
+    border-radius: 999px; padding: 7px 16px; font-size: 14px; font-weight: 700;
+    margin-top: 10px;
+  }
+  .streak-line { text-align: center; font-size: 13.5px; color: var(--ink-soft); margin-top: 14px; }
+  .streak-line b { color: var(--mint); font-size: 16px; }
+  .op-note {
+    margin-top: auto; margin-bottom: 12px;
+    border: 1.5px dashed #C9D0D8; border-radius: 12px;
+    padding: 9px 12px; font-size: 12px; color: var(--ink-soft); text-align: center;
+  }
+  .btn-row { display: flex; gap: 10px; }
+  .btn-row > * { flex: 1; }
+
+  /* ================= Atom 端 ================= */
+  #atomRoot {
+    width: min(960px, 100vw - 16px);
+    aspect-ratio: 16 / 9;
+    max-height: calc(100vh - 90px);
+    background: var(--stage);
+    border-radius: 18px;
+    border: 3px solid #060A10;
+    box-shadow: 0 18px 60px rgba(0,0,0,.55);
+    position: relative;
+    overflow: hidden;
+    flex: none;
+  }
+  body[data-mode="atom"] #atomRoot {
+    width: min(100vw - 12px, (100vh - 80px) * 1.78);
+  }
+  .ascreen { position: absolute; inset: 0; display: none; }
+  .ascreen.show { display: flex; }
+  .atom-bg { position: absolute; inset: 0; transition: background 1.2s; }
+  .atom-badge {
+    position: absolute; top: 14px; left: 18px; z-index: 5;
+    font-size: 12px; letter-spacing: .22em; color: var(--stage-soft); font-weight: 700;
+  }
+
+  /* Atom 待机 */
+  #a-idle { flex-direction: column; align-items: center; justify-content: center; gap: 3%; z-index: 2; }
+  #a-idle .big-tip { font-size: clamp(20px, 3.4vw, 34px); font-weight: 700; z-index: 2; text-align: center; }
+  #a-idle .sub-tip { color: var(--stage-soft); font-size: clamp(12px, 1.6vw, 16px); z-index: 2; text-align: center; line-height: 1.7; }
+  #a-idle .goal-row { margin: 0; z-index: 2; }
+  #a-idle .goal-pill { background: #1A2330; color: var(--stage-soft); }
+  #a-idle .goal-pill.on { background: #33201A; color: var(--accent); border-color: var(--accent); }
+  .atom-cta {
+    z-index: 2;
+    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+    color: #fff; font-size: clamp(15px, 2vw, 20px); font-weight: 700;
+    border-radius: 999px; padding: 0.7em 2.2em;
+    box-shadow: 0 6px 22px rgba(255,92,56,.4);
+  }
+
+  /* Atom 准备 */
+  #a-ready { z-index: 2; }
+  #a-ready .viewfinder { flex: 1; border-radius: 0; }
+  #a-ready .countdown-num { font-size: clamp(120px, 22vw, 220px); }
+
+  /* Atom 跳绳中：三栏 */
+  #a-jump { z-index: 2; }
+  .a-col { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4%; z-index: 2; }
+  .a-left  { width: 22%; }
+  .a-mid   { flex: 1; }
+  .a-right { width: 23%; padding: 2%; gap: 10px; }
+  .a-count {
+    font-size: clamp(90px, 17vw, 190px);
+    font-weight: 800; line-height: 1;
+    font-variant-numeric: tabular-nums;
+    transition: transform .12s;
+  }
+  .a-count.pop { transform: scale(1.09); }
+  .a-count-sub { font-size: clamp(14px, 2vw, 22px); color: var(--stage-soft); font-weight: 700; margin-top: 2px; }
+  .a-chip {
+    background: rgba(255,255,255,.08);
+    border-radius: 999px; padding: 6px 16px;
+    font-size: clamp(12px, 1.5vw, 16px); font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+  .a-cam {
+    width: 100%; flex: 1; min-height: 0;
+    border-radius: 12px; overflow: hidden; position: relative;
+    background: repeating-linear-gradient(45deg, #1A2330 0 10px, #202B3B 10px 20px);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--stage-soft); font-size: 12px; text-align: center;
+  }
+  .a-cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+
+  /* Atom 结算 */
+  #a-result { z-index: 2; align-items: center; justify-content: center; gap: 4%; }
+  #a-result .r-main { display: flex; flex-direction: column; align-items: center; gap: 2%; z-index: 2; }
+  #a-result .num { font-size: clamp(70px, 12vw, 140px); font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  #a-result .lab { font-size: clamp(15px, 2.2vw, 24px); font-weight: 700; }
+  #a-result .earn { color: var(--gold); font-size: clamp(13px, 1.8vw, 19px); font-weight: 700; }
+  #a-result .streak { color: var(--mint); font-size: clamp(12px, 1.6vw, 17px); }
+  .qr-box {
+    z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--stage-soft); font-size: 12px;
+  }
+  .qr-box canvas { border-radius: 8px; background: #fff; padding: 6px; width: clamp(70px, 10vw, 110px); height: auto; }
+
+  /* 达标庆祝覆盖层（两端共用样式） */
+  .celebrate {
+    position: absolute; inset: 0; z-index: 20;
+    display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 12px;
+    background: rgba(15,22,34,.55);
+    backdrop-filter: blur(2px);
+  }
+  .celebrate.show { display: flex; }
+  .celebrate .txt {
+    font-size: clamp(34px, 6vw, 64px); font-weight: 800; color: #fff;
+    text-shadow: 0 4px 24px rgba(0,0,0,.4);
+    animation: zoomin .5s;
+  }
+  @keyframes zoomin { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  /* 暂停覆盖层 */
+  .pauseveil {
+    position: absolute; inset: 0; z-index: 18;
+    display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px;
+    background: rgba(15,22,34,.72); color: #fff;
+    font-size: 18px; font-weight: 700;
+  }
+  .pauseveil.show { display: flex; }
+  .pauseveil span { font-size: 13px; font-weight: 400; color: var(--stage-soft); }
+
+  /* ---------------- 吉祥物 Bono ---------------- */
+  .bono { position: relative; flex: none; }
+  .bono svg { display: block; }
+  .bono .body-g { transform-origin: 50% 88%; }
+  .bono.idle .body-g { animation: breathe 2.6s ease-in-out infinite; }
+  @keyframes breathe { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.03,.97); } }
+  .bono.hop .body-g { animation: hop .38s ease-out; }
+  @keyframes hop {
+    0% { transform: translateY(0) scale(1.06,.92); }
+    40% { transform: translateY(-16%) scale(.96,1.05); }
+    100% { transform: translateY(0) scale(1,1); }
+  }
+  .bono.party .body-g { animation: party 0.8s ease-in-out infinite; }
+  @keyframes party {
+    0%,100% { transform: translateY(0) rotate(-6deg); }
+    50% { transform: translateY(-14%) rotate(6deg); }
+  }
+  .bono .rope { transform-origin: 50% 62%; animation: none; opacity: 0; }
+  .bono.hop .rope, .bono.party .rope { opacity: 1; animation: ropespin .38s linear infinite; }
+  @keyframes ropespin { from { transform: rotateX(0); } to { transform: rotateX(360deg); } }
+
+  /* 彩带粒子 */
+  .confetti-p {
+    position: absolute; width: 9px; height: 13px; border-radius: 2px;
+    top: -20px; z-index: 30; pointer-events: none;
+    animation: cfall linear forwards;
+  }
+  @keyframes cfall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: .2; }
+  }
+  #atomRoot .confetti-p, #phoneRoot .confetti-p { animation-name: cfall2; }
+  @keyframes cfall2 { to { transform: translateY(900px) rotate(720deg); opacity: .2; } }
+
+  /* 星星飞入 */
+  .fly-star {
+    position: absolute; z-index: 25; font-size: 22px; pointer-events: none;
+    transition: transform 1s cubic-bezier(.4,-0.2,.6,1), opacity 1s;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bono.idle .body-g, .bono.party .body-g, .bono .rope { animation: none !important; }
+    .confetti-p { display: none; }
+  }
+  @media (max-width: 740px) {
+    #stage { gap: 14px; }
+    body[data-mode="duo"] #atomRoot { width: 100%; }
+  }
+</style>
+
+<!-- ==================== 启动器 ==================== -->
+<div id="launcher">
+  <div class="logo">🦘</div>
+  <h1>跳绳小挑战 · 可交互原型</h1>
+  <p>Body Park × Atom。选择要体验的设备端 —— 三种打开方式对应三个真实使用场景。</p>
+  <div class="mode-row">
+    <button class="mode-card primary" data-pick="atom">
+      <span class="ic">📺</span><b>Atom 端</b>
+      <span>智能设备 · 横屏大字<br>语音播报 · 免触屏流程</span>
+    </button>
+    <button class="mode-card" data-pick="phone">
+      <span class="ic">📱</span><b>手机 App</b>
+      <span>竖屏 · 单独使用<br>完整打卡闭环</span>
+    </button>
+    <button class="mode-card" data-pick="duo">
+      <span class="ic">⿻</span><b>双端同屏</b>
+      <span>App + Atom 同时运行<br>状态实时互通</span>
+    </button>
+  </div>
+  <div class="link-hint">
+    💡 也可以<b>把本页在两个浏览器窗口各开一份</b>，一个选「手机」、一个选「Atom」——
+    两个窗口会自动联动（开始、计数、结算实时同步），模拟"手机 + Atom 同时打开"的真实场景。<br>
+    计数方式：<b>模拟跳</b>（空格键 / 点按 / 自动演示）或<b>摄像头动作检测</b>（在底部控制条开启）。
+  </div>
+</div>
+
+<!-- ==================== 舞台 ==================== -->
+<div id="stage" class="hidden">
+
+  <!-- ========== Atom 端 ========== -->
+  <div id="atomRoot">
+    <div class="atom-bg" id="atomBg"></div>
+    <div class="atom-badge">BODY PARK · ATOM</div>
+
+    <!-- 待机 -->
+    <div class="ascreen" id="a-idle">
+      <div id="a-bono-idle"></div>
+      <div class="big-tip">站到镜头前，开始今天的跳绳吧</div>
+      <div class="sub-tip">今日目标 <b id="a-goal-txt">50</b> 下 · <span id="a-streak-txt">连续 0 天</span> · ⭐ <span id="a-stars-txt">0</span></div>
+      <div class="goal-row" id="a-goal-row">
+        <button class="goal-pill" data-goal="50">50 下</button>
+        <button class="goal-pill" data-goal="100">100 下</button>
+        <button class="goal-pill" data-goal="0">自由跳</button>
+      </div>
+      <button class="atom-cta" id="a-start">开始（或站进画面自动开始）</button>
+    </div>
+
+    <!-- 准备 / 倒计时 -->
+    <div class="ascreen" id="a-ready" style="flex-direction: column;">
+      <div class="viewfinder">
+        <video id="a-video" autoplay playsinline muted class="hidden"></video>
+        <div class="vf-tip" id="a-vf-tip">全身站进虚线框，保持 1 秒自动开始</div>
+        <div class="silhouette" id="a-sil">站进框内</div>
+        <div class="countdown-num hidden" id="a-cd"></div>
+      </div>
+    </div>
+
+    <!-- 跳绳中 -->
+    <div class="ascreen" id="a-jump">
+      <div class="a-col a-left">
+        <div id="a-bono-jump"></div>
+        <div class="a-chip" id="a-streak-chip">🔥 0 天</div>
+      </div>
+      <div class="a-col a-mid">
+        <div class="a-count" id="a-count">0</div>
+        <div class="a-count-sub" id="a-count-sub">/ 50</div>
+      </div>
+      <div class="a-col a-right">
+        <div class="a-chip" id="a-star-chip">⭐ 0</div>
+        <div class="a-cam" id="a-cam"><span>相机小窗<br>（确认站位）</span></div>
+      </div>
+      <div class="milestone-toast" id="a-toast"></div>
+      <div class="pauseveil" id="a-pause">
+        已暂停<span>回到画面中（或按继续）即可接着跳</span>
+        <button class="atom-cta" data-act="resume" style="font-size:14px;">继续</button>
+      </div>
+    </div>
+
+    <!-- 结算 -->
+    <div class="ascreen" id="a-result">
+      <div class="r-main">
+        <div id="a-bono-result"></div>
+        <div class="num" id="a-r-num">50</div>
+        <div class="lab" id="a-r-lab">目标达成！</div>
+        <div class="earn" id="a-r-earn">⭐ +10</div>
+        <div class="streak" id="a-r-streak">🔥 连续 1 天打卡</div>
+        <button class="atom-cta" data-act="again" style="margin-top:10px;">再跳一轮</button>
+      </div>
+      <div class="qr-box">
+        <canvas id="a-qr" width="120" height="120"></canvas>
+        <span>手机扫码查看记录（示意）</span>
+      </div>
+    </div>
+
+    <div class="celebrate" id="a-celebrate"><div class="txt">🎉 目标达成！</div></div>
+  </div>
+
+  <!-- ========== 手机端 ========== -->
+  <div id="phoneRoot">
+
+    <!-- 今日页 -->
+    <div class="pscreen show" id="p-home">
+      <div class="topline">
+        <span class="chip"><span class="fl">🔥</span><span id="p-streak-num">0</span> 天</span>
+        <span class="chip"><span class="st">⭐</span><span id="p-stars-num">0</span></span>
+      </div>
+      <div class="week" id="p-week"></div>
+      <div class="mascot-zone">
+        <div id="p-bono-home"></div>
+        <div class="hello" id="p-hello">今天也一起跳吧！</div>
+      </div>
+      <div class="goal-row" id="p-goal-row">
+        <button class="goal-pill" data-goal="50">50 下</button>
+        <button class="goal-pill" data-goal="100">100 下</button>
+        <button class="goal-pill" data-goal="0">自由跳</button>
+      </div>
+      <button class="cta" id="p-start">开始跳绳</button>
+    </div>
+
+    <!-- 准备页 -->
+    <div class="pscreen" id="p-ready">
+      <div class="viewfinder">
+        <video id="p-video" autoplay playsinline muted class="hidden"></video>
+        <div class="vf-tip" id="p-vf-tip">把手机立好 · 退后 2 米</div>
+        <div class="silhouette" id="p-sil">站进框内<br>自动开始</div>
+        <div class="countdown-num hidden" id="p-cd"></div>
+      </div>
+      <button class="ghost" id="p-fake-stand" style="margin-top:12px;">（原型）我站好了</button>
+      <button class="ghost" data-act="home" style="margin-top:8px;">返回</button>
+    </div>
+
+    <!-- 跳绳中 -->
+    <div class="pscreen" id="p-jump" style="padding:0;">
+      <div class="jump-bg" id="p-jump-bg"></div>
+      <div class="jump-layer" style="padding:20px 18px 14px;">
+        <div class="topline">
+          <span class="chip" id="p-goal-chip">目标 50</span>
+          <span class="chip"><span class="st">⭐</span><span id="p-star-live">0</span></span>
+        </div>
+        <div class="bigcount" id="p-count">0<small id="p-count-sub"> / 50</small></div>
+        <div class="goal-ring" id="p-ring">
+          <svg width="108" height="108" viewBox="0 0 108 108">
+            <circle cx="54" cy="54" r="47" fill="none" stroke="#E2E7EC" stroke-width="9"></circle>
+            <circle id="p-ring-arc" cx="54" cy="54" r="47" fill="none" stroke="#FF5C38" stroke-width="9"
+                    stroke-linecap="round" stroke-dasharray="295.3" stroke-dashoffset="295.3"></circle>
+          </svg>
+          <span class="pct" id="p-pct">0%</span>
+        </div>
+        <div class="mascot-zone" style="flex:1;">
+          <div id="p-bono-jump"></div>
+        </div>
+        <div class="tap-hint">模拟模式：空格键或点按屏幕任意处 = 跳一下</div>
+        <button class="ghost" id="p-finish-free" style="display:none;">结束本轮</button>
+      </div>
+      <div class="milestone-toast" id="p-toast"></div>
+      <div class="pauseveil" id="p-pause">
+        已暂停<span>回到画面中（或点继续）接着跳</span>
+        <button class="cta" data-act="resume" style="padding:10px 26px;font-size:14px;">继续</button>
+      </div>
+    </div>
+
+    <!-- 结算页 -->
+    <div class="pscreen" id="p-result">
+      <div class="mascot-zone" style="flex:none;margin-top:8px;">
+        <div id="p-bono-result"></div>
+      </div>
+      <div class="result-hero">
+        <div class="num" id="p-r-num">50</div>
+        <div class="lab" id="p-r-lab">目标达成！</div>
+        <div><span class="earn-chip" id="p-r-earn">⭐ +10 · 今日打卡成功</span></div>
+      </div>
+      <div class="week" id="p-r-week" style="margin-top:16px;"></div>
+      <div class="streak-line">已连续打卡 <b id="p-r-streak">1</b> 天</div>
+      <div class="op-note">🎁 连续 21 天可兑换 Body Park 周边（运营位示意）</div>
+      <div class="btn-row">
+        <button class="ghost" data-act="home">回首页</button>
+        <button class="cta" data-act="again" style="padding:13px;">再跳一轮</button>
+      </div>
+    </div>
+
+    <div class="celebrate" id="p-celebrate"><div class="txt">🎉 达成！</div></div>
+  </div>
+</div>
+
+<!-- ==================== 原型控制条 ==================== -->
+<div id="protobar" class="hidden">
+  <span class="tag">原型</span>
+  <button id="pb-exit">⌂ 换端</button>
+  <span class="sep"></span>
+  <button id="pb-auto">▶ 自动演示</button>
+  <button id="pb-cam">📷 摄像头计数</button>
+  <span class="sep"></span>
+  <span id="peers">未联动</span>
+</div>
+
+<script>
+/* ============================================================
+   工具
+   ============================================================ */
+const $ = (id) => document.getElementById(id);
+const todayKey = () => new Date().toISOString().slice(0, 10);
+const dayKeyOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
+const WEEK_CN = ['日','一','二','三','四','五','六'];
+const myId = Math.random().toString(36).slice(2, 9);
+
+/* ============================================================
+   本地档案（打卡 / 星星）— localStorage，双窗口天然共享
+   ============================================================ */
+const PROFILE_KEY = 'bodypark_jump_profile_v1';
+function loadProfile() {
+  try { return Object.assign({ stars: 0, streak: 0, lastDone: '', goal: 50, history: {} },
+        JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')); }
+  catch (e) { return { stars: 0, streak: 0, lastDone: '', goal: 50, history: {} }; }
+}
+let profile = loadProfile();
+function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {} }
+
+/* ============================================================
+   游戏状态机（两端共享同一份状态）
+   screen: idle → ready → jump → celebrate → result
+   ============================================================ */
+const S = {
+  screen: 'idle',
+  goal: profile.goal,      // 0 = 自由跳
+  count: 0,
+  earned: 0,               // 本轮星星
+  countdown: 0,            // 3/2/1，0 = 未在倒计时
+  paused: false,
+  bgStep: 0,
+  seq: 0,                  // 同步序号
+};
+
+/* 惊喜背景（每 10 下切换） */
+const ATOM_BGS = [
+  'radial-gradient(120% 100% at 50% 100%, #16202E 0%, #0F1622 70%)',
+  'radial-gradient(120% 100% at 50% 100%, #1E2A1F 0%, #0F1622 70%)',
+  'radial-gradient(120% 100% at 50% 100%, #2A1E2E 0%, #0F1622 70%)',
+  'radial-gradient(120% 100% at 50% 100%, #1B2740 0%, #0F1622 70%)',
+  'radial-gradient(120% 100% at 50% 100%, #33231A 0%, #0F1622 70%)',
+  'radial-gradient(120% 100% at 50% 100%, #1A2E2B 0%, #0F1622 70%)',
+];
+const PHONE_BGS = [
+  'linear-gradient(180deg, #F4F6F8 0%, #E8EEF4 100%)',
+  'linear-gradient(180deg, #FDF3E7 0%, #FBE4D2 100%)',
+  'linear-gradient(180deg, #E9F7F1 0%, #D5F0E4 100%)',
+  'linear-gradient(180deg, #EFEBFB 0%, #E0DAF6 100%)',
+  'linear-gradient(180deg, #FDF0F3 0%, #F9DEE6 100%)',
+  'linear-gradient(180deg, #EAF4FD 0%, #D8EAFA 100%)',
+];
+
+/* ============================================================
+   音效（WebAudio 合成，无外部资源）
+   ============================================================ */
+let AC = null;
+function audio() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+  if (AC && AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function tone(freq, dur, type, gainV, when) {
+  const ac = audio(); if (!ac) return;
+  const t = ac.currentTime + (when || 0);
+  const o = ac.createOscillator(), g = ac.createGain();
+  o.type = type || 'sine'; o.frequency.value = freq;
+  g.gain.setValueAtTime(gainV || 0.12, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(ac.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+const sndJump = (n) => tone(660 + (n % 10) * 18, 0.09, 'triangle', 0.10);
+const sndBeep = () => tone(520, 0.12, 'sine', 0.14);
+const sndGo   = () => tone(880, 0.25, 'sine', 0.16);
+const sndMilestone = () => { tone(523,0.12,'sine',0.12); tone(659,0.12,'sine',0.12,0.10); tone(784,0.2,'sine',0.12,0.20); };
+const sndStar = () => { tone(1047,0.1,'sine',0.1); tone(1319,0.18,'sine',0.1,0.08); };
+const sndFanfare = () => { [523,659,784,1047].forEach((f,i)=>tone(f,0.3,'triangle',0.13,i*0.13)); };
+
+/* 语音播报（Atom 端） */
+function speak(text) {
+  if (MODE !== 'atom' && MODE !== 'duo') return;
+  try {
+    if (!window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'zh-CN'; u.rate = 1.05;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+
+/* ============================================================
+   吉祥物 Bono（SVG，三种姿态 class：idle / hop / party）
+   ============================================================ */
+function bonoSVG(size) {
+  return `
+  <svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-label="吉祥物 Bono">
+    <g class="rope"><ellipse cx="60" cy="74" rx="52" ry="34" fill="none" stroke="#FF5C38" stroke-width="3" opacity=".85"/></g>
+    <g class="body-g">
+      <ellipse cx="60" cy="112" rx="26" ry="5" fill="rgba(0,0,0,.18)"/>
+      <path d="M38 32 Q30 6 46 12 Q54 16 52 32 Z" fill="#F5A623"/>
+      <path d="M82 32 Q90 6 74 12 Q66 16 68 32 Z" fill="#F5A623"/>
+      <circle cx="60" cy="66" r="42" fill="#FFB84D"/>
+      <circle cx="60" cy="74" r="30" fill="#FFE1AE"/>
+      <circle cx="46" cy="56" r="5.5" fill="#1F262E"/>
+      <circle cx="74" cy="56" r="5.5" fill="#1F262E"/>
+      <circle cx="48" cy="54" r="1.8" fill="#fff"/>
+      <circle cx="76" cy="54" r="1.8" fill="#fff"/>
+      <circle cx="38" cy="66" r="5" fill="#FF9E7A" opacity=".7"/>
+      <circle cx="82" cy="66" r="5" fill="#FF9E7A" opacity=".7"/>
+      <path d="M52 70 Q60 78 68 70" fill="none" stroke="#1F262E" stroke-width="3" stroke-linecap="round"/>
+      <ellipse cx="46" cy="106" rx="10" ry="5" fill="#F5A623"/>
+      <ellipse cx="74" cy="106" rx="10" ry="5" fill="#F5A623"/>
+    </g>
+  </svg>`;
+}
+const BONOS = [];
+function mountBono(id, size, pose) {
+  const el = $(id); if (!el) return;
+  el.className = 'bono ' + pose;
+  el.innerHTML = bonoSVG(size);
+  BONOS.push(el);
+}
+function setBonoPose(pose) {
+  BONOS.forEach(el => { el.className = 'bono ' + pose; });
+}
+function bonoHopOnce() {
+  BONOS.forEach(el => {
+    if (el.classList.contains('party')) return;
+    el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop');
+  });
+}
+
+/* ============================================================
+   渲染
+   ============================================================ */
+function showScreens() {
+  ['idle','ready','jump','result'].forEach(s => {
+    const a = $('a-' + (s === 'idle' ? 'idle' : s));
+    if (a) a.classList.toggle('show', S.screen === s || (S.screen === 'celebrate' && s === 'jump'));
+  });
+  const pMap = { idle: 'p-home', ready: 'p-ready', jump: 'p-jump', celebrate: 'p-jump', result: 'p-result' };
+  ['p-home','p-ready','p-jump','p-result'].forEach(id => $(id).classList.toggle('show', pMap[S.screen] === id));
+  $('a-celebrate').classList.toggle('show', S.screen === 'celebrate');
+  $('p-celebrate').classList.toggle('show', S.screen === 'celebrate');
+  $('a-pause').classList.toggle('show', S.paused && S.screen === 'jump');
+  $('p-pause').classList.toggle('show', S.paused && S.screen === 'jump');
+}
+
+function renderWeek(el, animateToday) {
+  el.innerHTML = '';
+  for (let i = -6; i <= 0; i++) {
+    const key = dayKeyOffset(i);
+    const d = new Date(); d.setDate(d.getDate() + i);
+    const done = profile.history[key] && profile.history[key].done;
+    const div = document.createElement('div');
+    div.className = 'day' + (done ? ' done' : '') + (i === 0 ? ' today' : '');
+    div.innerHTML = `<b>${WEEK_CN[d.getDay()]}</b><span>${done ? '✓' : d.getDate()}</span>`;
+    el.appendChild(div);
+  }
+}
+
+function render() {
+  showScreens();
+  /* 首页 / 待机 */
+  $('p-streak-num').textContent = profile.streak;
+  $('p-stars-num').textContent = profile.stars;
+  $('a-streak-txt').textContent = `连续 ${profile.streak} 天`;
+  $('a-stars-txt').textContent = profile.stars;
+  $('a-goal-txt').textContent = S.goal === 0 ? '自由' : S.goal;
+  renderWeek($('p-week'));
+  document.querySelectorAll('.goal-pill').forEach(b =>
+    b.classList.toggle('on', Number(b.dataset.goal) === S.goal));
+
+  /* 跳绳中 */
+  const goalTxt = S.goal === 0 ? '' : ' / ' + S.goal;
+  $('p-count').childNodes[0].textContent = S.count;
+  $('p-count-sub').textContent = goalTxt;
+  $('a-count').textContent = S.count;
+  $('a-count-sub').textContent = S.goal === 0 ? '自由跳' : '/ ' + S.goal;
+  $('p-goal-chip').textContent = S.goal === 0 ? '自由跳' : '目标 ' + S.goal;
+  $('p-star-live').textContent = profile.stars + S.earned;
+  $('a-star-chip').textContent = '⭐ ' + (profile.stars + S.earned);
+  $('a-streak-chip').textContent = '🔥 ' + profile.streak + ' 天';
+  $('p-finish-free').style.display = S.goal === 0 ? '' : 'none';
+
+  const pct = S.goal ? Math.min(1, S.count / S.goal) : 0;
+  $('p-ring').style.display = S.goal ? '' : 'none';
+  $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - pct);
+  $('p-pct').textContent = Math.round(pct * 100) + '%';
+
+  /* 背景 */
+  $('atomBg').style.background = ATOM_BGS[S.bgStep % ATOM_BGS.length];
+  $('p-jump-bg').style.background = PHONE_BGS[S.bgStep % PHONE_BGS.length];
+
+  /* 倒计时 */
+  const cdOn = S.countdown > 0;
+  $('a-cd').classList.toggle('hidden', !cdOn);
+  $('p-cd').classList.toggle('hidden', !cdOn);
+  if (cdOn) { $('a-cd').textContent = S.countdown; $('p-cd').textContent = S.countdown; }
+
+  /* 结算页（全部从状态推导，双窗口联动时跟随端同样正确） */
+  if (S.screen === 'result') {
+    const goalMet = S.goal > 0 && S.count >= S.goal;
+    const rec = profile.history[todayKey()];
+    $('p-r-num').textContent = S.count;
+    $('a-r-num').textContent = S.count;
+    $('p-r-lab').textContent = goalMet ? '目标达成！' : '本轮结束';
+    $('a-r-lab').textContent = goalMet ? '目标达成！' : '本轮结束';
+    $('p-r-earn').textContent = `⭐ +${S.earned}${rec && rec.done ? ' · 今日打卡成功' : ''}`;
+    $('a-r-earn').textContent = `⭐ +${S.earned}`;
+    $('p-r-streak').textContent = profile.streak;
+    $('a-r-streak').textContent = `🔥 连续 ${profile.streak} 天打卡`;
+    renderWeek($('p-r-week'));
+    drawQR($('a-qr'));
+  }
+
+  /* 姿态 */
+  if (S.screen === 'celebrate' || S.screen === 'result') setBonoPose('party');
+  else if (S.screen !== 'jump') setBonoPose('idle');
+}
+
+/* ============================================================
+   动效
+   ============================================================ */
+function popCount() {
+  ['p-count','a-count'].forEach(id => {
+    const el = $(id); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  });
+}
+function toast(msg, ms) {
+  ['p-toast','a-toast'].forEach(id => {
+    const el = $(id); el.textContent = msg; el.classList.add('show');
+    clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms || 1400);
+  });
+}
+function confetti(rootEl, n) {
+  const colors = ['#FF5C38','#1FA883','#F5A623','#5B8DEF','#FF9EBB'];
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-p';
+    p.style.left = Math.random() * 100 + '%';
+    p.style.background = colors[i % colors.length];
+    p.style.animationDuration = (1.6 + Math.random() * 1.4) + 's';
+    p.style.animationDelay = (Math.random() * 0.4) + 's';
+    rootEl.appendChild(p);
+    setTimeout(() => p.remove(), 3600);
+  }
+}
+function flyStar(rootEl) {
+  const s = document.createElement('div');
+  s.className = 'fly-star'; s.textContent = '⭐';
+  s.style.left = '50%'; s.style.top = '45%';
+  rootEl.appendChild(s);
+  requestAnimationFrame(() => {
+    s.style.transform = 'translate(120px,-160px) scale(.5)';
+    s.style.opacity = '0';
+  });
+  setTimeout(() => s.remove(), 1100);
+}
+
+/* ============================================================
+   核心动作（所有 mutation 都走这里，便于同步）
+   ============================================================ */
+let cdTimer = null;
+
+function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
+
+function startSession() {
+  if (S.screen !== 'idle' && S.screen !== 'result') return;
+  S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
+  speak('请站到镜头前');
+  bump();
+}
+
+function standLocked() {              /* 站进框稳定 → 开始倒计时 */
+  if (S.screen !== 'ready' || S.countdown > 0) return;
+  $('a-sil').classList.add('locked'); $('p-sil').classList.add('locked');
+  S.countdown = 3; bump();
+  sndBeep(); speak('三');
+  clearInterval(cdTimer);
+  cdTimer = setInterval(() => {
+    S.countdown--;
+    if (S.countdown > 0) { sndBeep(); speak(S.countdown === 2 ? '二' : '一'); }
+    else {
+      clearInterval(cdTimer);
+      S.screen = 'jump';
+      sndGo(); speak('跳！');
+      $('a-sil').classList.remove('locked'); $('p-sil').classList.remove('locked');
+    }
+    bump();
+  }, 900);
+}
+
+function registerJump() {
+  if (S.screen !== 'jump' || S.paused) return;
+  S.count++;
+  sndJump(S.count);
+  popCount(); bonoHopOnce();
+
+  /* 惊喜机制 */
+  if (S.count % 10 === 0) {
+    S.bgStep++;
+    sndMilestone();
+    let msg = `${S.count} 下！背景换新 🎨`;
+    if (S.count % 20 === 0) {
+      let gain = 2;
+      if (Math.random() < 0.15) { gain = 4; msg = `彩蛋！双倍星星 ⭐ +${gain}`; confetti($('atomRoot'), 24); confetti($('phoneRoot'), 24); }
+      else msg = `${S.count} 下 · ⭐ +${gain}`;
+      S.earned += gain;
+      sndStar(); flyStar($('phoneRoot')); flyStar($('atomRoot'));
+    }
+    toast(msg);
+    if (S.goal === 0 || S.count < S.goal) speak(String(S.count));
+  }
+
+  /* 达标 */
+  if (S.goal > 0 && S.count >= S.goal) {
+    S.earned += 10;
+    finishSession(true);
+    return;
+  }
+  bump();
+}
+
+function finishSession(goalMet) {
+  S.screen = 'celebrate';
+  bump();
+  sndFanfare();
+  speak(goalMet ? '目标达成！太棒了！' : '本轮结束，辛苦啦');
+  confetti($('atomRoot'), 60); confetti($('phoneRoot'), 60);
+
+  /* 打卡与档案结算 */
+  const tk = todayKey();
+  const rec = profile.history[tk] || { count: 0, done: false };
+  rec.count += S.count;
+  const met = goalMet || rec.count >= 50;
+  if (met && !rec.done) {
+    rec.done = true;
+    if (profile.lastDone === dayKeyOffset(-1)) profile.streak += 1;
+    else if (profile.lastDone !== tk) profile.streak = 1;
+    profile.lastDone = tk;
+  }
+  profile.history[tk] = rec;
+  profile.stars += S.earned;
+  saveProfile();
+
+  setTimeout(() => { S.screen = 'result'; bump(); }, 2200);
+}
+
+function pauseSession(v) {
+  if (S.screen !== 'jump') return;
+  S.paused = v;
+  if (v) speak('已暂停');
+  bump();
+}
+function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); S.countdown = 0; bump(); }
+
+/* 伪二维码占位（示意图形，非真实二维码） */
+function drawQR(cv) {
+  const ctx = cv.getContext('2d'); const n = 12, cell = cv.width / n;
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.fillStyle = '#1F262E';
+  let seed = 7;
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    seed = (seed * 73 + x * 31 + y * 17) % 97;
+    if (seed % 2 === 0) ctx.fillRect(x * cell, y * cell, cell - 1, cell - 1);
+  }
+  [[0,0],[n-4,0],[0,n-4]].forEach(([x,y]) => {
+    ctx.fillStyle = '#1F262E'; ctx.fillRect(x*cell, y*cell, cell*4, cell*4);
+    ctx.fillStyle = '#fff'; ctx.fillRect((x+1)*cell, (y+1)*cell, cell*2, cell*2);
+    ctx.fillStyle = '#1F262E'; ctx.fillRect((x+1.5)*cell, (y+1.5)*cell, cell, cell);
+  });
+}
+
+/* ============================================================
+   双窗口联动（BroadcastChannel，同一浏览器内实时同步）
+   ============================================================ */
+let chan = null;
+const peers = {};   /* id → {mode, ts} */
+let applying = false;
+
+function bump() {
+  render();
+  if (chan && !applying) {
+    S.seq++;
+    chan.postMessage({ t: 'snap', src: myId, state: JSON.parse(JSON.stringify(S)), profile: profile });
+  }
+}
+function initChannel() {
+  if (typeof BroadcastChannel === 'undefined') return;
+  chan = new BroadcastChannel('bodypark-jump-proto');
+  chan.onmessage = (ev) => {
+    const m = ev.data;
+    if (!m || m.src === myId) return;
+    if (m.t === 'hb') { peers[m.src] = { mode: m.mode, ts: Date.now() }; renderPeers(); return; }
+    if (m.t === 'snap') {
+      const prev = { count: S.count, screen: S.screen };
+      applying = true;
+      Object.assign(S, m.state);
+      profile = m.profile; saveProfile();
+      /* 远端跳了一下 → 本端也出反馈 */
+      if (S.count > prev.count && S.screen === 'jump') { sndJump(S.count); popCount(); bonoHopOnce(); }
+      if (prev.screen !== 'celebrate' && S.screen === 'celebrate') {
+        sndFanfare(); confetti($('atomRoot'), 60); confetti($('phoneRoot'), 60);
+      }
+      render();
+      applying = false;
+    }
+  };
+  setInterval(() => {
+    chan.postMessage({ t: 'hb', src: myId, mode: MODE });
+    const now = Date.now();
+    Object.keys(peers).forEach(k => { if (now - peers[k].ts > 4000) delete peers[k]; });
+    renderPeers();
+  }, 1500);
+}
+function renderPeers() {
+  const list = Object.values(peers).map(p => p.mode === 'atom' ? 'Atom' : p.mode === 'phone' ? '手机' : '双端');
+  $('peers').textContent = list.length ? `⇄ 已联动：${list.join('、')}窗口` : '未联动';
+}
+
+/* ============================================================
+   输入源 1：模拟跳（空格 / 点按 / 自动演示）
+   ============================================================ */
+let autoTimer = null;
+function setAuto(on) {
+  clearInterval(autoTimer); autoTimer = null;
+  $('pb-auto').classList.toggle('on', on);
+  if (!on) return;
+  autoTimer = setInterval(() => {
+    if (S.screen === 'idle') startSession();
+    else if (S.screen === 'ready' && S.countdown === 0) standLocked();
+    else if (S.screen === 'jump' && !S.paused) registerJump();
+  }, 460);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.code === 'Space') { e.preventDefault(); audio(); registerJump(); }
+});
+/* 跳绳界面点按 = 跳一下 */
+['p-jump','a-jump'].forEach(id => $(id).addEventListener('pointerdown', (e) => {
+  if (e.target.closest('button')) return;
+  audio(); registerJump();
+}));
+
+/* ============================================================
+   输入源 2：摄像头动作检测（帧差 + 垂直重心振荡，零依赖）
+   ============================================================ */
+const cam = {
+  on: false, stream: null, timer: null,
+  W: 64, H: 48, prev: null,
+  cy: null, dir: 0, extreme: null, lastJump: 0,
+  present: false, lastMotion: 0, presentSince: 0, absentSince: 0,
+};
+const camCanvas = document.createElement('canvas');
+camCanvas.width = cam.W; camCanvas.height = cam.H;
+const camCtx = camCanvas.getContext('2d', { willReadFrequently: true });
+
+async function setCam(on) {
+  $('pb-cam').classList.toggle('on', on);
+  if (!on) {
+    cam.on = false; clearInterval(cam.timer);
+    if (cam.stream) cam.stream.getTracks().forEach(t => t.stop());
+    cam.stream = null;
+    ['p-video','a-video'].forEach(id => $(id).classList.add('hidden'));
+    $('a-cam').querySelectorAll('video').forEach(v => v.remove());
+    return;
+  }
+  try {
+    cam.stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: 320, height: 240, facingMode: 'user' }, audio: false,
+    });
+  } catch (e) {
+    $('pb-cam').classList.remove('on');
+    toast('摄像头不可用，已切回模拟模式');
+    return;
+  }
+  cam.on = true;
+  const pv = $('p-video'), av = $('a-video');
+  pv.srcObject = cam.stream; av.srcObject = cam.stream;
+  pv.classList.remove('hidden'); av.classList.remove('hidden');
+  const mini = document.createElement('video');
+  mini.autoplay = true; mini.playsInline = true; mini.muted = true; mini.srcObject = cam.stream;
+  $('a-cam').appendChild(mini);
+  cam.prev = null; cam.cy = null; cam.dir = 0; cam.extreme = null;
+  cam.timer = setInterval(camTick, 66);
+}
+
+function camTick() {
+  const v = $('p-video');
+  if (!cam.on || v.readyState < 2) return;
+  camCtx.drawImage(v, 0, 0, cam.W, cam.H);
+  const img = camCtx.getImageData(0, 0, cam.W, cam.H).data;
+  if (!cam.prev) { cam.prev = new Uint8ClampedArray(img); return; }
+
+  let motion = 0, sumY = 0;
+  for (let i = 0; i < img.length; i += 4) {
+    const g  = (img[i] + img[i+1] + img[i+2]) / 3;
+    const pg = (cam.prev[i] + cam.prev[i+1] + cam.prev[i+2]) / 3;
+    if (Math.abs(g - pg) > 26) {
+      motion++;
+      sumY += ((i / 4) / cam.W) | 0;
+    }
+  }
+  cam.prev.set(img);
+  const now = performance.now();
+
+  /* 在场检测：驱动"站进框自动开始"与"离开自动暂停" */
+  if (motion > 40) { cam.lastMotion = now; }
+  const nowPresent = (now - cam.lastMotion) < 1200;
+  if (nowPresent && !cam.present) { cam.present = true; cam.presentSince = now; }
+  if (!nowPresent && cam.present) { cam.present = false; cam.absentSince = now; }
+  if (S.screen === 'ready' && cam.present && now - cam.presentSince > 1000 && S.countdown === 0) standLocked();
+  if (S.screen === 'jump' && !S.paused && !cam.present && now - cam.absentSince > 5000) pauseSession(true);
+  if (S.screen === 'jump' && S.paused && cam.present && now - cam.presentSince > 800) pauseSession(false);
+
+  if (motion < 25) return;
+  /* 垂直重心振荡 → 跳跃判定 */
+  const y = sumY / motion;
+  cam.cy = cam.cy === null ? y : cam.cy * 0.55 + y * 0.45;
+  if (cam.extreme === null) { cam.extreme = cam.cy; return; }
+  const dy = cam.cy - cam.extreme;
+  if (Math.abs(dy) < 0.5) return;
+  const dir = dy < 0 ? -1 : 1;                 /* -1 = 重心上移（起跳） */
+  if (cam.dir === -1 && dir === 1) {           /* 顶点出现 → 计一跳 */
+    if (now - cam.lastJump > 300 && Math.abs(dy) >= 0.5) {
+      cam.lastJump = now;
+      registerJump();
+    }
+  }
+  if (dir !== cam.dir) { cam.dir = dir; cam.extreme = cam.cy; }
+  else if ((dir === -1 && cam.cy < cam.extreme) || (dir === 1 && cam.cy > cam.extreme)) cam.extreme = cam.cy;
+}
+
+/* ============================================================
+   事件绑定
+   ============================================================ */
+document.querySelectorAll('#p-goal-row .goal-pill, #a-goal-row .goal-pill')
+  .forEach(b => b.addEventListener('click', () => { audio(); setGoal(Number(b.dataset.goal)); }));
+$('p-start').addEventListener('click', () => { audio(); startSession(); });
+$('a-start').addEventListener('click', () => { audio(); startSession(); });
+$('p-fake-stand').addEventListener('click', () => { audio(); standLocked(); });
+$('p-finish-free').addEventListener('click', () => finishSession(false));
+document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('click', goHome));
+document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener('click', () => { audio(); startSession(); }));
+document.querySelectorAll('[data-act="resume"]').forEach(b => b.addEventListener('click', () => pauseSession(false)));
+
+$('pb-exit').addEventListener('click', () => { location.hash = ''; location.reload(); });
+$('pb-auto').addEventListener('click', () => { audio(); setAuto(!autoTimer); });
+$('pb-cam').addEventListener('click', () => { audio(); setCam(!cam.on); });
+
+/* ============================================================
+   启动
+   ============================================================ */
+let MODE = null;
+function enter(mode) {
+  MODE = mode;
+  document.body.dataset.mode = mode;
+  $('launcher').classList.add('hidden');
+  $('stage').classList.remove('hidden');
+  $('protobar').classList.remove('hidden');
+  location.hash = mode;
+  render();
+}
+document.querySelectorAll('.mode-card').forEach(b =>
+  b.addEventListener('click', () => { audio(); enter(b.dataset.pick); }));
+
+mountBono('p-bono-home', 130, 'idle');
+mountBono('p-bono-jump', 96, 'idle');
+mountBono('p-bono-result', 100, 'party');
+mountBono('a-bono-idle', 110, 'idle');
+mountBono('a-bono-jump', 110, 'idle');
+mountBono('a-bono-result', 90, 'party');
+
+initChannel();
+render();
+const h = location.hash.replace('#', '');
+if (['phone','atom','duo'].includes(h)) enter(h);
+</script>
