@@ -211,6 +211,19 @@
   .bgap { text-align: center; color: var(--ink-soft); font-size: 12px; padding: 2px 0; }
   .board-foot { text-align: center; font-size: 11.5px; color: var(--ink-soft); padding-top: 10px; }
 
+  /* 每日目标设置 */
+  .set-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
+  .set-num-row { display: flex; align-items: center; gap: 22px; }
+  .set-num { font-size: 52px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 3ch; text-align: center; }
+  .set-btn {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--card); color: var(--ink);
+    font-size: 24px; font-weight: 700;
+    box-shadow: 0 1px 5px rgba(23,25,27,.1);
+  }
+  .set-hint { font-size: 12.5px; color: var(--ink-soft); }
+  .set-body .cta { align-self: stretch; }
+
   .goal-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
   .goal-pill {
     background: var(--card); color: var(--ink-soft);
@@ -700,11 +713,7 @@
         <div class="totline" id="p-total">累计 0 下 · 场景 3/6 · 装扮 1/6</div>
         <div class="totline" id="p-daily"></div>
       </div>
-      <div class="goal-row" id="p-goal-row">
-        <button class="goal-pill" data-goal="50">50 下</button>
-        <button class="goal-pill" data-goal="100">100 下</button>
-        <button class="goal-pill" data-goal="0">自由跳</button>
-      </div>
+      <button class="board-entry" id="p-goal-entry" style="margin: 0 0 12px;">🎯 每日目标 <span id="p-goal-cur">100 下</span><span class="chev">›</span></button>
       <button class="cta" id="p-start">开始跳绳</button>
     </div>
 
@@ -774,6 +783,29 @@
       </div>
     </div>
 
+    <!-- 每日目标设置（步进 50，可自定义任意值） -->
+    <div class="board hidden" id="p-settings">
+      <div class="board-head">
+        <b>每日目标</b>
+        <button class="arrow" id="p-set-close">✕</button>
+      </div>
+      <div class="set-body">
+        <div class="set-num-row">
+          <button class="set-btn" id="p-goal-minus">−</button>
+          <div class="set-num" id="p-goal-num">100</div>
+          <button class="set-btn" id="p-goal-plus">＋</button>
+        </div>
+        <div class="set-hint">步进 50 · 跳满目标即完成当日打卡</div>
+        <div class="goal-row">
+          <button class="goal-pill" data-goal="100">100</button>
+          <button class="goal-pill" data-goal="200">200</button>
+          <button class="goal-pill" data-goal="300">300</button>
+          <button class="goal-pill" data-goal="0">自由跳</button>
+        </div>
+        <button class="cta" id="p-set-done">完成</button>
+      </div>
+    </div>
+
     <!-- 排行榜浮层（仅手机端本地导航，不参与双端状态同步） -->
     <div class="board hidden" id="p-board">
       <div class="board-head">
@@ -818,7 +850,7 @@ const myId = Math.random().toString(36).slice(2, 9);
    本地档案（打卡 / 星星）— localStorage，双窗口天然共享
    ============================================================ */
 const PROFILE_KEY = 'bodypark_jump_profile_v1';
-const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 50, history: {},
+const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 100, history: {},
                           total: 0, scenes: 3, outfit: 0 };
 function loadProfile() {
   try { return Object.assign({}, PROFILE_DEFAULT, JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')); }
@@ -840,6 +872,8 @@ const S = {
   paused: false,
   bgStep: 0,
   goalHit: false,          // 已达标（达标不打断，继续往上数）
+  elapsedMs: 0,            // 本轮已计时（暂停时停表）
+  runSince: null,          // 本段开始计时的时间戳
   totalAtStart: 0,         // 本轮开始时的累计数（用于判断解锁）
   unlock: '',              // 本轮解锁提示文案
   seq: 0,                  // 同步序号
@@ -1125,6 +1159,8 @@ function render() {
   $('a-streak-txt').textContent = `🔥 ${profile.streak} 天`;
   $('a-stars-txt').textContent = profile.stars;
   $('a-goal-txt').textContent = S.goal === 0 ? '自由' : S.goal;
+  $('p-goal-cur').textContent = S.goal === 0 ? '自由跳' : S.goal + ' 下';
+  $('p-goal-num').textContent = S.goal === 0 ? '自由' : S.goal;
   const outfitIdx = unlockedOutfits().findIndex(o => OUTFITS.indexOf(o) === profile.outfit);
   $('p-total').textContent =
     `累计 ${profile.total} 下 · 场景 ${profile.scenes}/${SCENES.length} · 装扮 ${unlockedOutfits().length}/${OUTFITS.length}`;
@@ -1141,12 +1177,9 @@ function render() {
   $('p-board-rank').textContent = gRank.count > 0 ? `· 全球第 ${gRank.rank} 名` : '';
   if (!$('p-board').classList.contains('hidden')) renderBoard();
 
-  /* 跳绳中（达标后数字变绿、显示超额，继续往上数） */
+  /* 跳绳中（达标后数字转暖色，继续往上数；副标行改为计时） */
   $('p-count').childNodes[0].textContent = S.count;
-  $('p-count-sub').textContent = S.goal === 0 ? '' : (S.goalHit ? ' ✓' : ' / ' + S.goal);
   $('a-count').textContent = S.count;
-  $('a-count-sub').textContent = S.goal === 0 ? '自由跳'
-    : (S.goalHit ? `目标 ${S.goal} ✓ 超额 +${S.count - S.goal}` : '/ ' + S.goal);
   $('p-count').classList.toggle('over', S.goalHit);
   $('a-count').classList.toggle('over', S.goalHit);
   $('p-goal-chip').textContent = S.goal === 0 ? '自由跳' : '目标 ' + S.goal;
@@ -1169,6 +1202,11 @@ function render() {
   const rayCls = 'rays' + (inJump && fire > 0 ? ' on f' + fire : '');
   $('a-rays').className = rayCls;
   $('p-rays').className = rayCls;
+
+  /* 课中计时（二级信息，占用原 /50 副标的位置） */
+  const timeTxt = inJump ? '⏱ ' + fmtTime(sessionElapsed()) : '';
+  $('a-count-sub').textContent = timeTxt;
+  $('p-count-sub').textContent = timeTxt ? ' ' + timeTxt : '';
 
   /* 背景：跳绳中用纯黑舞台（给火焰让路）；待机/首页展示"今日主打场景"（每天轮换） */
   const unlockedN = Math.max(1, Math.min(profile.scenes, SCENES.length));
@@ -1202,10 +1240,10 @@ function render() {
     const rec = profile.history[todayKey()];
     $('p-r-num').textContent = S.count;
     $('a-r-num').textContent = S.count;
-    $('p-r-lab').textContent = goalMet ? '目标达成！' : '本轮结束';
+    $('p-r-lab').textContent = (goalMet ? '目标达成！' : '本轮结束') + ' · ⏱ ' + fmtTime(S.elapsedMs);
     $('a-r-lab').textContent = goalMet ? '目标达成！' : '本轮结束';
     $('p-r-earn').textContent = `⭐ +${S.earned}${rec && rec.done ? ' · 今日打卡成功' : ''}`;
-    $('a-r-earn').textContent = `⭐ +${S.earned}`;
+    $('a-r-earn').textContent = `⭐ +${S.earned} · ⏱ ${fmtTime(S.elapsedMs)}`;
     $('p-r-streak').textContent = profile.streak;
     $('a-r-streak').textContent = `🔥 连续 ${profile.streak} 天打卡`;
     $('p-r-unlock').textContent = S.unlock;
@@ -1272,6 +1310,7 @@ function startSession() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
   S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
+  S.elapsedMs = 0; S.runSince = null;
   speak(daily.opening + '。请站到镜头前');
   bump();
 }
@@ -1288,6 +1327,7 @@ function standLocked() {              /* 站进框稳定 → 开始倒计时 */
     else {
       clearInterval(cdTimer);
       S.screen = 'jump';
+      S.elapsedMs = 0; S.runSince = Date.now();
       sndGo(); speak('跳！');
       $('p-sil').classList.remove('locked');
     }
@@ -1297,6 +1337,20 @@ function standLocked() {              /* 站进框稳定 → 开始倒计时 */
 
 /* 一圈 = 50 下；跳满一圈点亮一颗星 */
 const fmtStars = (lap) => lap <= 0 ? '' : (lap <= 8 ? '★'.repeat(lap) : `★×${lap}`);
+
+/* 课中计时 */
+const fmtTime = (ms) => {
+  const s = Math.floor(ms / 1000);
+  return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+};
+const sessionElapsed = () => S.elapsedMs + (S.runSince ? Date.now() - S.runSince : 0);
+setInterval(() => {
+  if (S.screen === 'jump' && !S.paused && S.runSince) {
+    const t = '⏱ ' + fmtTime(sessionElapsed());
+    $('a-count-sub').textContent = t;
+    $('p-count-sub').textContent = ' ' + t;
+  }
+}, 500);
 
 const CHEERS = ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'];
 function registerJump() {
@@ -1356,6 +1410,7 @@ function registerJump() {
 function endSession() {
   if (S.screen !== 'jump') return;
   const goalMet = S.goalHit;
+  if (S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
   S.paused = false; clearTimeout(pauseEndTimer);
   if (goalMet) {
     S.screen = 'celebrate';
@@ -1402,6 +1457,9 @@ function pauseSession(v) {
   if (S.screen !== 'jump') return;
   S.paused = v;
   clearTimeout(pauseEndTimer);
+  /* 计时随暂停停表 */
+  if (v && S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
+  if (!v && !S.runSince) S.runSince = Date.now();
   if (v) {
     speak('已暂停');
     /* 停下 5 秒视为"这轮跳完了"，自动进结算 */
@@ -1599,12 +1657,18 @@ function camTick() {
 /* ============================================================
    事件绑定
    ============================================================ */
-document.querySelectorAll('#p-goal-row .goal-pill')
+/* 每日目标设置：入口 → 浮层（步进 ±50 / 预设 / 自由跳） */
+$('p-goal-entry').addEventListener('click', () => { audio(); $('p-settings').classList.remove('hidden'); });
+$('p-set-close').addEventListener('click', () => $('p-settings').classList.add('hidden'));
+$('p-set-done').addEventListener('click', () => $('p-settings').classList.add('hidden'));
+$('p-goal-minus').addEventListener('click', () => { audio(); setGoal(S.goal === 0 ? 100 : Math.max(50, S.goal - 50)); });
+$('p-goal-plus').addEventListener('click', () => { audio(); setGoal(S.goal === 0 ? 100 : Math.min(1000, S.goal + 50)); });
+document.querySelectorAll('#p-settings .goal-pill')
   .forEach(b => b.addEventListener('click', () => { audio(); setGoal(Number(b.dataset.goal)); }));
-/* Atom 圆屏：点按目标 chip 在 50 → 100 → 自由 间循环 */
+/* Atom 圆屏：点按目标 chip 在 100 → 200 → 300 → 自由 间循环 */
 $('a-goal-cycle').addEventListener('click', () => {
   audio();
-  const order = [50, 100, 0];
+  const order = [100, 200, 300, 0];
   setGoal(order[(order.indexOf(S.goal) + 1) % order.length]);
 });
 /* 换装：手机左右箭头（JRC 同款交互），Atom 待机点 Bono 循环 */
