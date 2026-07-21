@@ -288,7 +288,13 @@
   }
   .bigcount small { font-size: 22px; font-weight: 700; color: var(--ink-soft); }
   .bigcount.pop { transform: scale(1.12); }
-  .bigcount.over { color: var(--accent); }
+  .bigcount.over { color: #FFB020; }
+  /* 跳绳界面是黑色舞台：手机端文字换浅色 */
+  #p-jump .bigcount { color: #F2F4F2; }
+  #p-jump .bigcount small { color: #8D9591; }
+  #p-jump .tap-hint { color: #8D9591; }
+  #p-jump .bono { color: #F2F4F2; }
+  #p-jump .goal-ring .pct { color: #F2F4F2; }
   .lapstars {
     text-align: center; color: var(--accent);
     font-size: 15px; font-weight: 700; letter-spacing: 2px;
@@ -416,7 +422,7 @@
     transition: transform .12s, color .3s;
   }
   .a-count.pop { transform: scale(1.09); }
-  .a-count.over { color: var(--accent); }
+  .a-count.over { color: #FFB020; }   /* 达标后计数转暖色，与火焰呼应 */
   .a-count-sub { font-size: .85em; color: var(--stage-soft); font-weight: 700; }
   #a-jump .a-star {
     font-size: .78em; font-weight: 700; color: var(--gold);
@@ -454,27 +460,39 @@
   .flip-hint { color: var(--stage-soft); font-size: .62em; margin-top: .3em; }
   #a-r-page2 canvas { width: 9.5em; height: 9.5em; background: #fff; border-radius: .5em; padding: .4em; }
 
-  /* 漫画放射光背景：跳绳中淡淡的太阳光芒，达标后"燃起来" */
+  /* 漫画放射光背景（燃起来）：前 50 纯黑；每满 50 火焰升一级，暖橙黄色系 */
   .rays {
     position: absolute; inset: -50%;
-    background: repeating-conic-gradient(from 0deg,
-      rgba(35,199,102,.07) 0deg 9deg, transparent 9deg 22deg);
-    animation: rayspin 26s linear infinite;
-    opacity: 0; transition: opacity .8s;
+    opacity: 0; transition: opacity 1s;
     pointer-events: none; z-index: 1;
   }
   .rays.on { opacity: 1; }
-  .rays.fired {
+  .rays.f1 {   /* 一圈后：轻微的暖光芒 */
     background: repeating-conic-gradient(from 0deg,
-      rgba(35,199,102,.30) 0deg 10deg,
-      rgba(255,255,255,.06) 10deg 14deg,
-      transparent 14deg 24deg);
+      rgba(255,166,44,.10) 0deg 8deg, transparent 8deg 24deg);
+    animation: rayspin 18s linear infinite;
+  }
+  .rays.f2 {   /* 两圈后：更亮更密 */
+    background:
+      repeating-conic-gradient(from 0deg,
+        rgba(255,150,30,.20) 0deg 9deg,
+        rgba(255,220,120,.06) 9deg 12deg,
+        transparent 12deg 24deg);
+    animation: rayspin 9s linear infinite;
+  }
+  .rays.f3 {   /* 三圈后：全面燃烧 + 底部火光 + 脉冲 */
+    background:
+      radial-gradient(60% 45% at 50% 100%, rgba(255,120,20,.28) 0%, transparent 70%),
+      repeating-conic-gradient(from 0deg,
+        rgba(255,140,20,.30) 0deg 10deg,
+        rgba(255,230,140,.10) 10deg 14deg,
+        transparent 14deg 24deg);
     animation: rayspin 5s linear infinite, raypulse 1.1s ease-in-out infinite;
   }
   @keyframes rayspin  { to { transform: rotate(360deg); } }
-  @keyframes raypulse { 50% { opacity: .6; filter: brightness(1.4); } }
+  @keyframes raypulse { 50% { opacity: .65; filter: brightness(1.4); } }
   @media (prefers-reduced-motion: reduce) {
-    .rays, .rays.fired { animation: none; }
+    .rays.f1, .rays.f2, .rays.f3 { animation: none; }
   }
 
   /* 圆屏内的覆盖层字号 */
@@ -599,7 +617,7 @@
       <div class="ascreen" id="a-idle">
         <div id="a-bono-idle"></div>
         <div class="big-tip">站到镜头前<br>开始今天的跳绳</div>
-        <div class="sub-tip"><span id="a-streak-txt">🔥 0 天</span> · ⭐ <span id="a-stars-txt">0</span></div>
+        <div class="sub-tip"><span id="a-streak-txt">🔥 0 天</span> · ⭐ <span id="a-stars-txt">0</span><span id="a-daily"></span></div>
         <button class="a-goal-chip" id="a-goal-cycle">目标 <span id="a-goal-txt">50</span> · 点按切换</button>
         <button class="atom-cta" id="a-start">开始</button>
       </div>
@@ -677,6 +695,7 @@
         </div>
         <div class="hello" id="p-hello">今天也一起跳吧！</div>
         <div class="totline" id="p-total">累计 0 下 · 场景 3/6 · 装扮 1/6</div>
+        <div class="totline" id="p-daily"></div>
       </div>
       <div class="goal-row" id="p-goal-row">
         <button class="goal-pill" data-goal="50">50 下</button>
@@ -777,6 +796,7 @@
   <span class="sep"></span>
   <button id="pb-auto">▶ 自动演示</button>
   <button id="pb-cam">📷 摄像头计数</button>
+  <button id="pb-voice" class="on">🔊 教练语音</button>
   <span class="sep"></span>
   <span id="peers">未联动</span>
 </div>
@@ -892,6 +912,30 @@ function myRank(scope) {
   const t = todayCount();
   return { rank: 1 + fakeBoard(scope).filter(u => u.count > t).length, count: t };
 }
+/* ------------------------------------------------------------
+   每天来都不一样：全部由"今天的日期"决定，离线可算、双窗口一致。
+   月相是真实计算；天气为示意（真实版接天气 API）；隐藏数字每天一换。
+   ------------------------------------------------------------ */
+function moonPhase() {
+  const synodic = 29.53058867;
+  const days = ((Date.now() / 86400000 - 10957.27) % synodic + synodic) % synodic;
+  return ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.floor(days / synodic * 8 + 0.5) % 8];
+}
+const AMBIENCE = ['☀️ 晴', '⛅ 多云', '🌤 舒适', '🌧 小雨', '🌬 微风'];
+const GREETS = ['今天也一起跳吧！', '新的一天，从 50 下开始', '跳一跳，烦恼都抖掉',
+                'Bono 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'];
+const OPENINGS = ['准备好了吗？今天也来一组！', '热身完毕，我们开始吧！',
+                  '深呼吸，找到自己的节奏', '昨天的纪录，今天来打破它'];
+const dailySeed = mulberry32(seedFrom('daily' + todayKey()));
+const daily = {
+  moon: moonPhase(),
+  amb: AMBIENCE[(dailySeed() * AMBIENCE.length) | 0],
+  greet: GREETS[(dailySeed() * GREETS.length) | 0],
+  opening: OPENINGS[(dailySeed() * OPENINGS.length) | 0],
+  lucky: 55 + ((dailySeed() * 45) | 0),          /* 每日隐藏数字 55–99，踩中有惊喜 */
+  sceneOffset: seedFrom(todayKey()) % SCENES.length, /* 今日主打场景轮换 */
+};
+
 let boardScope = 'global';
 function renderBoard() {
   const me = myRank(boardScope), list = fakeBoard(boardScope);
@@ -940,13 +984,25 @@ const sndMilestone = () => { tone(523,0.12,'sine',0.12); tone(659,0.12,'sine',0.
 const sndStar = () => { tone(1047,0.1,'sine',0.1); tone(1319,0.18,'sine',0.1,0.08); };
 const sndFanfare = () => { [523,659,784,1047].forEach((f,i)=>tone(f,0.3,'triangle',0.13,i*0.13)); };
 
-/* 语音播报（Atom 端） */
+/* AI 教练语音（原型用系统 TTS；真实版接 TTS 服务定制音色，方案见设计文档） */
+let voiceOn = true;
+let zhVoice = null;
+function pickVoice() {
+  try {
+    const vs = speechSynthesis.getVoices();
+    /* 优先挑明亮的中文女声（各系统命名不同，按常见名模糊匹配），兜底任意中文音色 */
+    zhVoice = vs.find(v => /^zh/i.test(v.lang) && /Xiaoxiao|Yunxi|Ting|Mei|Sin-ji|Hui|Yao|Google/i.test(v.name))
+           || vs.find(v => /^zh/i.test(v.lang)) || null;
+  } catch (e) {}
+}
+try { speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); } catch (e) {}
 function speak(text) {
-  if (MODE !== 'atom' && MODE !== 'duo') return;
+  if (!voiceOn) return;
   try {
     if (!window.speechSynthesis) return;
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'zh-CN'; u.rate = 1.05;
+    u.lang = 'zh-CN'; u.rate = 1.08; u.pitch = 1.08;
+    if (zhVoice) u.voice = zhVoice;
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
   } catch (e) {}
@@ -1070,7 +1126,9 @@ function render() {
   $('p-total').textContent =
     `累计 ${profile.total} 下 · 场景 ${profile.scenes}/${SCENES.length} · 装扮 ${unlockedOutfits().length}/${OUTFITS.length}`;
   $('p-hello').textContent = OUTFITS[profile.outfit] && profile.outfit > 0
-    ? `Bono · ${OUTFITS[profile.outfit].name}` : '今天也一起跳吧！';
+    ? `Bono · ${OUTFITS[profile.outfit].name}` : daily.greet;
+  $('p-daily').textContent = `${daily.moon} ${daily.amb} · 今日隐藏数字藏在 55–99`;
+  $('a-daily').textContent = ` · ${daily.moon} ${daily.amb}`;
   renderWeek($('p-week'));
   document.querySelectorAll('.goal-pill').forEach(b =>
     b.classList.toggle('on', Number(b.dataset.goal) === S.goal));
@@ -1092,6 +1150,8 @@ function render() {
   $('p-star-live').textContent = profile.stars + S.earned;
   $('a-star-chip').textContent = '⭐ ' + (profile.stars + S.earned);
 
+  const inJump = S.screen === 'jump' || S.screen === 'celebrate';
+
   /* 圆环：每 50 下一圈，跳满即清零、从头再画；累计的圈数用星星表示 */
   const lap = Math.floor(S.count / 50), lapPct = (S.count % 50) / 50;
   $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - lapPct);
@@ -1101,17 +1161,18 @@ function render() {
   $('a-lapstars').textContent = fmtStars(lap);
   $('p-lapstars').textContent = fmtStars(lap);
 
-  /* 漫画放射光：跳绳中淡淡的，达标后"燃起来" */
-  const inJump = S.screen === 'jump' || S.screen === 'celebrate';
-  $('a-rays').classList.toggle('on', inJump);
-  $('p-rays').classList.toggle('on', inJump);
-  $('a-rays').classList.toggle('fired', inJump && S.goalHit);
-  $('p-rays').classList.toggle('fired', inJump && S.goalHit);
+  /* 燃起来分级：前 50 纯黑背景；每满 50 火焰升一级（暖橙色），3 级封顶 */
+  const fire = Math.min(lap, 3);
+  const rayCls = 'rays' + (inJump && fire > 0 ? ' on f' + fire : '');
+  $('a-rays').className = rayCls;
+  $('p-rays').className = rayCls;
 
-  /* 背景：只在已解锁的场景之间轮换（JRC 式收集） */
-  const scene = SCENES[S.bgStep % Math.max(1, Math.min(profile.scenes, SCENES.length))];
-  $('atomBg').style.background = scene.atom;
-  $('p-jump-bg').style.background = scene.phone;
+  /* 背景：跳绳中用纯黑舞台（给火焰让路）；待机/首页展示"今日主打场景"（每天轮换） */
+  const unlockedN = Math.max(1, Math.min(profile.scenes, SCENES.length));
+  const scene = SCENES[(S.bgStep + daily.sceneOffset) % unlockedN];
+  $('atomBg').style.background = inJump ? '#0A0C0B' : scene.atom;
+  $('p-jump-bg').style.background = '#101312';
+  $('p-home').style.background = scene.phone;
 
   /* 边缘光状态灯：准备中白灰呼吸，锁定/跳绳中绿色 */
   $('atomRoot').classList.toggle('waiting', S.screen === 'ready' && S.countdown === 0);
@@ -1208,7 +1269,7 @@ function startSession() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
   S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
-  speak('请站到镜头前');
+  speak(daily.opening + '。请站到镜头前');
   bump();
 }
 
@@ -1259,7 +1320,21 @@ function registerJump() {
       sndStar();
     }
     toast(msg);
-    if (!(S.goal > 0 && S.count === S.goal)) speak(String(S.count));
+    /* 教练语音分层：整 50 报"点亮一颗星"，整 30 带一句鼓励，其余整 10 只报数 */
+    if (!(S.goal > 0 && S.count === S.goal)) {
+      if (S.count % 50 === 0) speak(`${S.count} 下，点亮一颗星！`);
+      else if (S.count % 30 === 0) speak(`${S.count} 下，${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`);
+      else speak(String(S.count));
+    }
+  }
+
+  /* 每日隐藏数字：踩中有惊喜 */
+  if (S.count === daily.lucky) {
+    S.earned += 5;
+    sndStar();
+    confetti($('atomRoot'), 30); confetti($('phoneRoot'), 30);
+    toast(`🎁 踩中今日隐藏数字 ${daily.lucky}！⭐ +5`, 1800);
+    speak(`哇，踩中今天的隐藏数字${daily.lucky}，奖励五颗星！`);
   }
 
   /* 达标：不打断、不切界面，庆祝完继续往上数（51、52……用户不停就一直跳） */
@@ -1560,6 +1635,11 @@ document.querySelectorAll('[data-act="resume"]').forEach(b => b.addEventListener
 $('pb-exit').addEventListener('click', () => { location.hash = ''; location.reload(); });
 $('pb-auto').addEventListener('click', () => { audio(); setAuto(!autoTimer); });
 $('pb-cam').addEventListener('click', () => { audio(); setCam(!cam.on); });
+$('pb-voice').addEventListener('click', () => {
+  voiceOn = !voiceOn;
+  $('pb-voice').classList.toggle('on', voiceOn);
+  if (!voiceOn) { try { speechSynthesis.cancel(); } catch (e) {} }
+});
 
 /* ============================================================
    启动
