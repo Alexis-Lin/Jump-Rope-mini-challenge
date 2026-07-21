@@ -274,6 +274,32 @@
   .mascot.small { width: 56px; height: 56px; }
   .mascot.small::before, .mascot.small::after { top: -10px; width: 11px; height: 16px; }
 
+  /* Atom 466×466 圆屏框 */
+  .atom-round {
+    position: relative;
+    width: 340px; height: 340px; flex: none;
+    background: var(--panel);
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    box-shadow: var(--frame-shadow);
+    margin: 0 auto;
+  }
+  .atom-round .ring-track {
+    position: absolute; inset: 10px; border-radius: 50%;
+    border: 6px solid var(--wire-fill);
+  }
+  .atom-round .ring-fill {
+    position: absolute; inset: 10px; border-radius: 50%;
+    border: 6px solid transparent;
+    border-top-color: var(--accent); border-right-color: var(--accent);
+    transform: rotate(-20deg);
+  }
+  .atom-round .center-stack {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 6px; text-align: center;
+  }
+
   /* streak calendar */
   .week { display: flex; gap: 5px; justify-content: center; }
   .day {
@@ -574,38 +600,34 @@
     </div>
   </section>
 
-  <!-- ============ W6 Atom 端 ============ -->
-  <section class="screen wide">
-    <div>
-      <h2><span class="no">W6</span>Atom 端 · 跳绳中（横屏）</h2>
-      <p class="purpose">同一套组件、横向排版。观看距离 2–3 米，一切再放大一档；交互完全免触屏，语音播报兜底。</p>
-    </div>
-    <div class="atom-frame">
-      <i class="co" style="top: 36%; left: -11px;">1</i>
-      <i class="co" style="top: -11px; left: 50%;">2</i>
-      <i class="co" style="top: 36%; right: -11px;">3</i>
-      <i class="co" style="bottom: -11px; right: 24%;">4</i>
+  <!-- ============ W6 Atom 端（466×466 圆屏） ============ -->
+  <section class="screen">
+    <div class="atom-round">
+      <i class="co" style="top: 8px; right: 40px;">1</i>
+      <i class="co" style="top: 46%; left: -11px;">2</i>
+      <i class="co" style="bottom: 26px; right: 20px;">3</i>
+      <i class="co" style="bottom: 46%; right: -11px;">4</i>
 
-      <div class="stack" style="width: 22%; justify-content: center; align-items: center; gap: 12px;">
-        <div class="mascot">Bono<br>同步跳</div>
-        <span class="pill">🔥 4 天</span>
-      </div>
-      <div class="stack grow" style="justify-content: center; align-items: center; gap: 12px;">
-        <div class="bignum" style="font-size: 88px;">23<small style="font-size: 22px;"> / 50</small></div>
-        <div class="ring"><div><b>46%</b>进度环</div></div>
-      </div>
-      <div class="stack" style="width: 24%; justify-content: center; gap: 10px;">
-        <span class="pill" style="align-self: stretch;">⭐ 132</span>
-        <div class="box-d grow" style="min-height: 90px;">相机小窗<br>（默认显示自己）</div>
-        <div class="box-d" style="height: 40px;">结算时此处出二维码<br>手机扫码看详情</div>
+      <div class="ring-track"></div>
+      <div class="ring-fill"></div>
+      <div class="center-stack">
+        <span class="pill" style="border: none; background: none;">⭐ 132</span>
+        <div class="bignum" style="font-size: 74px;">23</div>
+        <span style="font-size: 13px; color: var(--ink-soft); font-weight: 600;">/ 50</span>
+        <div class="mascot small" style="margin-top: 4px;">Bono</div>
       </div>
     </div>
-    <ul class="notes" style="max-width: 640px;">
-      <li><span class="dot">1</span><div><b>吉祥物移到侧栏</b>：横屏三栏布局，中央让位给计数 —— 远距离下数字是唯一必须看清的东西。</div></li>
-      <li><span class="dot">2</span><div><b>计数字号再放大一档</b>（约屏高 40%），配<b>语音播报</b>：每 10 下报一次数，倒计时和达标也有语音。</div></li>
-      <li><span class="dot">3</span><div><b>相机小窗默认开启</b>：设备放在电视柜上，用户想确认自己有没有站好。</div></li>
-      <li><span class="dot">4</span><div><b>跨端衔接</b>：Atom 结算页显示二维码，手机扫码查看记录/分享；打卡与星星双端实时同步。</div></li>
-    </ul>
+
+    <div>
+      <h2><span class="no">W6</span>Atom 端 · 跳绳中（466×466 圆屏）</h2>
+      <p class="purpose">小圆屏信息极度取舍：屏上只留"计数 + 环形进度 + 迷你 Bono"，其余信息全部交给语音和边缘光。</p>
+      <ul class="notes">
+        <li><span class="dot">1</span><div><b>只保留三样东西</b>：中央超大计数（约屏高 40%）、贴边环形进度、迷你 Bono。相机小窗、打卡条、目标切换全部砍掉。</div></li>
+        <li><span class="dot">2</span><div><b>环形进度贴屏幕边缘</b>：圆屏的天然优势，一圈 = 一个目标，余光可读。自由跳模式下隐藏。</div></li>
+        <li><span class="dot">3</span><div><b>边缘光当状态灯</b>：准备时橙色呼吸 = 请站位，变绿 = 已锁定；取代取景器。配语音："三、二、一，跳！"，每 10 下报数。</div></li>
+        <li><span class="dot">4</span><div><b>结算翻页</b>：小屏放不下全部结算信息 —— 第一页成绩/星星/连签，点按翻到第二页大二维码，手机扫码看详情与分享。</div></li>
+      </ul>
+    </div>
   </section>
 
   <footer>
