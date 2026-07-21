@@ -242,6 +242,7 @@
   }
   .bigcount small { font-size: 22px; font-weight: 700; color: var(--ink-soft); }
   .bigcount.pop { transform: scale(1.12); }
+  .bigcount.over { color: var(--accent); }
   .goal-ring {
     width: 108px; height: 108px; border-radius: 50%;
     margin: 14px auto 0;
@@ -315,6 +316,7 @@
     position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none;
     transition: box-shadow .4s;
   }
+  #atomRoot.injump .atom-badge { opacity: 0; }
   #atomRoot.waiting .edge { animation: edgepulse 1.5s ease-in-out infinite; }
   #atomRoot.presence .edge { box-shadow: inset 0 0 2.4em .3em rgba(35,199,102,.55); }
   @keyframes edgepulse {
@@ -350,29 +352,33 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Atom 跳绳中：只留 计数 + 环形进度 + 迷你 Bono */
+  /* Atom 跳绳中：上半屏数字，下半屏大火柴人 */
   #a-jump { z-index: 2; }
   #a-jump .ring-svg { position: absolute; inset: 3%; z-index: 2; width: 94%; height: 94%; }
-  #a-jump .center {
-    position: absolute; inset: 0; z-index: 3;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  #a-jump .a-top {
+    position: absolute; top: 9%; left: 0; right: 0; z-index: 3;
+    display: flex; flex-direction: column; align-items: center; gap: .1em;
   }
   .a-count {
-    font-size: 7em; font-weight: 800; line-height: 1;
+    font-size: 6.2em; font-weight: 800; line-height: 1;
     font-variant-numeric: tabular-nums;
-    transition: transform .12s;
+    transition: transform .12s, color .3s;
   }
   .a-count.pop { transform: scale(1.09); }
-  .a-count-sub { font-size: .95em; color: var(--stage-soft); font-weight: 700; margin-top: .2em; }
+  .a-count.over { color: var(--accent); }
+  .a-count-sub { font-size: .9em; color: var(--stage-soft); font-weight: 700; }
   #a-jump .a-star {
-    position: absolute; top: 12.5%; left: 0; right: 0; z-index: 3;
-    text-align: center; font-size: .85em; font-weight: 700; color: var(--gold);
+    font-size: .8em; font-weight: 700; color: var(--gold);
     font-variant-numeric: tabular-nums;
   }
   #a-jump .a-bono-slot {
-    position: absolute; bottom: 7%; left: 0; right: 0; z-index: 3;
+    position: absolute; bottom: 4.5%; left: 0; right: 0; z-index: 3;
     display: flex; justify-content: center;
   }
+  /* Bono 用 em 定尺寸，跟随圆屏等比缩放 */
+  #a-bono-jump svg { width: 11.5em; height: 11.5em; }
+  #a-bono-idle svg { width: 6.2em; height: 6.2em; }
+  #a-bono-result svg { width: 4.2em; height: 4.2em; }
 
   /* Atom 结算：两页翻页（成绩 ⇄ 二维码），点按切换 */
   #a-result { z-index: 2; }
@@ -522,7 +528,7 @@
         <div class="hint">离开画面会自动暂停</div>
       </div>
 
-      <!-- 跳绳中：环形进度沿屏幕边缘，中央只有计数 -->
+      <!-- 跳绳中：上半屏数字，下半屏大火柴人；达标不打断，继续往上数 -->
       <div class="ascreen" id="a-jump">
         <svg class="ring-svg" viewBox="0 0 466 466">
           <circle cx="233" cy="233" r="216" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="11"></circle>
@@ -530,16 +536,17 @@
                   stroke-linecap="round" stroke-dasharray="1357.2" stroke-dashoffset="1357.2"
                   transform="rotate(-90 233 233)"></circle>
         </svg>
-        <div class="a-star" id="a-star-chip">⭐ 0</div>
-        <div class="center">
+        <div class="a-top">
+          <div class="a-star" id="a-star-chip">⭐ 0</div>
           <div class="a-count" id="a-count">0</div>
           <div class="a-count-sub" id="a-count-sub">/ 50</div>
         </div>
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
         <div class="milestone-toast" id="a-toast"></div>
         <div class="pauseveil" id="a-pause">
-          已暂停<span>回到画面中即可接着跳</span>
+          已暂停<span>回到画面继续 · 5 秒后自动结算</span>
           <button class="atom-cta" data-act="resume">继续</button>
+          <button class="atom-cta" data-act="end" style="background:#2B332E;box-shadow:none;">立即结算</button>
         </div>
       </div>
 
@@ -626,12 +633,13 @@
           <div id="p-bono-jump"></div>
         </div>
         <div class="tap-hint">模拟模式：空格键或点按屏幕任意处 = 跳一下</div>
-        <button class="ghost" id="p-finish-free" style="display:none;">结束本轮</button>
+        <button class="ghost" id="p-finish-free">结束本轮</button>
       </div>
       <div class="milestone-toast" id="p-toast"></div>
       <div class="pauseveil" id="p-pause">
-        已暂停<span>回到画面中（或点继续）接着跳</span>
+        已暂停<span>回到画面继续 · 5 秒后自动结算</span>
         <button class="cta" data-act="resume" style="padding:10px 26px;font-size:14px;">继续</button>
+        <button class="ghost" data-act="end" style="padding:10px 26px;font-size:14px;">立即结算</button>
       </div>
     </div>
 
@@ -705,6 +713,7 @@ const S = {
   countdown: 0,            // 3/2/1，0 = 未在倒计时
   paused: false,
   bgStep: 0,
+  goalHit: false,          // 已达标（达标不打断，继续往上数）
   totalAtStart: 0,         // 本轮开始时的累计数（用于判断解锁）
   unlock: '',              // 本轮解锁提示文案
   seq: 0,                  // 同步序号
@@ -912,16 +921,17 @@ function render() {
   document.querySelectorAll('.goal-pill').forEach(b =>
     b.classList.toggle('on', Number(b.dataset.goal) === S.goal));
 
-  /* 跳绳中 */
-  const goalTxt = S.goal === 0 ? '' : ' / ' + S.goal;
+  /* 跳绳中（达标后数字变绿、显示超额，继续往上数） */
   $('p-count').childNodes[0].textContent = S.count;
-  $('p-count-sub').textContent = goalTxt;
+  $('p-count-sub').textContent = S.goal === 0 ? '' : (S.goalHit ? ' ✓' : ' / ' + S.goal);
   $('a-count').textContent = S.count;
-  $('a-count-sub').textContent = S.goal === 0 ? '自由跳' : '/ ' + S.goal;
+  $('a-count-sub').textContent = S.goal === 0 ? '自由跳'
+    : (S.goalHit ? `目标 ${S.goal} ✓ 超额 +${S.count - S.goal}` : '/ ' + S.goal);
+  $('p-count').classList.toggle('over', S.goalHit);
+  $('a-count').classList.toggle('over', S.goalHit);
   $('p-goal-chip').textContent = S.goal === 0 ? '自由跳' : '目标 ' + S.goal;
   $('p-star-live').textContent = profile.stars + S.earned;
   $('a-star-chip').textContent = '⭐ ' + (profile.stars + S.earned);
-  $('p-finish-free').style.display = S.goal === 0 ? '' : 'none';
 
   const pct = S.goal ? Math.min(1, S.count / S.goal) : 0;
   $('p-ring').style.display = S.goal ? '' : 'none';
@@ -936,9 +946,10 @@ function render() {
   $('atomBg').style.background = scene.atom;
   $('p-jump-bg').style.background = scene.phone;
 
-  /* 边缘光状态灯：准备中橙色呼吸，锁定/跳绳中绿色 */
+  /* 边缘光状态灯：准备中白灰呼吸，锁定/跳绳中绿色 */
   $('atomRoot').classList.toggle('waiting', S.screen === 'ready' && S.countdown === 0);
   $('atomRoot').classList.toggle('presence', S.countdown > 0 || (S.screen === 'jump' && !S.paused));
+  $('atomRoot').classList.toggle('injump', S.screen === 'jump' || S.screen === 'celebrate');
 
   /* 倒计时 */
   const cdOn = S.countdown > 0;
@@ -1026,7 +1037,7 @@ function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 function startSession() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
   S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
-  S.totalAtStart = profile.total; S.unlock = '';
+  S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   speak('请站到镜头前');
   bump();
 }
@@ -1071,24 +1082,33 @@ function registerJump() {
       sndStar(); flyStar($('phoneRoot')); flyStar($('atomRoot'));
     }
     toast(msg);
-    if (S.goal === 0 || S.count < S.goal) speak(String(S.count));
+    if (!(S.goal > 0 && S.count === S.goal)) speak(String(S.count));
   }
 
-  /* 达标 */
-  if (S.goal > 0 && S.count >= S.goal) {
+  /* 达标：不打断、不切界面，庆祝完继续往上数（51、52……用户不停就一直跳） */
+  if (S.goal > 0 && S.count === S.goal && !S.goalHit) {
+    S.goalHit = true;
     S.earned += 10;
-    finishSession(true);
-    return;
+    sndFanfare();
+    confetti($('atomRoot'), 50); confetti($('phoneRoot'), 50);
+    toast(`🎉 ${S.goal} 下达成！继续冲！`, 1800);
+    speak(`目标达成！继续保持！`);
   }
   bump();
 }
 
-function finishSession(goalMet) {
-  S.screen = 'celebrate';
-  bump();
-  sndFanfare();
-  speak(goalMet ? '目标达成！太棒了！' : '本轮结束，辛苦啦');
-  confetti($('atomRoot'), 60); confetti($('phoneRoot'), 60);
+/* 结算只在用户"真的停下"时发生：离开画面 5 秒 / 点结束 / 自动演示收尾 */
+function endSession() {
+  if (S.screen !== 'jump') return;
+  const goalMet = S.goalHit;
+  S.paused = false; clearTimeout(pauseEndTimer);
+  if (goalMet) {
+    S.screen = 'celebrate';
+    bump();
+    sndFanfare();
+    confetti($('atomRoot'), 60); confetti($('phoneRoot'), 60);
+  }
+  speak(goalMet ? `一共 ${S.count} 下，太棒了！` : '本轮结束，辛苦啦');
 
   /* 打卡与档案结算 */
   const tk = todayKey();
@@ -1118,13 +1138,20 @@ function finishSession(goalMet) {
   if (unlocks.length) speak('恭喜解锁' + unlocks.join('，'));
   saveProfile();
 
-  setTimeout(() => { S.screen = 'result'; bump(); }, 2200);
+  if (goalMet) setTimeout(() => { S.screen = 'result'; bump(); }, 1800);
+  else { S.screen = 'result'; bump(); }
 }
 
+let pauseEndTimer = null;
 function pauseSession(v) {
   if (S.screen !== 'jump') return;
   S.paused = v;
-  if (v) speak('已暂停');
+  clearTimeout(pauseEndTimer);
+  if (v) {
+    speak('已暂停');
+    /* 停下 5 秒视为"这轮跳完了"，自动进结算 */
+    pauseEndTimer = setTimeout(() => { if (S.paused && S.screen === 'jump') endSession(); }, 5000);
+  }
   bump();
 }
 function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); S.countdown = 0; bump(); }
@@ -1168,12 +1195,15 @@ function initChannel() {
     if (!m || m.src === myId) return;
     if (m.t === 'hb') { peers[m.src] = { mode: m.mode, ts: Date.now() }; renderPeers(); return; }
     if (m.t === 'snap') {
-      const prev = { count: S.count, screen: S.screen };
+      const prev = { count: S.count, screen: S.screen, goalHit: S.goalHit };
       applying = true;
       Object.assign(S, m.state);
       profile = m.profile; saveProfile();
       /* 远端跳了一下 → 本端也出反馈 */
       if (S.count > prev.count && S.screen === 'jump') { sndJump(S.count); popCount(); bonoHopOnce(); }
+      if (!prev.goalHit && S.goalHit) {
+        sndFanfare(); confetti($('atomRoot'), 50); confetti($('phoneRoot'), 50);
+      }
       if (prev.screen !== 'celebrate' && S.screen === 'celebrate') {
         sndFanfare(); confetti($('atomRoot'), 60); confetti($('phoneRoot'), 60);
       }
@@ -1204,7 +1234,11 @@ function setAuto(on) {
   autoTimer = setInterval(() => {
     if (S.screen === 'idle') startSession();
     else if (S.screen === 'ready' && S.countdown === 0) standLocked();
-    else if (S.screen === 'jump' && !S.paused) registerJump();
+    else if (S.screen === 'jump' && !S.paused) {
+      /* 演示时达标后再超额跳 12 下，模拟"用户自己停下来" */
+      if (S.goal > 0 && S.goalHit && S.count >= S.goal + 12) endSession();
+      else registerJump();
+    }
   }, 460);
 }
 
@@ -1331,7 +1365,8 @@ $('a-result').addEventListener('click', (e) => {
 $('p-start').addEventListener('click', () => { audio(); startSession(); });
 $('a-start').addEventListener('click', () => { audio(); startSession(); });
 $('p-fake-stand').addEventListener('click', () => { audio(); standLocked(); });
-$('p-finish-free').addEventListener('click', () => finishSession(false));
+$('p-finish-free').addEventListener('click', () => endSession());
+document.querySelectorAll('[data-act="end"]').forEach(b => b.addEventListener('click', () => endSession()));
 document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('click', goHome));
 document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener('click', () => { audio(); startSession(); }));
 document.querySelectorAll('[data-act="resume"]').forEach(b => b.addEventListener('click', () => pauseSession(false)));
@@ -1358,7 +1393,7 @@ document.querySelectorAll('.mode-card').forEach(b =>
 
 mountBono('logo-bono', 96, 'idle');
 mountBono('p-bono-home', 130, 'idle');
-mountBono('p-bono-jump', 96, 'idle');
+mountBono('p-bono-jump', 150, 'idle');
 mountBono('p-bono-result', 100, 'party');
 mountBono('a-bono-idle', 100, 'idle');
 mountBono('a-bono-jump', 60, 'idle');
