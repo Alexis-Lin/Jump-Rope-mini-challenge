@@ -289,6 +289,11 @@
   .bigcount small { font-size: 22px; font-weight: 700; color: var(--ink-soft); }
   .bigcount.pop { transform: scale(1.12); }
   .bigcount.over { color: var(--accent); }
+  .lapstars {
+    text-align: center; color: var(--accent);
+    font-size: 15px; font-weight: 700; letter-spacing: 2px;
+    min-height: 20px; font-variant-numeric: tabular-nums;
+  }
   .goal-ring {
     width: 108px; height: 108px; border-radius: 50%;
     margin: 14px auto 0;
@@ -398,33 +403,41 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Atom 跳绳中：上半屏数字，下半屏大火柴人 */
+  /* Atom 跳绳中：上 2/5 计数，下 3/5 纯火柴人 */
   #a-jump { z-index: 2; }
   #a-jump .ring-svg { position: absolute; inset: 3%; z-index: 2; width: 94%; height: 94%; }
   #a-jump .a-top {
-    position: absolute; top: 9%; left: 0; right: 0; z-index: 3;
-    display: flex; flex-direction: column; align-items: center; gap: .1em;
+    position: absolute; top: 5.5%; left: 0; right: 0; height: 40%; z-index: 3;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: .1em;
   }
   .a-count {
-    font-size: 6.2em; font-weight: 800; line-height: 1;
+    font-size: 6.6em; font-weight: 800; line-height: 1;
     font-variant-numeric: tabular-nums;
     transition: transform .12s, color .3s;
   }
   .a-count.pop { transform: scale(1.09); }
   .a-count.over { color: var(--accent); }
-  .a-count-sub { font-size: .9em; color: var(--stage-soft); font-weight: 700; }
+  .a-count-sub { font-size: .85em; color: var(--stage-soft); font-weight: 700; }
   #a-jump .a-star {
-    font-size: .8em; font-weight: 700; color: var(--gold);
+    font-size: .78em; font-weight: 700; color: var(--gold);
+    font-variant-numeric: tabular-nums;
+  }
+  .a-lapstars {
+    color: var(--accent); font-size: .85em; font-weight: 700;
+    letter-spacing: .15em; min-height: 1.2em;
     font-variant-numeric: tabular-nums;
   }
   #a-jump .a-bono-slot {
-    position: absolute; bottom: 4.5%; left: 0; right: 0; z-index: 3;
-    display: flex; justify-content: center;
+    position: absolute; bottom: 2%; left: 0; right: 0; height: 58%; z-index: 3;
+    display: flex; justify-content: center; align-items: flex-end;
   }
   /* Bono 用 em 定尺寸，跟随圆屏等比缩放 */
-  #a-bono-jump svg { width: 11.5em; height: 11.5em; }
+  #a-bono-jump svg { width: 16.5em; height: 16.5em; }
   #a-bono-idle svg { width: 6.2em; height: 6.2em; }
   #a-bono-result svg { width: 4.2em; height: 4.2em; }
+  /* 火柴人线条颜色：深色屏白线，浅色屏黑线 */
+  .bono { color: var(--ink); }
+  #atomRoot .bono, #launcher .bono { color: var(--stage-ink); }
 
   /* Atom 结算：两页翻页（成绩 ⇄ 二维码），点按切换 */
   #a-result { z-index: 2; }
@@ -577,8 +590,8 @@
       <!-- 跳绳中：上半屏数字，下半屏大火柴人；达标不打断，继续往上数 -->
       <div class="ascreen" id="a-jump">
         <svg class="ring-svg" viewBox="0 0 466 466">
-          <circle cx="233" cy="233" r="216" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="11"></circle>
-          <circle id="a-ring-arc" cx="233" cy="233" r="216" fill="none" stroke="#23C766" stroke-width="11"
+          <circle id="a-ring-base" cx="233" cy="233" r="216" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="11"></circle>
+          <circle id="a-ring-arc" cx="233" cy="233" r="216" fill="none" stroke="#B9F0D0" stroke-width="11"
                   stroke-linecap="round" stroke-dasharray="1357.2" stroke-dashoffset="1357.2"
                   transform="rotate(-90 233 233)"></circle>
         </svg>
@@ -586,6 +599,7 @@
           <div class="a-star" id="a-star-chip">⭐ 0</div>
           <div class="a-count" id="a-count">0</div>
           <div class="a-count-sub" id="a-count-sub">/ 50</div>
+          <div class="a-lapstars" id="a-lapstars"></div>
         </div>
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
         <div class="milestone-toast" id="a-toast"></div>
@@ -669,10 +683,11 @@
           <span class="chip"><span class="st">⭐</span><span id="p-star-live">0</span></span>
         </div>
         <div class="bigcount" id="p-count">0<small id="p-count-sub"> / 50</small></div>
+        <div class="lapstars" id="p-lapstars"></div>
         <div class="goal-ring" id="p-ring">
           <svg width="108" height="108" viewBox="0 0 108 108">
-            <circle cx="54" cy="54" r="47" fill="none" stroke="#E4E7E5" stroke-width="9"></circle>
-            <circle id="p-ring-arc" cx="54" cy="54" r="47" fill="none" stroke="#23C766" stroke-width="9"
+            <circle id="p-ring-base" cx="54" cy="54" r="47" fill="none" stroke="#E4E7E5" stroke-width="9"></circle>
+            <circle id="p-ring-arc" cx="54" cy="54" r="47" fill="none" stroke="#B9F0D0" stroke-width="9"
                     stroke-linecap="round" stroke-dasharray="295.3" stroke-dashoffset="295.3"></circle>
           </svg>
           <span class="pct" id="p-pct">0%</span>
@@ -918,53 +933,39 @@ function speak(text) {
 function outfitLayer(idx) {
   switch (idx) {
     case 1: /* 元气发带 */
-      return `<path d="M40 29 Q60 21 80 29" fill="none" stroke="#23C766" stroke-width="6" stroke-linecap="round"/>
-              <circle cx="80" cy="28" r="3.5" fill="#23C766"/>`;
+      return `<path d="M45 24 Q60 17 75 24" fill="none" stroke="#23C766" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="75" cy="23" r="3" fill="#23C766"/>`;
     case 2: /* 酷酷墨镜 */
-      return `<rect x="43" y="32" width="15" height="11" rx="4" fill="#17191B"/>
-              <rect x="62" y="32" width="15" height="11" rx="4" fill="#17191B"/>
-              <line x1="58" y1="36" x2="62" y2="36" stroke="#17191B" stroke-width="3"/>`;
+      return `<rect x="47" y="25" width="11" height="8" rx="3" fill="currentColor"/>
+              <rect x="62" y="25" width="11" height="8" rx="3" fill="currentColor"/>
+              <line x1="58" y1="28" x2="62" y2="28" stroke="currentColor" stroke-width="2.5"/>`;
     case 3: /* 小绿围巾 */
-      return `<path d="M46 57 Q60 65 74 57 L73 65 Q60 73 47 65 Z" fill="#16A353"/>
-              <rect x="65" y="61" width="8" height="15" rx="4" fill="#16A353"/>`;
+      return `<path d="M50 47 Q60 53 70 47 L69 54 Q60 60 51 54 Z" fill="#16A353"/>
+              <rect x="63" y="50" width="7" height="13" rx="3.5" fill="#16A353"/>`;
     case 4: /* 银色皇冠 */
-      return `<path d="M46 20 L51 6 L60 16 L69 5 L74 20 Q60 13 46 20 Z"
-                    fill="#C9CFCC" stroke="#9AA09D" stroke-width="2" stroke-linejoin="round"/>`;
+      return `<path d="M49 12 L53 2 L60 10 L67 1 L71 12 Q60 7 49 12 Z"
+                    fill="#C9CFCC" stroke="#9AA09D" stroke-width="1.5" stroke-linejoin="round"/>`;
     case 5: /* 宇航头盔 */
-      return `<circle cx="60" cy="36" r="30" fill="rgba(165,255,205,.15)" stroke="#BFC6C2" stroke-width="3"/>`;
+      return `<circle cx="60" cy="30" r="24" fill="rgba(191,198,194,.12)" stroke="#BFC6C2" stroke-width="2.5"/>`;
     default: return '';
   }
 }
-/* 吉祥物：小火柴人（白圆脑袋 + 黑线条身体，绿芽/绿手套/绿鞋是品牌点缀） */
+/* 吉祥物：纯粹的火柴人。线条用 currentColor —— 深色屏白线、浅色屏黑线；绿色只在绳子上 */
 function bonoSVG(size) {
   return `
   <svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-label="吉祥物 Bono">
-    <g class="rope"><ellipse cx="60" cy="72" rx="50" ry="36" fill="none" stroke="#23C766" stroke-width="3" opacity=".85"/></g>
-    <g class="body-g">
-      <ellipse cx="60" cy="112" rx="24" ry="4.5" fill="rgba(0,0,0,.15)"/>
-      <!-- 头顶绿芽 -->
-      <path d="M60 13 Q60 8 60 6" fill="none" stroke="#16A353" stroke-width="3" stroke-linecap="round"/>
-      <path d="M60 7 Q52 2 48 7 Q53 11 60 7 Z" fill="#23C766"/>
-      <path d="M60 7 Q68 2 72 7 Q67 11 60 7 Z" fill="#23C766"/>
-      <!-- 头 -->
-      <circle cx="60" cy="36" r="23" fill="#FFFFFF" stroke="#17191B" stroke-width="5"/>
-      <circle cx="52" cy="38" r="3.2" fill="#17191B"/>
-      <circle cx="68" cy="38" r="3.2" fill="#17191B"/>
-      <circle cx="53.2" cy="36.8" r="1.1" fill="#fff"/>
-      <circle cx="69.2" cy="36.8" r="1.1" fill="#fff"/>
-      <circle cx="45" cy="44" r="3.5" fill="#7FE3A8" opacity=".65"/>
-      <circle cx="75" cy="44" r="3.5" fill="#7FE3A8" opacity=".65"/>
-      <path d="M54 46 Q60 51 66 46" fill="none" stroke="#17191B" stroke-width="3" stroke-linecap="round"/>
-      <!-- 身体与四肢 -->
-      <path d="M60 59 L60 86" stroke="#17191B" stroke-width="5.5" stroke-linecap="round"/>
-      <path d="M60 68 L44 78" stroke="#17191B" stroke-width="5" stroke-linecap="round"/>
-      <path d="M60 68 L76 78" stroke="#17191B" stroke-width="5" stroke-linecap="round"/>
-      <circle cx="44" cy="78" r="3.5" fill="#23C766"/>
-      <circle cx="76" cy="78" r="3.5" fill="#23C766"/>
-      <path d="M60 86 L49 104" stroke="#17191B" stroke-width="5" stroke-linecap="round"/>
-      <path d="M60 86 L71 104" stroke="#17191B" stroke-width="5" stroke-linecap="round"/>
-      <ellipse cx="47" cy="106" rx="7" ry="4" fill="#23C766"/>
-      <ellipse cx="73" cy="106" rx="7" ry="4" fill="#23C766"/>
+    <g class="rope"><ellipse cx="60" cy="70" rx="50" ry="38" fill="none" stroke="#23C766" stroke-width="3" opacity=".85"/></g>
+    <g class="body-g" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round">
+      <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
+      <circle cx="60" cy="30" r="17"/>
+      <circle cx="54" cy="28" r="2.4" fill="currentColor" stroke="none"/>
+      <circle cx="66" cy="28" r="2.4" fill="currentColor" stroke="none"/>
+      <path d="M55 35 Q60 39 65 35" stroke-width="3"/>
+      <path d="M60 47 L60 82"/>
+      <path d="M60 60 L42 72"/>
+      <path d="M60 60 L78 72"/>
+      <path d="M60 82 L48 106"/>
+      <path d="M60 82 L72 106"/>
       ${outfitLayer(profile.outfit)}
     </g>
   </svg>`;
@@ -1066,13 +1067,19 @@ function render() {
   $('p-star-live').textContent = profile.stars + S.earned;
   $('a-star-chip').textContent = '⭐ ' + (profile.stars + S.earned);
 
-  const pct = S.goal ? Math.min(1, S.count / S.goal) : 0;
-  $('p-ring').style.display = S.goal ? '' : 'none';
-  $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - pct);
-  $('p-pct').textContent = Math.round(pct * 100) + '%';
-  /* Atom：环形进度沿屏幕边缘（自由跳时隐藏） */
-  $('a-ring-arc').style.opacity = S.goal ? 1 : 0;
-  $('a-ring-arc').style.strokeDashoffset = 1357.2 * (1 - pct);
+  /* 嵌套环：每 50 下一圈。上一圈的颜色沉淀为底色，本圈用更深一档的绿覆盖着画 */
+  const lap = Math.floor(S.count / 50), lapPct = (S.count % 50) / 50;
+  const shade = (i) => RING_SHADES[Math.min(i, RING_SHADES.length - 1)];
+  $('p-ring-base').style.stroke = lap > 0 ? shade(lap - 1) : '#E4E7E5';
+  $('p-ring-arc').style.stroke = shade(lap);
+  $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - lapPct);
+  $('p-pct').textContent = lap > 0 ? '★' + lap : Math.round(lapPct * 100) + '%';
+  $('a-ring-base').style.stroke = lap > 0 ? shade(lap - 1) : 'rgba(255,255,255,.09)';
+  $('a-ring-arc').style.stroke = shade(lap);
+  $('a-ring-arc').style.strokeDashoffset = 1357.2 * (1 - lapPct);
+  /* 每 50 下点亮一颗星 */
+  $('a-lapstars').textContent = fmtStars(lap);
+  $('p-lapstars').textContent = fmtStars(lap);
 
   /* 背景：只在已解锁的场景之间轮换（JRC 式收集） */
   const scene = SCENES[S.bgStep % Math.max(1, Math.min(profile.scenes, SCENES.length))];
@@ -1197,6 +1204,10 @@ function standLocked() {              /* 站进框稳定 → 开始倒计时 */
   }, 900);
 }
 
+/* 嵌套环配色：一圈 = 50 下，颜色逐圈加深 */
+const RING_SHADES = ['#B9F0D0', '#6FDE9E', '#23C766', '#16A353', '#0E7A3C', '#0A5C2E'];
+const fmtStars = (lap) => lap <= 0 ? '' : (lap <= 8 ? '★'.repeat(lap) : `★×${lap}`);
+
 const CHEERS = ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'];
 function registerJump() {
   if (S.screen !== 'jump' || S.paused) return;
@@ -1216,6 +1227,10 @@ function registerJump() {
       else msg = `${S.count} 下 · ⭐ +${gain}`;
       S.earned += gain;
       sndStar(); flyStar($('phoneRoot')); flyStar($('atomRoot'));
+    }
+    if (S.count % 50 === 0) {
+      msg = `⭐ 第 ${S.count / 50} 圈完成，点亮一颗星！`;
+      sndStar();
     }
     toast(msg);
     if (!(S.goal > 0 && S.count === S.goal)) speak(String(S.count));
