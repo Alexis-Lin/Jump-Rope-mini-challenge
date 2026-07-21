@@ -6,19 +6,19 @@
      单文件、零依赖。手机端 / Atom 端 / 双端同屏 三种模式。
      ============================================================ */
   :root {
-    --ink: #1F262E;
-    --ink-soft: #67707B;
-    --paper: #F4F6F8;
+    --ink: #17191B;
+    --ink-soft: #6B7370;
+    --paper: #F5F6F5;
     --card: #FFFFFF;
-    --accent: #FF5C38;
-    --accent-deep: #E64425;
-    --accent-soft: #FFE9E2;
-    --mint: #1FA883;
-    --mint-soft: #DFF5EE;
-    --gold: #F5A623;
-    --stage: #0F1622;       /* Atom 的深色舞台 */
-    --stage-ink: #F2EFE9;
-    --stage-soft: #8E97A6;
+    --accent: #23C766;
+    --accent-deep: #16A353;
+    --accent-soft: #E4F8EC;
+    --mint: #23C766;
+    --mint-soft: #E4F8EC;
+    --gold: #1FA85B;
+    --stage: #121514;       /* Atom 的深色舞台 */
+    --stage-ink: #F2F4F2;
+    --stage-soft: #8D9591;
   }
   * { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -51,9 +51,9 @@
     width: 180px;
     padding: 22px 16px 18px;
     border-radius: 18px;
-    background: #1A2330;
+    background: #1B201D;
     color: var(--stage-ink);
-    border: 1.5px solid #2A3648;
+    border: 1.5px solid #2B332E;
     display: flex; flex-direction: column; align-items: center; gap: 8px;
     transition: transform .15s, border-color .15s;
   }
@@ -61,10 +61,10 @@
   .mode-card .ic { font-size: 34px; }
   .mode-card b { font-size: 16px; }
   .mode-card span { font-size: 12px; color: var(--stage-soft); line-height: 1.5; }
-  .mode-card.primary { border-color: var(--accent); background: linear-gradient(160deg, #2A1B16, #1A2330); }
+  .mode-card.primary { border-color: var(--accent); background: linear-gradient(160deg, #12281B, #1B201D); }
   .link-hint {
     font-size: 12.5px; color: var(--stage-soft);
-    border: 1px dashed #2A3648; border-radius: 12px;
+    border: 1px dashed #2B332E; border-radius: 12px;
     padding: 10px 16px; max-width: 46em; line-height: 1.7;
   }
   .link-hint b { color: var(--stage-ink); }
@@ -75,8 +75,8 @@
     left: 50%; bottom: 10px; transform: translateX(-50%);
     z-index: 90;
     display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center;
-    background: rgba(16, 22, 34, 0.92);
-    border: 1px solid #2A3648;
+    background: rgba(16, 19, 17, 0.92);
+    border: 1px solid #2B332E;
     border-radius: 999px;
     padding: 7px 12px;
     font-size: 12px;
@@ -86,11 +86,11 @@
   }
   #protobar .tag { color: var(--accent); font-weight: 700; letter-spacing: .08em; }
   #protobar button {
-    background: #223047; color: var(--stage-ink);
+    background: #242C27; color: var(--stage-ink);
     border-radius: 999px; padding: 5px 11px; font-size: 12px;
   }
   #protobar button.on { background: var(--accent); color: #fff; }
-  #protobar .sep { width: 1px; height: 16px; background: #2A3648; }
+  #protobar .sep { width: 1px; height: 16px; background: #2B332E; }
   #peers { color: var(--mint); }
 
   /* ---------------- 舞台布局 ---------------- */
@@ -115,7 +115,7 @@
     background: var(--paper);
     color: var(--ink);
     border-radius: 30px;
-    border: 3px solid #060A10;
+    border: 3px solid #050707;
     box-shadow: 0 18px 60px rgba(0,0,0,.5);
     overflow: hidden;
     position: relative;
@@ -163,7 +163,7 @@
     background: var(--card); color: var(--ink-soft);
     font-size: 12px; box-shadow: 0 1px 4px rgba(31,38,46,.1);
   }
-  .unlock-line { text-align: center; font-size: 13px; color: #D6486F; font-weight: 600; margin-top: 8px; min-height: 1em; }
+  .unlock-line { text-align: center; font-size: 13px; color: #16A353; font-weight: 600; margin-top: 8px; min-height: 1em; }
 
   .goal-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
   .goal-pill {
@@ -177,7 +177,7 @@
     background: linear-gradient(180deg, var(--accent), var(--accent-deep));
     color: #fff; font-size: 17px; font-weight: 700;
     border-radius: 999px; padding: 15px;
-    box-shadow: 0 6px 18px rgba(255,92,56,.35);
+    box-shadow: 0 6px 18px rgba(35,199,102,.35);
     transition: transform .1s;
   }
   .cta:active { transform: scale(.97); }
@@ -191,8 +191,8 @@
     flex: 1;
     border-radius: 18px;
     background:
-      linear-gradient(rgba(15,22,34,.55), rgba(15,22,34,.55)),
-      repeating-linear-gradient(45deg, #202B3B 0 12px, #26324a 12px 24px);
+      linear-gradient(rgba(16,19,17,.55), rgba(16,19,17,.55)),
+      repeating-linear-gradient(45deg, #242A27 0 12px, #2B322E 12px 24px);
     position: relative;
     overflow: hidden;
     display: flex; align-items: center; justify-content: center;
@@ -204,16 +204,16 @@
   }
   .silhouette {
     width: 45%; height: 80%;
-    border: 2.5px dashed var(--accent);
+    border: 2.5px dashed #AEB5B0;
     border-radius: 42% 42% 16% 16% / 26% 26% 9% 9%;
-    background: rgba(255,92,56,.10);
+    background: rgba(255,255,255,.06);
     display: flex; align-items: flex-end; justify-content: center;
     padding-bottom: 12px;
-    color: #FFD9CE; font-size: 13px; font-weight: 600; text-align: center;
+    color: #DDE2DE; font-size: 13px; font-weight: 600; text-align: center;
     position: relative; z-index: 2;
     transition: border-color .3s, background .3s;
   }
-  .silhouette.locked { border-color: var(--mint); background: rgba(31,168,131,.16); color: #C8F2E5; }
+  .silhouette.locked { border-color: var(--mint); background: rgba(35,199,102,.16); color: #CFF3DD; }
   .vf-tip {
     position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
     background: rgba(16,22,34,.8); color: var(--stage-ink);
@@ -275,7 +275,7 @@
   .streak-line b { color: var(--mint); font-size: 16px; }
   .op-note {
     margin-top: auto; margin-bottom: 12px;
-    border: 1.5px dashed #C9D0D8; border-radius: 12px;
+    border: 1.5px dashed #C6CCC8; border-radius: 12px;
     padding: 9px 12px; font-size: 12px; color: var(--ink-soft); text-align: center;
   }
   .btn-row { display: flex; gap: 10px; }
@@ -290,8 +290,8 @@
     font-size: calc(var(--asz) / 466 * 16);   /* 1em ≈ 设计稿 16px */
     background: var(--stage);
     border-radius: 50%;
-    border: 10px solid #060A10;
-    outline: 3px solid #1B2432;
+    border: 10px solid #050707;
+    outline: 3px solid #1D2420;
     box-shadow: 0 18px 60px rgba(0,0,0,.55);
     position: relative;
     overflow: hidden;
@@ -316,10 +316,10 @@
     transition: box-shadow .4s;
   }
   #atomRoot.waiting .edge { animation: edgepulse 1.5s ease-in-out infinite; }
-  #atomRoot.presence .edge { box-shadow: inset 0 0 2.4em .3em rgba(31,168,131,.5); }
+  #atomRoot.presence .edge { box-shadow: inset 0 0 2.4em .3em rgba(35,199,102,.55); }
   @keyframes edgepulse {
-    0%,100% { box-shadow: inset 0 0 2.4em .3em rgba(255,92,56,.5); }
-    50%      { box-shadow: inset 0 0 1em 0 rgba(255,92,56,.15); }
+    0%,100% { box-shadow: inset 0 0 2.4em .3em rgba(255,255,255,.35); }
+    50%      { box-shadow: inset 0 0 1em 0 rgba(255,255,255,.08); }
   }
 
   .atom-cta {
@@ -327,7 +327,7 @@
     background: linear-gradient(180deg, var(--accent), var(--accent-deep));
     color: #fff; font-size: .9em; font-weight: 700;
     border-radius: 999px; padding: .55em 1.8em;
-    box-shadow: 0 .3em 1.2em rgba(255,92,56,.4);
+    box-shadow: 0 .3em 1.2em rgba(35,199,102,.4);
   }
 
   /* Atom 待机 */
@@ -335,7 +335,7 @@
   #a-idle .big-tip { font-size: 1.12em; font-weight: 700; line-height: 1.5; max-width: 72%; }
   #a-idle .sub-tip { color: var(--stage-soft); font-size: .78em; }
   .a-goal-chip {
-    background: #1A2330; color: var(--accent);
+    background: #1B201D; color: var(--accent);
     border: 1.5px solid var(--accent); border-radius: 999px;
     padding: .32em 1.1em; font-size: .85em; font-weight: 700;
     z-index: 3;
@@ -385,7 +385,7 @@
   #a-result .lab { font-size: .95em; font-weight: 700; }
   #a-result .earn { color: var(--gold); font-size: .85em; font-weight: 700; }
   #a-result .streak { color: var(--mint); font-size: .78em; }
-  #a-result .unlock { color: #FF9EBB; font-size: .74em; font-weight: 600; min-height: 1em; }
+  #a-result .unlock { color: #7FE3A8; font-size: .74em; font-weight: 600; min-height: 1em; }
   .flip-hint { color: var(--stage-soft); font-size: .62em; margin-top: .3em; }
   #a-r-page2 canvas { width: 9.5em; height: 9.5em; background: #fff; border-radius: .5em; padding: .4em; }
 
@@ -400,7 +400,7 @@
     position: absolute; inset: 0; z-index: 20;
     display: none;
     align-items: center; justify-content: center; flex-direction: column; gap: 12px;
-    background: rgba(15,22,34,.55);
+    background: rgba(16,19,17,.55);
     backdrop-filter: blur(2px);
   }
   .celebrate.show { display: flex; }
@@ -415,7 +415,7 @@
   .pauseveil {
     position: absolute; inset: 0; z-index: 18;
     display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px;
-    background: rgba(15,22,34,.72); color: #fff;
+    background: rgba(16,19,17,.72); color: #fff;
     font-size: 18px; font-weight: 700;
   }
   .pauseveil.show { display: flex; }
@@ -472,7 +472,7 @@
 
 <!-- ==================== 启动器 ==================== -->
 <div id="launcher">
-  <div class="logo">🦘</div>
+  <div class="logo" id="logo-bono"></div>
   <h1>跳绳小挑战 · 可交互原型</h1>
   <p>Body Park × Atom。选择要体验的设备端 —— 三种打开方式对应三个真实使用场景。</p>
   <div class="mode-row">
@@ -526,7 +526,7 @@
       <div class="ascreen" id="a-jump">
         <svg class="ring-svg" viewBox="0 0 466 466">
           <circle cx="233" cy="233" r="216" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="11"></circle>
-          <circle id="a-ring-arc" cx="233" cy="233" r="216" fill="none" stroke="#FF5C38" stroke-width="11"
+          <circle id="a-ring-arc" cx="233" cy="233" r="216" fill="none" stroke="#23C766" stroke-width="11"
                   stroke-linecap="round" stroke-dasharray="1357.2" stroke-dashoffset="1357.2"
                   transform="rotate(-90 233 233)"></circle>
         </svg>
@@ -616,8 +616,8 @@
         <div class="bigcount" id="p-count">0<small id="p-count-sub"> / 50</small></div>
         <div class="goal-ring" id="p-ring">
           <svg width="108" height="108" viewBox="0 0 108 108">
-            <circle cx="54" cy="54" r="47" fill="none" stroke="#E2E7EC" stroke-width="9"></circle>
-            <circle id="p-ring-arc" cx="54" cy="54" r="47" fill="none" stroke="#FF5C38" stroke-width="9"
+            <circle cx="54" cy="54" r="47" fill="none" stroke="#E4E7E5" stroke-width="9"></circle>
+            <circle id="p-ring-arc" cx="54" cy="54" r="47" fill="none" stroke="#23C766" stroke-width="9"
                     stroke-linecap="round" stroke-dasharray="295.3" stroke-dashoffset="295.3"></circle>
           </svg>
           <span class="pct" id="p-pct">0%</span>
@@ -714,13 +714,14 @@ const S = {
    场景收集（借鉴 Jump Rope Challenge：每次达标解锁一张新背景）
    初始解锁 3 个；跳绳中每 10 下在"已解锁"场景间轮换。
    ------------------------------------------------------------ */
+/* 品牌色约束（黑白灰绿）：六个场景用 灰度深浅 × 绿意浓淡 区分 */
 const SCENES = [
-  { name: '清晨公园', atom: 'radial-gradient(120% 100% at 50% 100%, #1E2A1F 0%, #0F1622 70%)', phone: 'linear-gradient(180deg, #E9F7F1 0%, #D5F0E4 100%)' },
-  { name: '午后海边', atom: 'radial-gradient(120% 100% at 50% 100%, #1B2740 0%, #0F1622 70%)', phone: 'linear-gradient(180deg, #EAF4FD 0%, #D8EAFA 100%)' },
-  { name: '黄昏都市', atom: 'radial-gradient(120% 100% at 50% 100%, #33231A 0%, #0F1622 70%)', phone: 'linear-gradient(180deg, #FDF3E7 0%, #FBE4D2 100%)' },
-  { name: '樱花小路', atom: 'radial-gradient(120% 100% at 50% 100%, #2A1E2E 0%, #0F1622 70%)', phone: 'linear-gradient(180deg, #FDF0F3 0%, #F9DEE6 100%)' },
-  { name: '星空营地', atom: 'radial-gradient(120% 100% at 50% 100%, #16202E 0%, #0F1622 70%)', phone: 'linear-gradient(180deg, #EFEBFB 0%, #E0DAF6 100%)' },
-  { name: '月球表面', atom: 'radial-gradient(120% 100% at 50% 100%, #1A2E2B 0%, #0F1622 70%)', phone: 'linear-gradient(180deg, #F4F6F8 0%, #E8EEF4 100%)' },
+  { name: '清晨公园', atom: 'radial-gradient(120% 100% at 50% 100%, #1C3324 0%, #121514 70%)', phone: 'linear-gradient(180deg, #ECF6EE 0%, #D8EFDE 100%)' },
+  { name: '雨后森林', atom: 'radial-gradient(120% 100% at 50% 100%, #14402A 0%, #101312 70%)', phone: 'linear-gradient(180deg, #DFF2E5 0%, #C4E8D1 100%)' },
+  { name: '黄昏都市', atom: 'radial-gradient(120% 100% at 50% 100%, #2A2D2B 0%, #121514 70%)', phone: 'linear-gradient(180deg, #F1F1F0 0%, #DFDFDD 100%)' },
+  { name: '苔藓小径', atom: 'radial-gradient(120% 100% at 50% 100%, #26331F 0%, #121514 70%)', phone: 'linear-gradient(180deg, #EEF3E7 0%, #DEE9D2 100%)' },
+  { name: '星空营地', atom: 'radial-gradient(120% 100% at 30% 110%, #0E2A1C 0%, #0B0E0C 65%)', phone: 'linear-gradient(180deg, #E5EBE7 0%, #CBD6CF 100%)' },
+  { name: '月球表面', atom: 'radial-gradient(120% 100% at 50% 100%, #232624 0%, #0E100F 70%)', phone: 'linear-gradient(180deg, #F4F4F4 0%, #E4E6E4 100%)' },
 ];
 
 /* ------------------------------------------------------------
@@ -730,8 +731,8 @@ const OUTFITS = [
   { at: 0,    name: '经典'     },
   { at: 100,  name: '元气发带' },
   { at: 300,  name: '酷酷墨镜' },
-  { at: 500,  name: '小红围巾' },
-  { at: 1000, name: '金色皇冠' },
+  { at: 500,  name: '小绿围巾' },
+  { at: 1000, name: '银色皇冠' },
   { at: 2000, name: '宇航头盔' },
 ];
 const unlockedOutfits = () => OUTFITS.filter(o => profile.total >= o.at);
@@ -780,42 +781,53 @@ function speak(text) {
 function outfitLayer(idx) {
   switch (idx) {
     case 1: /* 元气发带 */
-      return `<path d="M26 46 Q60 32 94 46" fill="none" stroke="#FF5C38" stroke-width="7" stroke-linecap="round"/>
-              <circle cx="92" cy="44" r="4" fill="#FF5C38"/>`;
+      return `<path d="M40 29 Q60 21 80 29" fill="none" stroke="#23C766" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="80" cy="28" r="3.5" fill="#23C766"/>`;
     case 2: /* 酷酷墨镜 */
-      return `<rect x="35" y="49" width="21" height="13" rx="5" fill="#1F262E"/>
-              <rect x="64" y="49" width="21" height="13" rx="5" fill="#1F262E"/>
-              <line x1="56" y1="54" x2="64" y2="54" stroke="#1F262E" stroke-width="3"/>`;
-    case 3: /* 小红围巾 */
-      return `<path d="M36 92 Q60 104 84 92 L82 101 Q60 112 38 101 Z" fill="#E64425"/>
-              <rect x="70" y="96" width="9" height="16" rx="4" fill="#E64425"/>`;
-    case 4: /* 金色皇冠 */
-      return `<path d="M44 28 L50 12 L60 24 L70 10 L78 24 L84 14 L85 30 Q60 22 44 30 Z"
-                    fill="#F5A623" stroke="#D98E12" stroke-width="2"/>`;
+      return `<rect x="43" y="32" width="15" height="11" rx="4" fill="#17191B"/>
+              <rect x="62" y="32" width="15" height="11" rx="4" fill="#17191B"/>
+              <line x1="58" y1="36" x2="62" y2="36" stroke="#17191B" stroke-width="3"/>`;
+    case 3: /* 小绿围巾 */
+      return `<path d="M46 57 Q60 65 74 57 L73 65 Q60 73 47 65 Z" fill="#16A353"/>
+              <rect x="65" y="61" width="8" height="15" rx="4" fill="#16A353"/>`;
+    case 4: /* 银色皇冠 */
+      return `<path d="M46 20 L51 6 L60 16 L69 5 L74 20 Q60 13 46 20 Z"
+                    fill="#C9CFCC" stroke="#9AA09D" stroke-width="2" stroke-linejoin="round"/>`;
     case 5: /* 宇航头盔 */
-      return `<circle cx="60" cy="54" r="31" fill="rgba(165,205,255,.28)" stroke="#9CC3E8" stroke-width="3"/>`;
+      return `<circle cx="60" cy="36" r="30" fill="rgba(165,255,205,.15)" stroke="#BFC6C2" stroke-width="3"/>`;
     default: return '';
   }
 }
+/* 吉祥物：小火柴人（白圆脑袋 + 黑线条身体，绿芽/绿手套/绿鞋是品牌点缀） */
 function bonoSVG(size) {
   return `
   <svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-label="吉祥物 Bono">
-    <g class="rope"><ellipse cx="60" cy="74" rx="52" ry="34" fill="none" stroke="#FF5C38" stroke-width="3" opacity=".85"/></g>
+    <g class="rope"><ellipse cx="60" cy="72" rx="50" ry="36" fill="none" stroke="#23C766" stroke-width="3" opacity=".85"/></g>
     <g class="body-g">
-      <ellipse cx="60" cy="112" rx="26" ry="5" fill="rgba(0,0,0,.18)"/>
-      <path d="M38 32 Q30 6 46 12 Q54 16 52 32 Z" fill="#F5A623"/>
-      <path d="M82 32 Q90 6 74 12 Q66 16 68 32 Z" fill="#F5A623"/>
-      <circle cx="60" cy="66" r="42" fill="#FFB84D"/>
-      <circle cx="60" cy="74" r="30" fill="#FFE1AE"/>
-      <circle cx="46" cy="56" r="5.5" fill="#1F262E"/>
-      <circle cx="74" cy="56" r="5.5" fill="#1F262E"/>
-      <circle cx="48" cy="54" r="1.8" fill="#fff"/>
-      <circle cx="76" cy="54" r="1.8" fill="#fff"/>
-      <circle cx="38" cy="66" r="5" fill="#FF9E7A" opacity=".7"/>
-      <circle cx="82" cy="66" r="5" fill="#FF9E7A" opacity=".7"/>
-      <path d="M52 70 Q60 78 68 70" fill="none" stroke="#1F262E" stroke-width="3" stroke-linecap="round"/>
-      <ellipse cx="46" cy="106" rx="10" ry="5" fill="#F5A623"/>
-      <ellipse cx="74" cy="106" rx="10" ry="5" fill="#F5A623"/>
+      <ellipse cx="60" cy="112" rx="24" ry="4.5" fill="rgba(0,0,0,.15)"/>
+      <!-- 头顶绿芽 -->
+      <path d="M60 13 Q60 8 60 6" fill="none" stroke="#16A353" stroke-width="3" stroke-linecap="round"/>
+      <path d="M60 7 Q52 2 48 7 Q53 11 60 7 Z" fill="#23C766"/>
+      <path d="M60 7 Q68 2 72 7 Q67 11 60 7 Z" fill="#23C766"/>
+      <!-- 头 -->
+      <circle cx="60" cy="36" r="23" fill="#FFFFFF" stroke="#17191B" stroke-width="5"/>
+      <circle cx="52" cy="38" r="3.2" fill="#17191B"/>
+      <circle cx="68" cy="38" r="3.2" fill="#17191B"/>
+      <circle cx="53.2" cy="36.8" r="1.1" fill="#fff"/>
+      <circle cx="69.2" cy="36.8" r="1.1" fill="#fff"/>
+      <circle cx="45" cy="44" r="3.5" fill="#7FE3A8" opacity=".65"/>
+      <circle cx="75" cy="44" r="3.5" fill="#7FE3A8" opacity=".65"/>
+      <path d="M54 46 Q60 51 66 46" fill="none" stroke="#17191B" stroke-width="3" stroke-linecap="round"/>
+      <!-- 身体与四肢 -->
+      <path d="M60 59 L60 86" stroke="#17191B" stroke-width="5.5" stroke-linecap="round"/>
+      <path d="M60 68 L44 78" stroke="#17191B" stroke-width="5" stroke-linecap="round"/>
+      <path d="M60 68 L76 78" stroke="#17191B" stroke-width="5" stroke-linecap="round"/>
+      <circle cx="44" cy="78" r="3.5" fill="#23C766"/>
+      <circle cx="76" cy="78" r="3.5" fill="#23C766"/>
+      <path d="M60 86 L49 104" stroke="#17191B" stroke-width="5" stroke-linecap="round"/>
+      <path d="M60 86 L71 104" stroke="#17191B" stroke-width="5" stroke-linecap="round"/>
+      <ellipse cx="47" cy="106" rx="7" ry="4" fill="#23C766"/>
+      <ellipse cx="73" cy="106" rx="7" ry="4" fill="#23C766"/>
       ${outfitLayer(profile.outfit)}
     </g>
   </svg>`;
@@ -980,7 +992,7 @@ function toast(msg, ms) {
   });
 }
 function confetti(rootEl, n) {
-  const colors = ['#FF5C38','#1FA883','#F5A623','#5B8DEF','#FF9EBB'];
+  const colors = ['#23C766','#7FE3A8','#FFFFFF','#BFC6C2','#16A353'];
   for (let i = 0; i < n; i++) {
     const p = document.createElement('div');
     p.className = 'confetti-p';
@@ -1121,16 +1133,16 @@ function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer);
 function drawQR(cv) {
   const ctx = cv.getContext('2d'); const n = 12, cell = cv.width / n;
   ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
-  ctx.fillStyle = '#1F262E';
+  ctx.fillStyle = '#17191B';
   let seed = 7;
   for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
     seed = (seed * 73 + x * 31 + y * 17) % 97;
     if (seed % 2 === 0) ctx.fillRect(x * cell, y * cell, cell - 1, cell - 1);
   }
   [[0,0],[n-4,0],[0,n-4]].forEach(([x,y]) => {
-    ctx.fillStyle = '#1F262E'; ctx.fillRect(x*cell, y*cell, cell*4, cell*4);
+    ctx.fillStyle = '#17191B'; ctx.fillRect(x*cell, y*cell, cell*4, cell*4);
     ctx.fillStyle = '#fff'; ctx.fillRect((x+1)*cell, (y+1)*cell, cell*2, cell*2);
-    ctx.fillStyle = '#1F262E'; ctx.fillRect((x+1.5)*cell, (y+1.5)*cell, cell, cell);
+    ctx.fillStyle = '#17191B'; ctx.fillRect((x+1.5)*cell, (y+1.5)*cell, cell, cell);
   });
 }
 
@@ -1344,6 +1356,7 @@ function enter(mode) {
 document.querySelectorAll('.mode-card').forEach(b =>
   b.addEventListener('click', () => { audio(); enter(b.dataset.pick); }));
 
+mountBono('logo-bono', 96, 'idle');
 mountBono('p-bono-home', 130, 'idle');
 mountBono('p-bono-jump', 96, 'idle');
 mountBono('p-bono-result', 100, 'party');

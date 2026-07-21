@@ -7,10 +7,10 @@
     --ink-soft: #6B7078;
     --wire: #B9BFC6;
     --wire-fill: #ECEDEF;
-    --accent: #FF5C38;
-    --accent-soft: #FFE9E2;
+    --accent: #23C766;
+    --accent-soft: #E4F8EC;
     --note: #3B66E0;
-    --mint: #1F9E7C;
+    --mint: #1FA85B;
     --frame-shadow: 0 2px 14px rgba(35, 40, 46, 0.08);
   }
   @media (prefers-color-scheme: dark) {
@@ -21,10 +21,10 @@
       --ink-soft: #9BA1A8;
       --wire: #4A515A;
       --wire-fill: #2A3037;
-      --accent: #FF6B47;
-      --accent-soft: #3A2620;
+      --accent: #34D178;
+      --accent-soft: #17301F;
       --note: #7C9BFF;
-      --mint: #3DBD99;
+      --mint: #34D178;
       --frame-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
     }
   }
@@ -35,10 +35,10 @@
     --ink-soft: #6B7078;
     --wire: #B9BFC6;
     --wire-fill: #ECEDEF;
-    --accent: #FF5C38;
-    --accent-soft: #FFE9E2;
+    --accent: #23C766;
+    --accent-soft: #E4F8EC;
     --note: #3B66E0;
-    --mint: #1F9E7C;
+    --mint: #1FA85B;
     --frame-shadow: 0 2px 14px rgba(35, 40, 46, 0.08);
   }
   :root[data-theme="dark"] {
@@ -48,10 +48,10 @@
     --ink-soft: #9BA1A8;
     --wire: #4A515A;
     --wire-fill: #2A3037;
-    --accent: #FF6B47;
-    --accent-soft: #3A2620;
+    --accent: #34D178;
+    --accent-soft: #17301F;
     --note: #7C9BFF;
-    --mint: #3DBD99;
+    --mint: #34D178;
     --frame-shadow: 0 2px 14px rgba(0, 0, 0, 0.4);
   }
 
@@ -260,19 +260,17 @@
     flex: none;
     margin: 0 auto;
   }
-  .mascot::before, .mascot::after {
+  .mascot::before {
     content: "";
     position: absolute;
-    top: -12px;
-    width: 14px; height: 20px;
-    border: 1.5px solid var(--wire);
-    border-radius: 50% 50% 40% 40%;
-    background: var(--wire-fill);
+    top: -10px; left: 50%; transform: translateX(-50%);
+    width: 14px; height: 10px;
+    border: 1.5px solid var(--accent);
+    border-radius: 50% 50% 0 50%;
+    background: var(--accent-soft);
   }
-  .mascot::before { left: 13px; transform: rotate(-14deg); }
-  .mascot::after  { right: 13px; transform: rotate(14deg); }
   .mascot.small { width: 56px; height: 56px; }
-  .mascot.small::before, .mascot.small::after { top: -10px; width: 11px; height: 16px; }
+  .mascot.small::before { top: -8px; width: 11px; height: 8px; }
 
   /* Atom 466×466 圆屏框 */
   .atom-round {
