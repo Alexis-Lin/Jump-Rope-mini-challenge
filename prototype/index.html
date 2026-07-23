@@ -414,6 +414,31 @@
     z-index: 3;
   }
 
+  /* Atom 历史打卡记录（覆盖层） */
+  .a-chip-row { display: flex; gap: .5em; z-index: 3; }
+  .ghost-chip { border-color: rgba(255,255,255,.25); color: var(--stage-soft); background: transparent; }
+  .a-history {
+    position: absolute; inset: 0; z-index: 8;
+    background: rgba(16,19,17,.97);
+    display: none;
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: .8em; text-align: center;
+  }
+  .a-history.show { display: flex; }
+  .a-history .h-title { font-size: 1.75em; font-weight: 700; }
+  .h-list { display: flex; flex-direction: column; gap: .45em; }
+  .hrow {
+    display: flex; align-items: baseline; gap: .8em;
+    font-size: 1.375em; font-variant-numeric: tabular-nums;
+    color: var(--stage-ink);
+  }
+  .hrow .hd { color: var(--stage-soft); min-width: 3.2em; text-align: right; }
+  .hrow .hd.done { color: var(--accent); }
+  .hrow .hday { color: var(--stage-soft); min-width: 3.4em; }
+  .hrow .hc { font-weight: 700; min-width: 3.4em; text-align: right; }
+  .hrow .ht { color: var(--stage-soft); min-width: 2.8em; text-align: right; }
+  .h-empty { font-size: 1.375em; color: var(--stage-soft); }
+
   /* Atom 待机：打卡周点（绿点=已打卡，描边=今天） */
   .a-week { display: flex; gap: .4em; z-index: 3; }
   .adot {
@@ -647,7 +672,10 @@
         <div class="sub-tip"><span id="a-streak-txt">🔥 0 天</span> · ⭐ <span id="a-stars-txt">0</span><span id="a-daily"></span></div>
         <div class="a-week" id="a-week"></div>
         <div class="sub-tip" id="a-today"></div>
-        <button class="a-goal-chip" id="a-goal-cycle">目标 <span id="a-goal-txt">100</span> · 点按切换</button>
+        <div class="a-chip-row">
+          <button class="a-goal-chip" id="a-goal-cycle">目标 <span id="a-goal-txt">100</span></button>
+          <button class="a-goal-chip ghost-chip" id="a-history-btn">📖 记录</button>
+        </div>
         <button class="atom-cta" id="a-start">开始</button>
       </div>
 
@@ -699,6 +727,13 @@
           <canvas id="a-qr" width="120" height="120"></canvas>
           <div class="flip-hint">扫码看详情 · 点按返回</div>
         </div>
+      </div>
+
+      <!-- 历史打卡记录（覆盖层，点按任意处返回） -->
+      <div class="a-history" id="a-history">
+        <div class="h-title">打卡记录</div>
+        <div class="h-list" id="a-history-list"></div>
+        <div class="flip-hint">点按返回</div>
       </div>
 
       <div class="celebrate" id="a-celebrate"><div class="txt">🎉 达成！</div></div>
@@ -1453,8 +1488,9 @@ function endSession() {
 
   /* 打卡与档案结算 */
   const tk = todayKey();
-  const rec = profile.history[tk] || { count: 0, done: false };
+  const rec = profile.history[tk] || { count: 0, done: false, ms: 0 };
   rec.count += S.count;
+  rec.ms = (rec.ms || 0) + S.elapsedMs;
   const met = goalMet || rec.count >= 50;
   if (met && !rec.done) {
     rec.done = true;
@@ -1706,6 +1742,32 @@ $('a-goal-cycle').addEventListener('click', () => {
 $('p-outfit-prev').addEventListener('click', () => { audio(); cycleOutfit(-1); });
 $('p-outfit-next').addEventListener('click', () => { audio(); cycleOutfit(1); });
 $('a-bono-idle').addEventListener('click', () => { audio(); cycleOutfit(1); });
+/* 历史打卡记录（Atom）：日期 · Day x · 次数 · 用时 */
+function renderHistory() {
+  const keys = Object.keys(profile.history)
+    .filter(k => profile.history[k].count > 0).sort();
+  const dayNo = {};
+  keys.forEach((k, i) => { dayNo[k] = i + 1; });
+  const list = $('a-history-list');
+  if (!keys.length) {
+    list.innerHTML = '<div class="h-empty">还没有记录<br>跳完第一轮就有啦</div>';
+    return;
+  }
+  list.innerHTML = keys.slice(-6).reverse().map(k => {
+    const r = profile.history[k];
+    return `<div class="hrow">` +
+      `<span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
+      `<span class="hday">Day ${dayNo[k]}</span>` +
+      `<span class="hc">${r.count} 下</span>` +
+      `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span>` +
+      `</div>`;
+  }).join('');
+}
+$('a-history-btn').addEventListener('click', (e) => {
+  e.stopPropagation(); audio(); renderHistory(); $('a-history').classList.add('show');
+});
+$('a-history').addEventListener('click', () => $('a-history').classList.remove('show'));
+
 /* 排行榜 */
 $('p-board-entry').addEventListener('click', () => { audio(); renderBoard(); $('p-board').classList.remove('hidden'); });
 $('p-board-close').addEventListener('click', () => $('p-board').classList.add('hidden'));
