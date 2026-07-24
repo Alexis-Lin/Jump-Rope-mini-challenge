@@ -300,8 +300,9 @@
     transition: transform .12s, color .3s;
   }
   .bigcount small { font-size: 22px; font-weight: 700; color: var(--ink-soft); }
-  .bigcount.pop { transform: scale(1.12); }
+  .bigcount.pop { animation: cpop .16s ease-out; }
   .bigcount.over { color: #FFB020; }
+  @keyframes cpop { 0% { transform: scale(1); } 40% { transform: scale(1.1); } 100% { transform: scale(1); } }
   /* 跳绳界面是黑色舞台：手机端文字换浅色 */
   #p-jump .bigcount { color: #F2F4F2; }
   #p-jump .bigcount small { color: #8D9591; }
@@ -476,7 +477,7 @@
     font-variant-numeric: tabular-nums;
     transition: transform .12s, color .3s;
   }
-  .a-count.pop { transform: scale(1.09); }
+  .a-count.pop { animation: cpop .16s ease-out; }
   .a-count.over { color: #FFB020; }   /* 达标后计数转暖色，与火焰呼应 */
   .a-lapstars {
     color: var(--accent); font-size: 1.5em; font-weight: 700;
@@ -545,6 +546,24 @@
   @media (prefers-reduced-motion: reduce) {
     .rays.f1, .rays.f2, .rays.f3 { animation: none; }
   }
+
+  /* ===== 15fps 刷新率模拟（Atom 真机约束：466×466 @ ~15fps）=====
+     连续动画量化为 1/15s 一帧（steps 数 = 时长 × 15）；
+     过渡动画直切 —— 低刷新率设备上 300ms 的 tween 只有 4 帧，不如状态直切干净 */
+  #atomRoot.fps15, #atomRoot.fps15 * { transition: none !important; }
+  #atomRoot.fps15 .rays.f1 { animation: rayspin 18s steps(270) infinite; }
+  #atomRoot.fps15 .rays.f2 { animation: rayspin 9s steps(135) infinite; }
+  #atomRoot.fps15 .rays.f3 {
+    animation: rayspin 5s steps(75) infinite, raypulse 1.06s steps(16) infinite;
+  }
+  #atomRoot.fps15 .bono.idle .body-g  { animation-timing-function: steps(39); }
+  #atomRoot.fps15 .bono.hop .body-g   { animation-timing-function: steps(6); }
+  #atomRoot.fps15 .bono.party .body-g { animation-timing-function: steps(12); }
+  #atomRoot.fps15 .bono .rope         { animation-timing-function: steps(6); }
+  #atomRoot.fps15.waiting .edge       { animation-timing-function: steps(22); }
+  #atomRoot.fps15 .confetti-p         { animation-timing-function: steps(30); }
+  #atomRoot.fps15 .celebrate .txt     { animation-timing-function: steps(8); }
+  #atomRoot.fps15 .a-count.pop        { animation-timing-function: steps(3); }
 
   /* 圆屏内的覆盖层字号 */
   #atomRoot .milestone-toast { font-size: 1.5em; top: 30%; max-width: 86%; white-space: normal; }
@@ -738,7 +757,7 @@
 
       <div class="celebrate" id="a-celebrate"><div class="txt">🎉 达成！</div></div>
     </div>
-    <div class="atom-caption">Atom · 466×466 圆屏（1:1 模拟）</div>
+    <div class="atom-caption">Atom · 466×466 圆屏 · 15fps 刷新率模拟</div>
   </div>
 
   <!-- ========== 手机端 ========== -->
@@ -881,6 +900,7 @@
   <button id="pb-auto">▶ 自动演示</button>
   <button id="pb-cam">📷 摄像头计数</button>
   <button id="pb-voice" class="on">🔊 教练语音</button>
+  <button id="pb-fps" class="on">🎞 15fps 模拟</button>
   <span class="sep"></span>
   <span id="peers">未联动</span>
 </div>
@@ -1799,6 +1819,13 @@ $('pb-voice').addEventListener('click', () => {
   voiceOn = !voiceOn;
   $('pb-voice').classList.toggle('on', voiceOn);
   if (!voiceOn) { try { speechSynthesis.cancel(); } catch (e) {} }
+});
+/* 15fps 刷新率模拟：默认开启（真机约束），可关闭对比 60fps 观感 */
+$('atomRoot').classList.add('fps15');
+$('pb-fps').addEventListener('click', () => {
+  const on = !$('atomRoot').classList.contains('fps15');
+  $('atomRoot').classList.toggle('fps15', on);
+  $('pb-fps').classList.toggle('on', on);
 });
 
 /* ============================================================
