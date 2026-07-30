@@ -409,10 +409,29 @@
   #a-result .r-page:active { filter: brightness(1.08); }
   .a-history:active { filter: brightness(1.08); }
 
-  /* Atom 待机 */
+  /* Atom 待机（首页）：连胜/成就前置，设置贴边 */
   #a-idle { gap: .5em; z-index: 2; }
-  #a-idle .big-tip { font-size: 2em; font-weight: 700; line-height: 1.4; max-width: 78%; }
   #a-idle .sub-tip { color: var(--stage-soft); font-size: 1.375em; }
+  .idle-streak { font-size: 1.75em; font-weight: 700; }
+  .atom-cta.big { font-size: 1.75em; padding: .55em 2.2em; }
+  .a-goal-chip.sm { font-size: 1.375em; padding: .4em .9em; }
+  .edge-row { margin-top: .3em; }
+
+  /* 模式选择页 */
+  #a-mode { gap: .55em; z-index: 2; }
+  .mode-title { font-size: 1.75em; font-weight: 700; }
+  .mode-opt {
+    width: 68%;
+    background: #1B201D;
+    border: 2px solid #2B332E;
+    border-radius: 1em;
+    padding: .55em .8em;
+    display: flex; flex-direction: column; align-items: center; gap: .15em;
+    color: var(--stage-ink);
+  }
+  .mode-opt b { font-size: 1.75em; }
+  .mode-opt span { font-size: 1.29em; color: var(--stage-soft); line-height: 1.4; }
+  .mode-opt:active { transform: scale(.96); border-color: var(--accent); filter: brightness(1.15); }
   .a-goal-chip {
     background: #1B201D; color: var(--accent);
     border: 1.5px solid var(--accent); border-radius: 999px;
@@ -689,21 +708,34 @@
       <div class="rays" id="a-rays"></div>
       <div class="edge"></div>
 
-      <!-- 待机：两种模式二选一（限时测试 / 目标测试），其余交给语音 -->
+      <!-- 待机（首页）：只有一个"开始"；前置 连胜/打卡/成就；设置项贴边 -->
       <div class="ascreen" id="a-idle">
         <div id="a-bono-idle"></div>
-        <div class="big-tip">站到镜头前，开始跳绳</div>
-        <div class="sub-tip" id="a-idle-sub"></div>
+        <div class="idle-streak" id="a-streakline"></div>
         <div class="a-week" id="a-week"></div>
+        <div class="sub-tip" id="a-achieve"></div>
         <div class="sub-tip" id="a-today"></div>
-        <div class="a-chip-row">
-          <button class="a-goal-chip" id="a-mode-test">限时 <span id="a-test-len">1'</span></button>
-          <button class="a-goal-chip" id="a-mode-goal">目标 <span id="a-goal-txt">100</span></button>
+        <button class="atom-cta big" id="a-start">开始</button>
+        <div class="a-chip-row edge-row">
+          <button class="a-goal-chip ghost-chip sm" id="a-set-goal">每日目标 <span id="a-goal-txt">100</span></button>
+          <button class="a-goal-chip ghost-chip sm" id="a-history-btn">记录 ›</button>
         </div>
+      </div>
+
+      <!-- 模式选择（点"开始"后的中间页） -->
+      <div class="ascreen" id="a-mode">
+        <div class="mode-title">选择模式</div>
+        <button class="mode-opt" id="a-opt-timed">
+          <b>限时跳</b><span>倒计时冲刺 · 测出你的极限</span>
+        </button>
         <div class="a-chip-row">
-          <button class="atom-cta" id="a-start">开始</button>
-          <button class="a-goal-chip ghost-chip" id="a-history-btn">记录 ›</button>
+          <button class="a-goal-chip sm" id="a-len-1">1 分钟</button>
+          <button class="a-goal-chip sm" id="a-len-2">2 分钟</button>
         </div>
+        <button class="mode-opt" id="a-opt-free">
+          <b>不限时</b><span id="a-opt-free-sub">跳多少算多少 · 每日任务 100 下</span>
+        </button>
+        <button class="a-goal-chip ghost-chip sm" id="a-mode-back">返回</button>
       </div>
 
       <!-- 准备：无取景器，边缘光 + 语音代替（屏幕太小，砍掉相机预览） -->
@@ -1214,11 +1246,11 @@ function bonoHopOnce() {
    渲染
    ============================================================ */
 function showScreens() {
-  ['idle','ready','jump','result'].forEach(s => {
-    const a = $('a-' + (s === 'idle' ? 'idle' : s));
+  ['idle','mode','ready','jump','result'].forEach(s => {
+    const a = $('a-' + s);
     if (a) a.classList.toggle('show', S.screen === s || (S.screen === 'celebrate' && s === 'jump'));
   });
-  const pMap = { idle: 'p-home', ready: 'p-ready', jump: 'p-jump', celebrate: 'p-jump', result: 'p-result' };
+  const pMap = { idle: 'p-home', mode: 'p-home', ready: 'p-ready', jump: 'p-jump', celebrate: 'p-jump', result: 'p-result' };
   ['p-home','p-ready','p-jump','p-result'].forEach(id => $(id).classList.toggle('show', pMap[S.screen] === id));
   $('a-celebrate').classList.toggle('show', S.screen === 'celebrate');
   $('p-celebrate').classList.toggle('show', S.screen === 'celebrate');
@@ -1249,13 +1281,16 @@ function render() {
   /* 首页 / 待机 */
   $('p-streak-num').textContent = profile.streak;
   $('p-stars-num').textContent = profile.stars;
-  $('a-idle-sub').innerHTML =
-    `${ico('flame', '#FFB020')} ${profile.streak} 天 · ` +
-    `${ico('star', '#1FA85B')} ${profile.stars} · ${daily.amb}`;
-  /* 双模式 chip：选中态高亮，未选中压暗 */
-  $('a-mode-test').classList.toggle('dim', S.goal !== TEST);
-  $('a-mode-goal').classList.toggle('dim', S.goal === TEST);
-  $('a-test-len').textContent = (S.testMin || 1) + "'";
+  /* 待机首页：连胜 + 成就前置 */
+  $('a-streakline').innerHTML = `${ico('flame', '#FFB020')} 连续 ${profile.streak} 天`;
+  $('a-achieve').innerHTML =
+    `${ico('trophy')} 1' 最佳 ${profile.bests[1] || '—'} · 累计 ${profile.total} · ` +
+    `${ico('star', '#1FA85B')} ${profile.stars}`;
+  /* 模式选择页：时长 pills 与每日任务数 */
+  $('a-len-1').classList.toggle('dim', S.testMin !== 1);
+  $('a-len-2').classList.toggle('dim', S.testMin !== 2);
+  $('a-opt-free-sub').textContent = profile.goalNum === 0
+    ? '跳多少算多少 · 自由模式' : `跳多少算多少 · 每日任务 ${profile.goalNum} 下`;
   $('a-goal-txt').textContent = profile.goalNum === 0 ? '自由' : profile.goalNum;
   $('p-goal-cur').textContent = S.goal === 0 ? '自由跳' : S.goal === TEST ? `${S.testMin} 分钟测试` : S.goal + ' 下';
   $('p-goal-num').textContent = S.goal === 0 ? '自由' : S.goal === TEST ? '测试' : S.goal;
@@ -1436,8 +1471,15 @@ let cdTimer = null;
 
 function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 
-function startSession() {
+function openMode() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
+  S.screen = 'mode';
+  speak('选择模式：限时跳，或者不限时');
+  bump();
+}
+function startSession(g) {
+  if (S.screen !== 'idle' && S.screen !== 'result' && S.screen !== 'mode') return;
+  if (g !== undefined) { S.goal = g; profile.goal = g; saveProfile(); }
   S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
@@ -1701,7 +1743,8 @@ function setAuto(on) {
   $('pb-auto').classList.toggle('on', on);
   if (!on) return;
   autoTimer = setInterval(() => {
-    if (S.screen === 'idle') startSession();
+    if (S.screen === 'idle') openMode();
+    else if (S.screen === 'mode') startSession(profile.goalNum);
     else if (S.screen === 'ready' && S.countdown === 0) standLocked();
     else if (S.screen === 'jump' && !S.paused) {
       /* 演示跳到 105 下再停（测试模式例外：跳满 1 分钟由计时器收尾） */
@@ -1821,31 +1864,24 @@ $('p-goal-minus').addEventListener('click', () => { audio(); setGoal(S.goal <= 0
 $('p-goal-plus').addEventListener('click', () => { audio(); setGoal(S.goal <= 0 ? 100 : Math.min(1000, S.goal + 50)); });
 document.querySelectorAll('#p-settings .goal-pill')
   .forEach(b => b.addEventListener('click', () => { audio(); setGoal(Number(b.dataset.goal)); }));
-/* Atom 双模式选择：点按选中；再点已选中的 chip 切换其数值 */
-$('a-mode-test').addEventListener('click', () => {
-  audio();
-  if (S.goal === TEST) {
-    S.testMin = S.testMin === 1 ? 2 : 1;
-    profile.testMin = S.testMin; saveProfile();
-    speak(`${S.testMin} 分钟限时`);
-    bump();
-  } else {
-    setGoal(TEST);
-    speak(`限时测试，${S.testMin} 分钟`);
-  }
+/* Atom 流程：开始 → 模式选择页 → 选模式即开跳 */
+$('a-opt-timed').addEventListener('click', () => { audio(); startSession(TEST); });
+$('a-opt-free').addEventListener('click', () => { audio(); startSession(profile.goalNum); });
+$('a-len-1').addEventListener('click', () => {
+  audio(); S.testMin = 1; profile.testMin = 1; saveProfile(); speak('1 分钟'); bump();
 });
-$('a-mode-goal').addEventListener('click', () => {
+$('a-len-2').addEventListener('click', () => {
+  audio(); S.testMin = 2; profile.testMin = 2; saveProfile(); speak('2 分钟'); bump();
+});
+$('a-mode-back').addEventListener('click', () => { audio(); goHome(); });
+/* 首页贴边设置：每日目标点按循环 */
+$('a-set-goal').addEventListener('click', () => {
   audio();
-  if (S.goal !== TEST) {
-    const order = [100, 200, 300, 0];
-    const next = order[(order.indexOf(profile.goalNum) + 1) % order.length];
-    profile.goalNum = next; saveProfile();
-    setGoal(next);
-    speak(next === 0 ? '自由跳' : `目标 ${next} 下`);
-  } else {
-    setGoal(profile.goalNum);
-    speak(profile.goalNum === 0 ? '目标模式，自由跳' : `目标模式，${profile.goalNum} 下`);
-  }
+  const order = [100, 200, 300, 0];
+  const next = order[(order.indexOf(profile.goalNum) + 1) % order.length];
+  profile.goalNum = next; saveProfile();
+  if (S.goal !== TEST) setGoal(next); else bump();
+  speak(next === 0 ? '每日任务：自由跳' : `每日目标 ${next} 下`);
 });
 /* 换装：手机左右箭头（JRC 同款交互），Atom 待机点 Bono 循环 */
 $('p-outfit-prev').addEventListener('click', () => { audio(); cycleOutfit(-1); });
@@ -1893,7 +1929,7 @@ $('a-result').addEventListener('click', (e) => {
   $('a-r-page2').classList.toggle('hidden');
 });
 $('p-start').addEventListener('click', () => { audio(); startSession(); });
-$('a-start').addEventListener('click', () => { audio(); startSession(); });
+$('a-start').addEventListener('click', () => { audio(); openMode(); });
 $('p-fake-stand').addEventListener('click', () => { audio(); standLocked(); });
 $('p-finish-free').addEventListener('click', () => endSession());
 document.querySelectorAll('[data-act="end"]').forEach(b => b.addEventListener('click', () => endSession()));
