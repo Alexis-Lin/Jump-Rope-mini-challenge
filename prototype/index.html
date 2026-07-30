@@ -378,17 +378,13 @@
   .ascreen.show { display: flex; }
   .atom-bg { position: absolute; inset: 0; transition: background 1.2s; }
   /* 字阶（466 设计稿 px → em）：22=1.375 / 24=1.5 / 28=1.75 / 32=2 / 36=2.25 */
-  .atom-badge {
-    position: absolute; top: 7.5%; left: 0; right: 0; z-index: 5;
-    font-size: 1.375em; letter-spacing: .1em; color: var(--stage-soft); font-weight: 700;
-    text-align: center;
-  }
+  /* 单色 SVG 图标（替代 emoji） */
+  .ico { width: 1em; height: 1em; vertical-align: -0.12em; fill: currentColor; }
   /* 边缘光：圆屏的"站位状态灯"（取代相机小窗） */
   #atomRoot .edge {
     position: absolute; inset: 0; border-radius: 50%; z-index: 6; pointer-events: none;
     transition: box-shadow .4s;
   }
-  #atomRoot.injump .atom-badge { opacity: 0; }
   #atomRoot.waiting .edge { animation: edgepulse 1.5s ease-in-out infinite; }
   #atomRoot.presence .edge { box-shadow: inset 0 0 2.4em .3em rgba(35,199,102,.55); }
   @keyframes edgepulse {
@@ -396,13 +392,20 @@
     50%      { box-shadow: inset 0 0 1em 0 rgba(255,255,255,.08); }
   }
 
+  /* 按钮可用性（466px @ ~326ppi，9mm 触控目标 ≈ 115px ≈ 7.2em）：
+     主按钮做大做满，次按钮 ≥60px 且相互留出间距；
+     按压反馈用直切（15fps 下 transition 无效）：缩放 + 提亮 */
   .atom-cta {
     z-index: 3;
     background: linear-gradient(180deg, var(--accent), var(--accent-deep));
     color: #fff; font-size: 1.5em; font-weight: 700;
-    border-radius: 999px; padding: .45em 1.5em;
+    border-radius: 999px; padding: .6em 2em; min-width: 7em;
     box-shadow: 0 .3em 1.2em rgba(35,199,102,.4);
   }
+  .atom-cta:active { transform: scale(.95); filter: brightness(1.15); }
+  .a-goal-chip:active { transform: scale(.95); background: #242C27; }
+  #a-result .r-page:active { filter: brightness(1.08); }
+  .a-history:active { filter: brightness(1.08); }
 
   /* Atom 待机 */
   #a-idle { gap: .5em; z-index: 2; }
@@ -411,12 +414,12 @@
   .a-goal-chip {
     background: #1B201D; color: var(--accent);
     border: 1.5px solid var(--accent); border-radius: 999px;
-    padding: .28em .9em; font-size: 1.5em; font-weight: 700;
+    padding: .5em 1.1em; font-size: 1.5em; font-weight: 700;
     z-index: 3;
   }
 
   /* Atom 历史打卡记录（覆盖层） */
-  .a-chip-row { display: flex; gap: .5em; z-index: 3; }
+  .a-chip-row { display: flex; gap: .8em; z-index: 3; }
   .ghost-chip { border-color: rgba(255,255,255,.25); color: var(--stage-soft); background: transparent; }
   .a-history {
     position: absolute; inset: 0; z-index: 8;
@@ -486,11 +489,11 @@
     font-variant-numeric: tabular-nums;
   }
   #a-jump .a-bono-slot {
-    position: absolute; bottom: 2%; left: 0; right: 0; height: 58%; z-index: 3;
+    position: absolute; bottom: 5%; left: 0; right: 0; height: 55%; z-index: 3;
     display: flex; justify-content: center; align-items: flex-end;
   }
-  /* Bono 用 em 定尺寸，跟随圆屏等比缩放 */
-  #a-bono-jump svg { width: 16.5em; height: 16.5em; }
+  /* Bono 用 em 定尺寸，跟随圆屏等比缩放（留出贴边环的空隙，避免干涉） */
+  #a-bono-jump svg { width: 15.5em; height: 15.5em; }
   #a-bono-idle svg { width: 5.5em; height: 5.5em; }
   #a-bono-result svg { width: 2.8em; height: 2.8em; }
   /* 火柴人线条颜色：深色屏白线，浅色屏黑线 */
@@ -682,19 +685,18 @@
     <div id="atomRoot">
       <div class="atom-bg" id="atomBg"></div>
       <div class="rays" id="a-rays"></div>
-      <div class="atom-badge">BODY PARK · ATOM</div>
       <div class="edge"></div>
 
       <!-- 待机：一句话 + 目标，其余交给语音 -->
       <div class="ascreen" id="a-idle">
         <div id="a-bono-idle"></div>
         <div class="big-tip">站到镜头前<br>开始今天的跳绳</div>
-        <div class="sub-tip"><span id="a-streak-txt">🔥 0 天</span> · ⭐ <span id="a-stars-txt">0</span><span id="a-daily"></span></div>
+        <div class="sub-tip" id="a-idle-sub"></div>
         <div class="a-week" id="a-week"></div>
         <div class="sub-tip" id="a-today"></div>
         <div class="a-chip-row">
           <button class="a-goal-chip" id="a-goal-cycle">目标 <span id="a-goal-txt">100</span></button>
-          <button class="a-goal-chip ghost-chip" id="a-history-btn">📖 记录</button>
+          <button class="a-goal-chip ghost-chip" id="a-history-btn">记录 ›</button>
         </div>
         <button class="atom-cta" id="a-start">开始</button>
       </div>
@@ -756,7 +758,7 @@
         <div class="flip-hint">点按返回</div>
       </div>
 
-      <div class="celebrate" id="a-celebrate"><div class="txt">🎉 达成！</div></div>
+      <div class="celebrate" id="a-celebrate"><div class="txt">达成！</div></div>
     </div>
     <div class="atom-caption">Atom · 466×466 圆屏 · 15fps 刷新率模拟</div>
   </div>
@@ -897,7 +899,6 @@
 <!-- ==================== 原型控制条 ==================== -->
 <div id="protobar" class="hidden">
   <span class="tag">原型</span>
-  <button id="pb-exit">⌂ 换端</button>
   <span class="sep"></span>
   <button id="pb-auto">▶ 自动演示</button>
   <button id="pb-cam">📷 摄像头计数</button>
@@ -916,6 +917,17 @@ const todayKey = () => new Date().toISOString().slice(0, 10);
 const dayKeyOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 const WEEK_CN = ['日','一','二','三','四','五','六'];
 const myId = Math.random().toString(36).slice(2, 9);
+
+/* 单色 SVG 图标（Atom 端替代 emoji，跟随品牌色） */
+const ICONS = {
+  flame: '<path d="M12 2c3 4.5 5 6.8 5 10.3a5.3 5.3 0 0 1-5 5.3 5.3 5.3 0 0 1-5-5.3C7 8.8 9 6.5 12 2Z"/>',
+  star: '<path d="M12 2l2.9 6.2 6.6.8-4.9 4.6 1.3 6.5L12 16.9 6.1 20.1l1.3-6.5L2.5 9l6.6-.8Z"/>',
+  trophy: '<path d="M7 3h10v5a5 5 0 0 1-10 0Z"/><rect x="10.6" y="12" width="2.8" height="5" rx="1"/><rect x="7" y="17" width="10" height="3" rx="1.2"/>',
+  clock: '<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 7.5V12l3.2 2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
+  gift: '<rect x="5" y="10.5" width="14" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4 6.8h16v3.2H4Z"/><path d="M12 6.8v12.7" stroke="currentColor" stroke-width="2.2"/>',
+  list: '<path d="M5 5.5h14M5 12h14M5 18.5h9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>',
+};
+const ico = (n, c) => `<svg class="ico" viewBox="0 0 24 24"${c ? ` style="color:${c}"` : ''}>${ICONS[n]}</svg>`;
 
 /* ============================================================
    本地档案（打卡 / 星星）— localStorage，双窗口天然共享
@@ -1032,7 +1044,7 @@ function moonPhase() {
   const days = ((Date.now() / 86400000 - 10957.27) % synodic + synodic) % synodic;
   return ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.floor(days / synodic * 8 + 0.5) % 8];
 }
-const AMBIENCE = ['☀️ 晴', '⛅ 多云', '🌤 舒适', '🌧 小雨', '🌬 微风'];
+const AMBIENCE = ['晴', '多云', '舒适', '小雨', '微风'];
 const GREETS = ['今天也一起跳吧！', '新的一天，从 50 下开始', '跳一跳，烦恼都抖掉',
                 'Bono 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'];
 const OPENINGS = ['准备好了吗？今天也来一组！', '热身完毕，我们开始吧！',
@@ -1146,7 +1158,7 @@ function outfitLayer(idx) {
 function bonoSVG(size) {
   return `
   <svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-label="吉祥物 Bono">
-    <g class="rope"><ellipse cx="60" cy="70" rx="50" ry="38" fill="none" stroke="#23C766" stroke-width="3" opacity=".85"/></g>
+    <g class="rope"><ellipse cx="60" cy="74" rx="46" ry="38" fill="none" stroke="#23C766" stroke-width="2.5" opacity=".7"/></g>
     <g class="body-g" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round">
       <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
       <circle cx="60" cy="30" r="17"/>
@@ -1230,8 +1242,9 @@ function render() {
   /* 首页 / 待机 */
   $('p-streak-num').textContent = profile.streak;
   $('p-stars-num').textContent = profile.stars;
-  $('a-streak-txt').textContent = `🔥 ${profile.streak} 天`;
-  $('a-stars-txt').textContent = profile.stars;
+  $('a-idle-sub').innerHTML =
+    `${ico('flame', '#FFB020')} ${profile.streak} 天 · ` +
+    `${ico('star', '#1FA85B')} ${profile.stars} · ${daily.amb}`;
   $('a-goal-txt').textContent = S.goal === 0 ? '自由' : S.goal === TEST ? "1'测试" : S.goal;
   $('p-goal-cur').textContent = S.goal === 0 ? '自由跳' : S.goal === TEST ? '1 分钟测试' : S.goal + ' 下';
   $('p-goal-num').textContent = S.goal === 0 ? '自由' : S.goal === TEST ? '测试' : S.goal;
@@ -1241,7 +1254,6 @@ function render() {
   $('p-hello').textContent = OUTFITS[profile.outfit] && profile.outfit > 0
     ? `Bono · ${OUTFITS[profile.outfit].name}` : daily.greet;
   $('p-daily').textContent = `${daily.moon} ${daily.amb} · 今日隐藏数字藏在 55–99`;
-  $('a-daily').textContent = ` · ${daily.moon} ${daily.amb}`;
   renderWeek($('p-week'));
   document.querySelectorAll('.goal-pill').forEach(b =>
     b.classList.toggle('on', Number(b.dataset.goal) === S.goal));
@@ -1287,13 +1299,11 @@ function render() {
   $('p-rays').className = rayCls;
 
   /* 课中计时（第一行，小字）；测试模式显示剩余时间 */
-  const timeTxt = inJump
-    ? '⏱ ' + fmtTime(S.goal === TEST ? Math.max(0, TEST_MS - sessionElapsed()) : sessionElapsed())
-    : '';
-  $('a-timer').textContent = timeTxt;
+  const rawMs = S.goal === TEST ? Math.max(0, TEST_MS - sessionElapsed()) : sessionElapsed();
+  $('a-timer').textContent = inJump ? fmtTime(rawMs) : '';
   $('a-timer').classList.toggle('urgent',
     inJump && S.goal === TEST && TEST_MS - sessionElapsed() <= 10000);
-  $('p-count-sub').textContent = timeTxt ? ' ' + timeTxt : '';
+  $('p-count-sub').textContent = inJump ? ' ⏱ ' + fmtTime(rawMs) : '';
 
   /* Atom 待机：打卡周点 + 今日数据（闭环信息） */
   if (S.screen === 'idle') {
@@ -1305,8 +1315,8 @@ function render() {
       wk.appendChild(dot);
     }
     const tc = todayCount();
-    $('a-today').textContent = tc > 0
-      ? `今日 ${tc} 下 · 🏆 全球第 ${myRank('global').rank} 名`
+    $('a-today').innerHTML = tc > 0
+      ? `今日 ${tc} 下 · ${ico('trophy')} 全球第 ${myRank('global').rank} 名`
       : '今天还没跳，第一下从现在开始';
   }
 
@@ -1320,7 +1330,6 @@ function render() {
   /* 边缘光状态灯：准备中白灰呼吸，锁定/跳绳中绿色 */
   $('atomRoot').classList.toggle('waiting', S.screen === 'ready' && S.countdown === 0);
   $('atomRoot').classList.toggle('presence', S.countdown > 0 || (S.screen === 'jump' && !S.paused));
-  $('atomRoot').classList.toggle('injump', S.screen === 'jump' || S.screen === 'celebrate');
 
   /* 倒计时 */
   const cdOn = S.countdown > 0;
@@ -1350,14 +1359,15 @@ function render() {
       $('a-r-lab').textContent = goalMet ? '目标达成！' : '本轮结束';
     }
     $('p-r-earn').textContent = `⭐ +${S.earned}${rec && rec.done ? ' · 今日打卡成功' : ''}`;
-    $('a-r-earn').textContent = `⭐ +${S.earned} · ⏱ ${fmtTime(S.elapsedMs)}`;
+    $('a-r-earn').innerHTML =
+      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('clock')} ${fmtTime(S.elapsedMs)}`;
     $('p-r-streak').textContent = profile.streak;
-    $('a-r-streak').textContent = `🔥 连续 ${profile.streak} 天打卡`;
+    $('a-r-streak').innerHTML = `${ico('flame', '#FFB020')} 连续 ${profile.streak} 天打卡`;
     $('p-r-unlock').textContent = S.unlock;
-    $('a-r-unlock').textContent = S.unlock;
+    $('a-r-unlock').innerHTML = S.unlock ? `${ico('gift', '#7FE3A8')} ${S.unlock}` : '';
     const rg = myRank('global'), rl = myRank('local');
     $('p-r-rank').textContent = `🏆 今日全球第 ${rg.rank} 名 · 同城第 ${rl.rank} 名`;
-    $('a-r-rank').textContent = `🏆 全球第 ${rg.rank} 名` +
+    $('a-r-rank').innerHTML = `${ico('trophy')} 全球第 ${rg.rank} 名` +
       (S.goal === TEST ? ` · 最佳 ${profile.bestMinute}` : '');
     renderWeek($('p-r-week'));
     drawQR($('a-qr'));
@@ -1397,7 +1407,7 @@ function confetti(rootEl, n) {
 }
 function flyStar(rootEl) {
   const s = document.createElement('div');
-  s.className = 'fly-star'; s.textContent = '⭐';
+  s.className = 'fly-star'; s.textContent = '★'; s.style.color = '#1FA85B';
   s.style.left = '50%'; s.style.top = '45%';
   rootEl.appendChild(s);
   requestAnimationFrame(() => {
@@ -1460,18 +1470,16 @@ setInterval(() => {
     /* 1 分钟测试：读秒倒计时 + 节点语音 + 时间到自动结算 */
     const rem = TEST_MS - sessionElapsed();
     if (rem <= 0) { endSession(); return; }
-    const t = '⏱ ' + fmtTime(rem);
-    $('a-timer').textContent = t;
-    $('p-count-sub').textContent = ' ' + t;
+    $('a-timer').textContent = fmtTime(rem);
+    $('p-count-sub').textContent = ' ⏱ ' + fmtTime(rem);
     $('a-timer').classList.toggle('urgent', rem <= 10000);
     $('a-ring-arc').style.strokeDashoffset = 1357.2 * (sessionElapsed() / TEST_MS);
     $('p-ring-arc').style.strokeDashoffset = 295.3 * (sessionElapsed() / TEST_MS);
     if (rem <= 30000 && !testMark30) { testMark30 = true; speak('还有三十秒'); }
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak('最后十秒，冲刺！'); }
   } else {
-    const t = '⏱ ' + fmtTime(sessionElapsed());
-    $('a-timer').textContent = t;
-    $('p-count-sub').textContent = ' ' + t;
+    $('a-timer').textContent = fmtTime(sessionElapsed());
+    $('p-count-sub').textContent = ' ⏱ ' + fmtTime(sessionElapsed());
   }
 }, 250);
 
@@ -1490,14 +1498,14 @@ function registerJump() {
     let msg = `${S.count} 下 · ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`;
     if (S.count % 20 === 0) {
       let gain = 2;
-      if (Math.random() < 0.15) { gain = 4; msg = `彩蛋！双倍星星 ⭐ +${gain}`; confetti($('atomRoot'), 24); confetti($('phoneRoot'), 24); }
-      else msg = `${S.count} 下 · ⭐ +${gain}`;
+      if (Math.random() < 0.15) { gain = 4; msg = `彩蛋！双倍星星 +${gain}`; confetti($('atomRoot'), 24); confetti($('phoneRoot'), 24); }
+      else msg = `${S.count} 下 · 星星 +${gain}`;
       S.earned += gain;
       sndStar(); flyStar($('phoneRoot')); flyStar($('atomRoot'));
     }
     const unit = S.goal > 0 ? S.goal : 50;
     if (S.count % unit === 0) {
-      msg = `🌟 点亮第 ${S.count / unit} 颗星！`;
+      msg = `★ 点亮第 ${S.count / unit} 颗星！`;
       sndStar();
     }
     toast(msg);
@@ -1514,7 +1522,7 @@ function registerJump() {
     S.earned += 5;
     sndStar();
     confetti($('atomRoot'), 30); confetti($('phoneRoot'), 30);
-    toast(`🎁 踩中今日隐藏数字 ${daily.lucky}！⭐ +5`, 1800);
+    toast(`踩中今日隐藏数字 ${daily.lucky}！星星 +5`, 1800);
     speak(`哇，踩中今天的隐藏数字${daily.lucky}，奖励五颗星！`);
   }
 
@@ -1524,7 +1532,7 @@ function registerJump() {
     S.earned += 10;
     sndFanfare();
     confetti($('atomRoot'), 50); confetti($('phoneRoot'), 50);
-    toast(`🎉 ${S.goal} 下达成！继续冲！`, 1800);
+    toast(`${S.goal} 下达成！继续冲！`, 1800);
     speak(`目标达成！继续保持！`);
   }
   bump();
@@ -1576,7 +1584,7 @@ function endSession() {
     if (o.at > 0 && o.at > S.totalAtStart && o.at <= profile.total)
       unlocks.push(`新装扮「${o.name}」`);
   });
-  S.unlock = unlocks.length ? '🎁 解锁 ' + unlocks.join('、') + '！' : '';
+  S.unlock = unlocks.length ? '解锁 ' + unlocks.join('、') + '！' : '';
   if (unlocks.length) speak('恭喜解锁' + unlocks.join('，'));
   saveProfile();
 
@@ -1857,7 +1865,6 @@ document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('
 document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener('click', () => { audio(); startSession(); }));
 document.querySelectorAll('[data-act="resume"]').forEach(b => b.addEventListener('click', () => pauseSession(false)));
 
-$('pb-exit').addEventListener('click', () => { location.hash = ''; location.reload(); });
 $('pb-auto').addEventListener('click', () => { audio(); setAuto(!autoTimer); });
 $('pb-cam').addEventListener('click', () => { audio(); setCam(!cam.on); });
 $('pb-voice').addEventListener('click', () => {
@@ -1899,6 +1906,8 @@ mountBono('a-bono-result', 64, 'party');
 
 initChannel();
 render();
+$('a-history-btn').innerHTML = ico('list') + ' 记录 ›';
+/* 当前阶段只做 Atom 设备端：启动直达（手机/双端保留在 #phone / #duo 供后续开发） */
 const h = location.hash.replace('#', '');
-if (['phone','atom','duo'].includes(h)) enter(h);
+enter(['phone', 'atom', 'duo'].includes(h) ? h : 'atom');
 </script>
