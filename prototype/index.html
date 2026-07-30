@@ -415,9 +415,9 @@
   .idle-streak { font-size: 1.75em; font-weight: 700; }
   /* Quick Card 卡组 */
   .cards-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
-  #a-cards { display: flex; width: 400%; height: 100%; transition: transform .25s; }
+  #a-cards { display: flex; width: 300%; height: 100%; transition: transform .25s; }
   .qcard {
-    width: 25%; height: 100%;
+    width: 33.3333%; height: 100%;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: .5em; text-align: center;
   }
@@ -430,6 +430,16 @@
   }
   .cdot { width: .5em; height: .5em; border-radius: 50%; background: rgba(255,255,255,.22); }
   .cdot.on { background: var(--accent); }
+  /* 勋章 */
+  .medal-row { display: flex; gap: .55em; font-size: 1.75em; }
+  .medal-row .ico { width: 1.1em; height: 1.1em; }
+  .medal-grid {
+    display: grid; grid-template-columns: repeat(2, auto);
+    gap: .7em 1.6em; font-size: 1.375em;
+  }
+  .medal-item { display: flex; align-items: center; gap: .4em; color: var(--stage-soft); }
+  .medal-item.got { color: var(--accent); }
+  .medal-item .ico { width: 1.2em; height: 1.2em; }
   .atom-cta.big { font-size: 1.5em; padding: .55em 1.7em; }
   .a-goal-chip.sm { font-size: 1.375em; padding: .4em .9em; }
   .bottom-row { align-items: center; gap: .6em; margin-top: .3em; }
@@ -749,18 +759,22 @@
       <div class="rays" id="a-rays"></div>
       <div class="edge"></div>
 
-      <!-- 待机（首页）：Quick Card 卡组，左右滑动分发数据
-           [封面] ← [主卡·默认] → [排行榜] → [训练记录] -->
-      <div class="ascreen show" id="a-idle">
+      <!-- Atom 系统层的应用入口卡（不属于 APP 卡组，点按进入 APP） -->
+      <div class="ascreen" id="a-launch">
+        <div id="a-bono-idle"></div>
+        <div class="card-mid">每日跳绳</div>
+        <div class="sub-tip" id="a-launch-streak"></div>
+        <div class="flip-hint">点按进入</div>
+      </div>
+
+      <!-- APP 首页：三张卡片横滑
+           [首页卡·默认] → [入口卡: 历史打卡 / 排行榜] → [成就卡: 勋章+积分] -->
+      <div class="ascreen" id="a-idle">
         <div class="cards-viewport" id="a-cards-vp">
           <div id="a-cards">
-            <div class="qcard" id="qc-cover">
-              <div id="a-bono-idle"></div>
-              <div class="card-mid">每日跳绳</div>
-              <div class="sub-tip" id="a-cover-streak"></div>
-            </div>
-            <div class="qcard" id="qc-main">
+            <div class="qcard" id="qc-home">
               <div class="card-big" id="a-card-streak">0</div>
+              <div class="sub-tip">天连胜</div>
               <div class="card-mid" id="a-card-today">今日 0 下</div>
               <div class="sub-tip" id="a-card-pb"></div>
               <button class="atom-cta big" id="a-start">开始</button>
@@ -769,17 +783,19 @@
                 <button class="round-btn" id="a-settings-btn"></button>
               </div>
             </div>
-            <div class="qcard" id="qc-board">
-              <div class="card-mid">今日排行榜</div>
-              <div class="h-list" id="a-qboard"></div>
-              <div class="sub-tip" id="a-qboard-foot" style="color:var(--accent);font-weight:700;"></div>
-              <div class="flip-hint">点按看完整榜单</div>
+            <div class="qcard" id="qc-entries">
+              <button class="mode-opt" id="qc2-history">
+                <b>历史打卡</b><span id="qc2-history-sub">还没有记录</span>
+              </button>
+              <button class="mode-opt" id="qc2-board">
+                <b>排行榜</b><span id="qc2-board-sub">今日全球排名</span>
+              </button>
             </div>
-            <div class="qcard" id="qc-rec">
-              <div class="card-mid">训练记录</div>
-              <div class="a-week" id="a-week"></div>
-              <div class="h-list" id="a-qrec"></div>
-              <div class="flip-hint">点按看全部记录</div>
+            <div class="qcard" id="qc-achv">
+              <div class="card-mid">成就</div>
+              <div class="medal-row" id="qc3-medals"></div>
+              <div class="sub-tip" id="qc3-star"></div>
+              <div class="flip-hint">点按看全部勋章</div>
             </div>
           </div>
         </div>
@@ -798,7 +814,14 @@
         <button class="a-goal-chip ghost-chip sm" id="a-mode-back">返回</button>
       </div>
 
-      <!-- 排行榜（独立模块：点首页"今日数据"行进入）-->
+      <!-- 勋章二级页 -->
+      <div class="a-history" id="a-medal">
+        <div class="h-title">勋章</div>
+        <div class="medal-grid" id="a-medal-grid"></div>
+        <div class="flip-hint">点按空白处返回</div>
+      </div>
+
+      <!-- 排行榜二级页 -->
       <div class="a-history" id="a-board">
         <div class="h-title">今日排行榜</div>
         <div class="a-chip-row">
@@ -1050,6 +1073,7 @@ const ICONS = {
   gift: '<rect x="5" y="10.5" width="14" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4 6.8h16v3.2H4Z"/><path d="M12 6.8v12.7" stroke="currentColor" stroke-width="2.2"/>',
   list: '<path d="M5 5.5h14M5 12h14M5 18.5h9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>',
   gear: '<path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="9.5" cy="7" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="10.5" cy="17" r="2.4"/>',
+  medal: '<circle cx="12" cy="9" r="5.6"/><path d="M8.6 13.5 7 22l5-3 5 3-1.6-8.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>',
 };
 const ico = (n, c) => `<svg class="ico" viewBox="0 0 24 24"${c ? ` style="color:${c}"` : ''}>${ICONS[n]}</svg>`;
 
@@ -1059,7 +1083,7 @@ const ico = (n, c) => `<svg class="ico" viewBox="0 0 24 24"${c ? ` style="color:
 const PROFILE_KEY = 'bodypark_jump_profile_v1';
 const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 100, history: {},
                           total: 0, scenes: 3, outfit: 0, goalNum: 100, testMin: 1,
-                          bests: {}, bestSession: 0 };
+                          bests: {}, bestSession: 0, luckyHits: 0 };
 function loadProfile() {
   try { return Object.assign({}, PROFILE_DEFAULT, JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')); }
   catch (e) { return Object.assign({}, PROFILE_DEFAULT); }
@@ -1075,7 +1099,7 @@ function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(
    ============================================================ */
 const TEST = -1;           // goal 哨兵值：限时测试模式
 const S = {
-  screen: 'idle',
+  screen: 'launch',        // launch = Atom 系统入口卡（APP 外）
   goal: profile.goal,      // >0 目标数；0 = 自由跳；-1 = 限时测试
   testMin: profile.testMin || 1,   // 限时测试时长（分钟）：1 或 2
   count: 0,
@@ -1334,11 +1358,11 @@ function bonoHopOnce() {
    渲染
    ============================================================ */
 function showScreens() {
-  ['idle','mode','ready','jump','result'].forEach(s => {
+  ['launch','idle','mode','ready','jump','result'].forEach(s => {
     const a = $('a-' + s);
     if (a) a.classList.toggle('show', S.screen === s || (S.screen === 'celebrate' && s === 'jump'));
   });
-  const pMap = { idle: 'p-home', mode: 'p-home', ready: 'p-ready', jump: 'p-jump', celebrate: 'p-jump', result: 'p-result' };
+  const pMap = { launch: 'p-home', idle: 'p-home', mode: 'p-home', ready: 'p-ready', jump: 'p-jump', celebrate: 'p-jump', result: 'p-result' };
   ['p-home','p-ready','p-jump','p-result'].forEach(id => $(id).classList.toggle('show', pMap[S.screen] === id));
   $('a-celebrate').classList.toggle('show', S.screen === 'celebrate');
   $('p-celebrate').classList.toggle('show', S.screen === 'celebrate');
@@ -1432,8 +1456,8 @@ function render() {
     inJump && S.goal === TEST && testMs() - sessionElapsed() <= 10000);
   $('p-count-sub').textContent = inJump ? ' ⏱ ' + fmtTime(rawMs) : '';
 
-  /* Atom 待机：刷新 Quick Cards */
-  if (S.screen === 'idle') renderQuickCards();
+  /* Atom 入口卡 / 首页卡组刷新 */
+  if (S.screen === 'idle' || S.screen === 'launch') renderQuickCards();
 
   /* 背景：跳绳中用纯黑舞台（给火焰让路）；待机/首页展示"今日主打场景"（每天轮换） */
   const unlockedN = Math.max(1, Math.min(profile.scenes, SCENES.length));
@@ -1664,6 +1688,7 @@ function registerJump() {
   /* 每日隐藏数字：踩中有惊喜 */
   if (S.count === daily.lucky) {
     S.earned += 5;
+    profile.luckyHits = (profile.luckyHits || 0) + 1;
     sndStar();
     confetti($('atomRoot'), 30); confetti($('phoneRoot'), 30);
     toast(`踩中今日隐藏数字 ${daily.lucky}！星星 +5`, 1800);
@@ -1833,7 +1858,8 @@ function setAuto(on) {
   $('pb-auto').classList.toggle('on', on);
   if (!on) return;
   autoTimer = setInterval(() => {
-    if (S.screen === 'idle') openMode();
+    if (S.screen === 'launch') { S.screen = 'idle'; bump(); }
+    else if (S.screen === 'idle') openMode();
     else if (S.screen === 'mode') startSession(profile.goalNum);
     else if (S.screen === 'ready' && S.countdown === 0) standLocked();
     else if (S.screen === 'jump' && !S.paused) {
@@ -2036,58 +2062,60 @@ $('a-board').addEventListener('click', () => $('a-board').classList.remove('show
 /* ------------------------------------------------------------
    首页 Quick Cards：滑动切换 [封面][主卡][排行榜][记录]
    ------------------------------------------------------------ */
-let cardIdx = 1, swiped = false, swX = null;
+let cardIdx = 0, swiped = false, swX = null;
+const CARD_N = 3;
 function setCard(i) {
-  cardIdx = Math.max(0, Math.min(3, i));
-  $('a-cards').style.transform = `translateX(-${cardIdx * 25}%)`;
+  cardIdx = Math.max(0, Math.min(CARD_N - 1, i));
+  $('a-cards').style.transform = `translateX(-${cardIdx * 100 / CARD_N}%)`;
   document.querySelectorAll('.cdot').forEach((d, j) => d.classList.toggle('on', j === cardIdx));
 }
+
+/* 勋章体系：全部由现有数据计算得出 */
+const maxDaily = () => Math.max(0, ...Object.values(profile.history).map(r => r.count || 0));
+const MEDALS = [
+  { name: '连胜 7 天',   cond: () => profile.streak >= 7 },
+  { name: '连胜 21 天',  cond: () => profile.streak >= 21 },
+  { name: '累计 1000',   cond: () => profile.total >= 1000 },
+  { name: '累计 10000',  cond: () => profile.total >= 10000 },
+  { name: "1 分钟 120",  cond: () => (profile.bests[1] || 0) >= 120 },
+  { name: '单轮 200',    cond: () => (profile.bestSession || 0) >= 200 },
+  { name: '单日 300',    cond: () => maxDaily() >= 300 },
+  { name: '猎中隐藏数字', cond: () => (profile.luckyHits || 0) > 0 },
+];
+
 function renderQuickCards() {
-  /* 封面卡 */
-  $('a-cover-streak').innerHTML =
-    `已连续打卡 ${profile.streak} 天 · ${ico('star', '#1FA85B')} ${profile.stars}`;
-  /* 主卡（数据分发中枢） */
+  /* 系统入口卡 */
+  $('a-launch-streak').textContent = `已连续打卡 ${profile.streak} 天`;
+  /* 首页卡：连胜 / 今日 + 历史最佳 / 开始 */
   $('a-card-streak').textContent = profile.streak;
   $('a-card-today').textContent = `今日 ${todayCount()} 下`;
   $('a-card-pb').textContent =
-    `PB ${profile.bestSession || '—'} · ${profile.bests[1] || '—'} / 1'`;
-  /* 排行榜卡：Top3 + 你 */
-  const list = fakeBoard('global');
-  const me = myRank('global');
-  const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
-  merged.push({ name: '你', count: me.count, me: true });
-  merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
-  const meIdx = merged.findIndex(u => u.me);
-  const row = (i, u) =>
-    `<div class="hrow${u.me ? ' me-row' : ''}"><span class="hd${i < 3 ? ' done' : ''}">${i + 1}</span>` +
-    `<span class="nm">${u.name}</span><span class="hc">${u.count}</span></div>`;
-  const rows = merged.slice(0, 3).map((u, i) => row(i, u));
-  if (meIdx > 2) rows.push(row(meIdx, merged[meIdx]));
-  $('a-qboard').innerHTML = rows.join('');
-  const above = meIdx > 0 ? merged[meIdx - 1] : null;
-  $('a-qboard-foot').textContent = above
-    ? `再跳 ${above.count - me.count + 1} 下超过 ${above.name}` : '你是今日第一！';
-  /* 记录卡：周点 + 最近 3 天 */
-  const wk = $('a-week'); wk.innerHTML = '';
-  for (let i = -6; i <= 0; i++) {
-    const rec = profile.history[dayKeyOffset(i)];
-    const dot = document.createElement('span');
-    dot.className = 'adot' + (rec && rec.done ? ' done' : '') + (i === 0 ? ' today' : '');
-    wk.appendChild(dot);
-  }
+    `日最高 ${maxDaily() || '—'} · 单次 ${profile.bestSession || '—'} · 1' ${profile.bests[1] || '—'}`;
+  /* 入口卡：历史打卡 / 排行榜 */
   const keys = Object.keys(profile.history).filter(k => profile.history[k].count > 0).sort();
-  const dayNo = {}; keys.forEach((k, i) => { dayNo[k] = i + 1; });
-  $('a-qrec').innerHTML = keys.length
-    ? keys.slice(-3).reverse().map(k => {
-        const r = profile.history[k];
-        return `<div class="hrow"><span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
-          `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${r.count} 下</span>` +
-          `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span></div>`;
-      }).join('')
-    : '<div class="h-empty">还没有记录</div>';
+  const week = [-6, -5, -4, -3, -2, -1, 0]
+    .filter(i => { const r = profile.history[dayKeyOffset(i)]; return r && r.done; }).length;
+  $('qc2-history-sub').textContent = keys.length
+    ? `Day ${keys.length} · 本周打卡 ${week} 天` : '还没有记录';
+  const rk = myRank('global');
+  $('qc2-board-sub').textContent = rk.count > 0
+    ? `今日全球第 ${rk.rank} 名` : '今天还没上榜';
+  /* 成就卡：勋章 + 积分 */
+  const got = MEDALS.filter(m => m.cond());
+  $('qc3-medals').innerHTML = MEDALS.slice(0, 6)
+    .map(m => `<span style="color:${m.cond() ? 'var(--accent)' : 'rgba(255,255,255,.18)'}">${ico('medal')}</span>`)
+    .join('');
+  $('qc3-star').innerHTML =
+    `已获 ${got.length}/${MEDALS.length} 枚 · ${ico('star', '#1FA85B')} 积分 ${profile.stars}`;
 }
-$('a-dots').innerHTML = '<span class="cdot"></span>'.repeat(4);
-setCard(1);
+function renderMedals() {
+  $('a-medal-grid').innerHTML = MEDALS.map(m =>
+    `<div class="medal-item${m.cond() ? ' got' : ''}">${ico('medal')}<span>${m.name}</span></div>`
+  ).join('');
+}
+
+$('a-dots').innerHTML = '<span class="cdot"></span>'.repeat(CARD_N);
+setCard(0);
 $('a-cards-vp').addEventListener('pointerdown', (e) => { swX = e.clientX; });
 $('a-cards-vp').addEventListener('pointerup', (e) => {
   if (swX === null) return;
@@ -2098,12 +2126,22 @@ $('a-cards-vp').addEventListener('pointerup', (e) => {
     setTimeout(() => { swiped = false; }, 80);
   }
 });
-$('qc-board').addEventListener('click', () => {
-  if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
+/* 系统入口卡 → 进入 APP */
+$('a-launch').addEventListener('click', () => {
+  audio(); S.screen = 'idle'; bump(); speak(daily.greet);
 });
-$('qc-rec').addEventListener('click', () => {
+/* 入口卡 → 各自的二级页面 */
+$('qc2-history').addEventListener('click', () => {
   if (swiped) return; audio(); renderHistory(); $('a-history').classList.add('show');
 });
+$('qc2-board').addEventListener('click', () => {
+  if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
+});
+/* 成就卡 → 勋章二级页 */
+$('qc-achv').addEventListener('click', () => {
+  if (swiped) return; audio(); renderMedals(); $('a-medal').classList.add('show');
+});
+$('a-medal').addEventListener('click', () => $('a-medal').classList.remove('show'));
 ['ab-global', 'ab-local'].forEach(id => $(id).addEventListener('click', (e) => {
   e.stopPropagation(); audio();
   aBoardScope = id === 'ab-global' ? 'global' : 'local';
