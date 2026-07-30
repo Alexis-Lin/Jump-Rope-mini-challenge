@@ -480,6 +480,13 @@
   .hrow .hc { font-weight: 700; min-width: 3.4em; text-align: right; }
   .hrow .ht { color: var(--stage-soft); min-width: 2.8em; text-align: right; }
   .h-empty { font-size: 1.375em; color: var(--stage-soft); }
+  /* 排行榜行 */
+  .hrow .nm { min-width: 6.4em; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .hrow.me-row { color: var(--accent); font-weight: 700; }
+  .hrow.me-row .hd, .hrow.me-row .nm { color: var(--accent); }
+  .bgap2 { color: var(--stage-soft); font-size: 1.375em; line-height: .6; }
+  .today-btn { background: none; border: none; cursor: pointer; }
+  .today-btn:active { filter: brightness(1.3); }
 
   /* Atom 待机：打卡周点（绿点=已打卡，描边=今天） */
   .a-week { display: flex; gap: .4em; z-index: 3; }
@@ -731,7 +738,7 @@
         <div class="idle-streak" id="a-streakline"></div>
         <div class="a-week" id="a-week"></div>
         <div class="sub-tip" id="a-achieve"></div>
-        <div class="sub-tip" id="a-today"></div>
+        <button class="sub-tip today-btn" id="a-today"></button>
         <div class="a-chip-row bottom-row">
           <button class="a-goal-chip ghost-chip sm" id="a-history-btn">记录</button>
           <button class="atom-cta big" id="a-start">开始</button>
@@ -749,6 +756,18 @@
           <b>不限时</b><span id="a-opt-free-sub">跳多少算多少 · 每日任务 100 下</span>
         </button>
         <button class="a-goal-chip ghost-chip sm" id="a-mode-back">返回</button>
+      </div>
+
+      <!-- 排行榜（独立模块：点首页"今日数据"行进入）-->
+      <div class="a-history" id="a-board">
+        <div class="h-title">今日排行榜</div>
+        <div class="a-chip-row">
+          <button class="a-goal-chip sm" id="ab-global">全球</button>
+          <button class="a-goal-chip sm" id="ab-local">同城</button>
+        </div>
+        <div class="h-list" id="a-board-list"></div>
+        <div class="sub-tip" id="a-board-foot" style="color:var(--accent);font-weight:700;"></div>
+        <div class="flip-hint" id="a-board-sub"></div>
       </div>
 
       <!-- 设置（首页 ⚙ 进入）：目标 / 限时时长 / 语音 -->
@@ -1385,8 +1404,8 @@ function render() {
     }
     const tc = todayCount();
     $('a-today').innerHTML = tc > 0
-      ? `今日 ${tc} 下 · ${ico('trophy')} 全球第 ${myRank('global').rank} 名`
-      : '今天还没跳，第一下从现在开始';
+      ? `今日 ${tc} 下 · ${ico('trophy')} 全球第 ${myRank('global').rank} 名 ›`
+      : `今天还没跳 · ${ico('trophy')} 看看排行榜 ›`;
   }
 
   /* 背景：跳绳中用纯黑舞台（给火焰让路）；待机/首页展示"今日主打场景"（每天轮换） */
@@ -1507,6 +1526,7 @@ function startSession(g) {
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
   testMark30 = false; testMark10 = false;
+  liveRank = 1 + GB.filter(u => u.count > todayCount()).length;   /* 记录起跳时的名次 */
   speak(S.goal === TEST ? `${S.testMin} 分钟限时测试，全力以赴！请站到镜头前` : daily.opening + '。请站到镜头前');
   bump();
 }
@@ -1562,6 +1582,23 @@ setInterval(() => {
 }, 250);
 
 const CHEERS = ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'];
+
+/* 实时排名爬升反馈：每超过一位对手就即时告知（全球榜，前 15 名内） */
+const GB = fakeBoard('global');
+let liveRank = Infinity;
+function checkOvertake() {
+  const tNow = todayCount();
+  const rk = 1 + GB.filter(u => u.count > tNow).length;
+  if (rk < liveRank) {
+    if (rk <= 15 && liveRank !== Infinity) {
+      const below = GB.find(u => u.count <= tNow);
+      if (below) toast(`超过 ${below.name}！全球第 ${rk} 名`, 1300);
+      if (rk === 3) speak('进入全球前三！');
+      if (rk === 1) speak('全球第一！保持住！');
+    }
+    liveRank = rk;
+  }
+}
 function registerJump() {
   if (S.screen !== 'jump' || S.paused) return;
   S.count++;
@@ -1594,6 +1631,8 @@ function registerJump() {
       else speak(String(S.count));
     }
   }
+
+  checkOvertake();
 
   /* 每日隐藏数字：踩中有惊喜 */
   if (S.count === daily.lucky) {
@@ -1927,6 +1966,51 @@ $('as-voice').addEventListener('click', (e) => {
 $('p-outfit-prev').addEventListener('click', () => { audio(); cycleOutfit(-1); });
 $('p-outfit-next').addEventListener('click', () => { audio(); cycleOutfit(1); });
 $('a-bono-idle').addEventListener('click', () => { audio(); cycleOutfit(1); });
+/* ------------------------------------------------------------
+   排行榜独立模块（Atom）：Top3 + 你的邻近区间 + 超越目标提示
+   核心原则：永远给"再跳几下就能超过谁"的可爬升感
+   ------------------------------------------------------------ */
+let aBoardScope = 'global';
+function renderABoard() {
+  const list = fakeBoard(aBoardScope);
+  const me = myRank(aBoardScope);
+  const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
+  merged.push({ name: '你', count: me.count, me: true });
+  merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
+  const meIdx = merged.findIndex(u => u.me);
+
+  const row = (i, u) =>
+    `<div class="hrow${u.me ? ' me-row' : ''}">` +
+    `<span class="hd${i < 3 ? ' done' : ''}">${i + 1}</span>` +
+    `<span class="nm">${u.name}</span>` +
+    `<span class="hc">${u.count}</span></div>`;
+  const rows = [];
+  merged.slice(0, 3).forEach((u, i) => rows.push(row(i, u)));
+  if (meIdx > 4) rows.push('<div class="bgap2">···</div>');
+  for (let i = Math.max(3, meIdx - 1); i <= Math.min(merged.length - 1, meIdx + 1); i++) {
+    rows.push(row(i, merged[i]));
+  }
+  $('a-board-list').innerHTML = rows.join('');
+
+  const above = meIdx > 0 ? merged[meIdx - 1] : null;
+  $('a-board-foot').textContent = !above ? '你是今日第一！'
+    : `再跳 ${above.count - me.count + 1} 下超过 ${above.name}`;
+  const pct = Math.round((1 - meIdx / merged.length) * 100);
+  $('a-board-sub').textContent =
+    `超过 ${pct}% 的${aBoardScope === 'global' ? '全球' : '同城'}用户 · 每天 0 点重置 · 示意数据`;
+  $('ab-global').classList.toggle('dim', aBoardScope !== 'global');
+  $('ab-local').classList.toggle('dim', aBoardScope !== 'local');
+}
+$('a-today').addEventListener('click', (e) => {
+  e.stopPropagation(); audio(); renderABoard(); $('a-board').classList.add('show');
+});
+$('a-board').addEventListener('click', () => $('a-board').classList.remove('show'));
+['ab-global', 'ab-local'].forEach(id => $(id).addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  aBoardScope = id === 'ab-global' ? 'global' : 'local';
+  renderABoard();
+}));
+
 /* 历史打卡记录（Atom）：日期 · Day x · 次数 · 用时 */
 function renderHistory() {
   const keys = Object.keys(profile.history)
