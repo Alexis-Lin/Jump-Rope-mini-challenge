@@ -413,9 +413,26 @@
   #a-idle { gap: .5em; z-index: 2; }
   #a-idle .sub-tip { color: var(--stage-soft); font-size: 1.375em; }
   .idle-streak { font-size: 1.75em; font-weight: 700; }
-  .atom-cta.big { font-size: 1.75em; padding: .55em 2.2em; }
+  .atom-cta.big { font-size: 1.5em; padding: .55em 1.7em; }
   .a-goal-chip.sm { font-size: 1.375em; padding: .4em .9em; }
-  .edge-row { margin-top: .3em; }
+  .bottom-row { align-items: center; gap: .6em; margin-top: .3em; }
+  .round-btn {
+    width: 2.7em; height: 2.7em; border-radius: 50%;
+    background: #1B201D; border: 1.5px solid rgba(255,255,255,.25);
+    color: var(--stage-soft); font-size: 1.375em;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 3;
+  }
+  .round-btn:active { transform: scale(.92); background: #242C27; }
+  .round-btn .ico { width: 1.15em; height: 1.15em; }
+
+  /* 设置行 */
+  .set-rows { display: flex; flex-direction: column; gap: .9em; width: 62%; }
+  .srow {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 1.375em; color: var(--stage-ink);
+  }
+  .srow .a-goal-chip.sm { font-size: 1em; min-width: 4.2em; }
 
   /* 模式选择页 */
   #a-mode { gap: .55em; z-index: 2; }
@@ -715,27 +732,34 @@
         <div class="a-week" id="a-week"></div>
         <div class="sub-tip" id="a-achieve"></div>
         <div class="sub-tip" id="a-today"></div>
-        <button class="atom-cta big" id="a-start">开始</button>
-        <div class="a-chip-row edge-row">
-          <button class="a-goal-chip ghost-chip sm" id="a-set-goal">每日目标 <span id="a-goal-txt">100</span></button>
-          <button class="a-goal-chip ghost-chip sm" id="a-history-btn">记录 ›</button>
+        <div class="a-chip-row bottom-row">
+          <button class="a-goal-chip ghost-chip sm" id="a-history-btn">记录</button>
+          <button class="atom-cta big" id="a-start">开始</button>
+          <button class="round-btn" id="a-settings-btn"></button>
         </div>
       </div>
 
-      <!-- 模式选择（点"开始"后的中间页） -->
+      <!-- 模式选择（点"开始"后的中间页）：只有两个选择框 -->
       <div class="ascreen" id="a-mode">
         <div class="mode-title">选择模式</div>
         <button class="mode-opt" id="a-opt-timed">
-          <b>限时跳</b><span>倒计时冲刺 · 测出你的极限</span>
+          <b>限时跳</b><span id="a-opt-timed-sub">1 分钟倒计时 · 测出你的极限</span>
         </button>
-        <div class="a-chip-row">
-          <button class="a-goal-chip sm" id="a-len-1">1 分钟</button>
-          <button class="a-goal-chip sm" id="a-len-2">2 分钟</button>
-        </div>
         <button class="mode-opt" id="a-opt-free">
           <b>不限时</b><span id="a-opt-free-sub">跳多少算多少 · 每日任务 100 下</span>
         </button>
         <button class="a-goal-chip ghost-chip sm" id="a-mode-back">返回</button>
+      </div>
+
+      <!-- 设置（首页 ⚙ 进入）：目标 / 限时时长 / 语音 -->
+      <div class="a-history" id="a-set">
+        <div class="h-title">设置</div>
+        <div class="set-rows">
+          <div class="srow"><span>每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
+          <div class="srow"><span>限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
+          <div class="srow"><span>教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
+        </div>
+        <div class="flip-hint">点按空白处返回</div>
       </div>
 
       <!-- 准备：无取景器，边缘光 + 语音代替（屏幕太小，砍掉相机预览） -->
@@ -963,6 +987,7 @@ const ICONS = {
   clock: '<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 7.5V12l3.2 2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
   gift: '<rect x="5" y="10.5" width="14" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4 6.8h16v3.2H4Z"/><path d="M12 6.8v12.7" stroke="currentColor" stroke-width="2.2"/>',
   list: '<path d="M5 5.5h14M5 12h14M5 18.5h9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>',
+  gear: '<path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="9.5" cy="7" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="10.5" cy="17" r="2.4"/>',
 };
 const ico = (n, c) => `<svg class="ico" viewBox="0 0 24 24"${c ? ` style="color:${c}"` : ''}>${ICONS[n]}</svg>`;
 
@@ -1286,12 +1311,10 @@ function render() {
   $('a-achieve').innerHTML =
     `${ico('trophy')} 1' 最佳 ${profile.bests[1] || '—'} · 累计 ${profile.total} · ` +
     `${ico('star', '#1FA85B')} ${profile.stars}`;
-  /* 模式选择页：时长 pills 与每日任务数 */
-  $('a-len-1').classList.toggle('dim', S.testMin !== 1);
-  $('a-len-2').classList.toggle('dim', S.testMin !== 2);
+  /* 模式选择页：两个选择框的副标随设置更新 */
+  $('a-opt-timed-sub').textContent = `${S.testMin} 分钟倒计时 · 测出你的极限`;
   $('a-opt-free-sub').textContent = profile.goalNum === 0
     ? '跳多少算多少 · 自由模式' : `跳多少算多少 · 每日任务 ${profile.goalNum} 下`;
-  $('a-goal-txt').textContent = profile.goalNum === 0 ? '自由' : profile.goalNum;
   $('p-goal-cur').textContent = S.goal === 0 ? '自由跳' : S.goal === TEST ? `${S.testMin} 分钟测试` : S.goal + ' 下';
   $('p-goal-num').textContent = S.goal === 0 ? '自由' : S.goal === TEST ? '测试' : S.goal;
   const outfitIdx = unlockedOutfits().findIndex(o => OUTFITS.indexOf(o) === profile.outfit);
@@ -1864,24 +1887,41 @@ $('p-goal-minus').addEventListener('click', () => { audio(); setGoal(S.goal <= 0
 $('p-goal-plus').addEventListener('click', () => { audio(); setGoal(S.goal <= 0 ? 100 : Math.min(1000, S.goal + 50)); });
 document.querySelectorAll('#p-settings .goal-pill')
   .forEach(b => b.addEventListener('click', () => { audio(); setGoal(Number(b.dataset.goal)); }));
-/* Atom 流程：开始 → 模式选择页 → 选模式即开跳 */
+/* Atom 流程：开始 → 模式选择页（两个选择框）→ 选模式即开跳 */
 $('a-opt-timed').addEventListener('click', () => { audio(); startSession(TEST); });
 $('a-opt-free').addEventListener('click', () => { audio(); startSession(profile.goalNum); });
-$('a-len-1').addEventListener('click', () => {
-  audio(); S.testMin = 1; profile.testMin = 1; saveProfile(); speak('1 分钟'); bump();
-});
-$('a-len-2').addEventListener('click', () => {
-  audio(); S.testMin = 2; profile.testMin = 2; saveProfile(); speak('2 分钟'); bump();
-});
 $('a-mode-back').addEventListener('click', () => { audio(); goHome(); });
-/* 首页贴边设置：每日目标点按循环 */
-$('a-set-goal').addEventListener('click', () => {
-  audio();
+
+/* 设置页（首页 ⚙ 进入）：目标 / 限时时长 / 语音 */
+function renderSettings() {
+  $('as-goal').textContent = profile.goalNum === 0 ? '自由跳' : profile.goalNum + ' 下';
+  $('as-len').textContent = S.testMin + ' 分钟';
+  $('as-voice').textContent = voiceOn ? '开' : '关';
+}
+$('a-settings-btn').addEventListener('click', (e) => {
+  e.stopPropagation(); audio(); renderSettings(); $('a-set').classList.add('show');
+});
+$('a-set').addEventListener('click', () => $('a-set').classList.remove('show'));
+$('as-goal').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
   const order = [100, 200, 300, 0];
   const next = order[(order.indexOf(profile.goalNum) + 1) % order.length];
   profile.goalNum = next; saveProfile();
-  if (S.goal !== TEST) setGoal(next); else bump();
-  speak(next === 0 ? '每日任务：自由跳' : `每日目标 ${next} 下`);
+  if (S.goal !== TEST) { S.goal = next; profile.goal = next; saveProfile(); }
+  renderSettings(); bump();
+});
+$('as-len').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  S.testMin = S.testMin === 1 ? 2 : 1;
+  profile.testMin = S.testMin; saveProfile();
+  renderSettings(); bump();
+});
+$('as-voice').addEventListener('click', (e) => {
+  e.stopPropagation();
+  voiceOn = !voiceOn;
+  $('pb-voice').classList.toggle('on', voiceOn);
+  if (!voiceOn) { try { speechSynthesis.cancel(); } catch (err) {} }
+  renderSettings();
 });
 /* 换装：手机左右箭头（JRC 同款交互），Atom 待机点 Bono 循环 */
 $('p-outfit-prev').addEventListener('click', () => { audio(); cycleOutfit(-1); });
@@ -1978,7 +2018,8 @@ mountBono('a-bono-result', 64, 'party');
 
 initChannel();
 render();
-$('a-history-btn').innerHTML = ico('list') + ' 记录 ›';
+$('a-history-btn').innerHTML = ico('list') + ' 记录';
+$('a-settings-btn').innerHTML = ico('gear');
 /* 当前阶段只做 Atom 设备端：启动直达（手机/双端保留在 #phone / #duo 供后续开发） */
 const h = location.hash.replace('#', '');
 enter(['phone', 'atom', 'duo'].includes(h) ? h : 'atom');
