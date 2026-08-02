@@ -586,7 +586,18 @@
   #a-result .unlock { color: #7FE3A8; font-size: 1.375em; font-weight: 600; }
   #a-result .unlock:empty, #a-result .streak:empty { display: none; }
   .flip-hint { color: var(--stage-soft); font-size: 1.375em; margin-top: .2em; }
-  #a-r-page2 canvas { width: 9.5em; height: 9.5em; background: #fff; border-radius: .5em; padding: .4em; }
+  #a-r-page2 canvas { width: 6.5em; height: 6.5em; background: #fff; border-radius: .5em; padding: .3em; }
+  /* 迷你成绩海报 */
+  .poster {
+    background: #fff; color: var(--ink);
+    border-radius: .8em; padding: .5em 1.4em .6em;
+    display: flex; flex-direction: column; align-items: center; gap: .1em;
+  }
+  .poster .p-num { font-size: 2.6em; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .poster .p-sub { font-size: 1.1em; color: var(--ink-soft); }
+  .poster .p-rate { font-size: 1.2em; color: var(--accent-deep); font-weight: 700; }
+  .poster .bono { color: var(--ink); }
+  #a-poster-bono svg { width: 2.6em; height: 2.6em; }
 
   /* 漫画放射光背景（燃起来）：前 50 纯黑；每满 50 火焰升一级，暖橙黄色系 */
   .rays {
@@ -839,6 +850,9 @@
         <div class="set-rows">
           <div class="srow"><span>每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
           <div class="srow"><span>限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
+          <div class="srow"><span>年龄段</span><button class="a-goal-chip sm" id="as-age">9-11</button></div>
+          <div class="srow"><span>体重</span><button class="a-goal-chip sm" id="as-weight">40 kg</button></div>
+          <div class="srow"><span>每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span>教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
         </div>
         <div class="flip-hint">点按空白处返回</div>
@@ -881,6 +895,7 @@
           <div id="a-bono-result"></div>
           <div class="num" id="a-r-num">50</div>
           <div class="lab" id="a-r-lab">目标达成！</div>
+          <div class="streak" id="a-r-rate" style="color:#7FE3A8;"></div>
           <div class="earn" id="a-r-earn">⭐ +10</div>
           <div class="streak" id="a-r-streak">🔥 连续 1 天打卡</div>
           <div class="streak" id="a-r-rank" style="color: var(--stage-soft);"></div>
@@ -891,9 +906,16 @@
           </div>
           <div class="flip-hint">点按翻面看二维码</div>
         </div>
+        <!-- 分享页：迷你成绩海报 + 二维码（手机扫码保存/转发完整海报） -->
         <div class="r-page hidden" id="a-r-page2">
+          <div class="poster">
+            <div id="a-poster-bono"></div>
+            <div class="p-num" id="a-poster-num">0</div>
+            <div class="p-sub" id="a-poster-sub"></div>
+            <div class="p-rate" id="a-poster-rate"></div>
+          </div>
           <canvas id="a-qr" width="120" height="120"></canvas>
-          <div class="flip-hint">扫码看详情 · 点按返回</div>
+          <div class="flip-hint">手机扫码保存 · 分享海报 · 点按返回</div>
         </div>
       </div>
 
@@ -1083,7 +1105,8 @@ const ico = (n, c) => `<svg class="ico" viewBox="0 0 24 24"${c ? ` style="color:
 const PROFILE_KEY = 'bodypark_jump_profile_v1';
 const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 100, history: {},
                           total: 0, scenes: 3, outfit: 0, goalNum: 100, testMin: 1,
-                          bests: {}, bestSession: 0, luckyHits: 0 };
+                          bests: {}, bestSession: 0, luckyHits: 0,
+                          age: '9-11', weight: 40, remind: '关' };
 function loadProfile() {
   try { return Object.assign({}, PROFILE_DEFAULT, JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')); }
   catch (e) { return Object.assign({}, PROFILE_DEFAULT); }
@@ -1498,9 +1521,20 @@ function render() {
       $('p-r-lab').textContent = (goalMet ? '目标达成！' : '本轮结束') + ' · ⏱ ' + fmtTime(S.elapsedMs);
       $('a-r-lab').textContent = goalMet ? '目标达成！' : '本轮结束';
     }
+    /* 体测评级（仅 1 分钟测试） + 卡路里 */
+    $('a-r-rate').textContent = (S.goal === TEST && S.testMin === 1)
+      ? `体测评级：${rateTest(S.count)}（${profile.age} 岁段 · 示意标准）` : '';
+    const kcal = sessionKcal();
     $('p-r-earn').textContent = `⭐ +${S.earned}${rec && rec.done ? ' · 今日打卡成功' : ''}`;
     $('a-r-earn').innerHTML =
-      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('clock')} ${fmtTime(S.elapsedMs)}`;
+      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('clock')} ${fmtTime(S.elapsedMs)}` +
+      (kcal > 0 ? ` · ${kcal.toFixed(1)} 千卡` : '');
+    /* 分享页迷你海报 */
+    $('a-poster-num').textContent = S.count;
+    $('a-poster-sub').textContent = `${todayKey().slice(5).replace('-', '.')} · ` +
+      (S.goal === TEST ? `${S.testMin} 分钟测试` : S.goal === 0 ? '自由跳' : `目标 ${S.goal}`);
+    $('a-poster-rate').textContent = S.goal === TEST && S.testMin === 1
+      ? `评级 ${rateTest(S.count)}` : (goalMet ? '每日任务达成' : '');
     $('p-r-streak').textContent = profile.streak;
     $('a-r-streak').innerHTML = `${ico('flame', '#FFB020')} 连续 ${profile.streak} 天打卡`;
     $('p-r-unlock').textContent = S.unlock;
@@ -1634,6 +1668,38 @@ setInterval(() => {
 
 const CHEERS = ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'];
 
+/* ------------------------------------------------------------
+   青少年体测评级（1 分钟测试）：按年龄段分档
+   ⚠️ 示意阈值——上线前替换为《国家学生体质健康标准》官方分表（按年级×性别）
+   ------------------------------------------------------------ */
+const AGES = ['6-8', '9-11', '12-14', '15-17', '成人'];
+const RATING = {                     /* [及格, 良好, 优秀, 满分] */
+  '6-8':   [60, 90, 110, 130],
+  '9-11':  [80, 110, 130, 150],
+  '12-14': [100, 130, 150, 170],
+  '15-17': [110, 140, 160, 180],
+  '成人':  [90, 120, 140, 160],
+};
+function rateTest(count) {
+  const t = RATING[profile.age] || RATING['9-11'];
+  return count >= t[3] ? '满分' : count >= t[2] ? '优秀'
+       : count >= t[1] ? '良好' : count >= t[0] ? '及格' : '继续加油';
+}
+
+/* ------------------------------------------------------------
+   卡路里估算（MET 法，运动纲要标准值）：
+   跳频 <100/分 → MET 8.8；100–120 → 11.8；>120 → 12.3
+   kcal = MET × 体重(kg) × 活动小时数（用停表后的净跳绳时长，暂停不计）
+   接手表后可升级为心率法（Keytel 公式），复杂度二期再上
+   ------------------------------------------------------------ */
+function sessionKcal() {
+  const min = S.elapsedMs / 60000;
+  if (min <= 0 || S.count <= 0) return 0;
+  const freq = S.count / min;
+  const met = freq < 100 ? 8.8 : freq <= 120 ? 11.8 : 12.3;
+  return met * (profile.weight || 40) * (S.elapsedMs / 3600000);
+}
+
 /* 实时排名爬升反馈：每超过一位对手就即时告知（全球榜，前 15 名内） */
 const GB = fakeBoard('global');
 let liveRank = Infinity;
@@ -1713,12 +1779,6 @@ function endSession() {
   const goalMet = S.goalHit;
   if (S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
   S.paused = false; clearTimeout(pauseEndTimer);
-  if (goalMet) {
-    S.screen = 'celebrate';
-    bump();
-    sndFanfare();
-    confetti($('atomRoot'), 60); confetti($('phoneRoot'), 60);
-  }
   /* 限时测试：按时长（1'/2'）分别记录历史最佳 */
   if (S.goal === TEST) {
     S.newBest = S.count > (profile.bests[S.testMin] || 0);
@@ -1726,7 +1786,20 @@ function endSession() {
       profile.bests[S.testMin] = S.count;
       if (S.testMin === 1) profile.bestMinute = S.count;
     }
-    speak(S.newBest ? `${S.count} 下，新纪录！` : `${S.testMin} 分钟 ${S.count} 下，辛苦啦`);
+  }
+  /* 庆祝页：达标或破纪录都值得一场全屏庆祝 */
+  const celebrated = goalMet || (S.goal === TEST && S.newBest);
+  if (celebrated) {
+    $('a-celebrate').querySelector('.txt').textContent =
+      S.goal === TEST && S.newBest ? '新纪录！' : '达成！';
+    S.screen = 'celebrate';
+    bump();
+    sndFanfare();
+    confetti($('atomRoot'), 70); confetti($('phoneRoot'), 70);
+  }
+  if (S.goal === TEST) {
+    const rateTxt = S.testMin === 1 ? `，体测评级${rateTest(S.count)}` : '';
+    speak(S.newBest ? `${S.count} 下，新纪录${rateTxt}！` : `${S.testMin} 分钟 ${S.count} 下${rateTxt}，辛苦啦`);
   } else {
     speak(goalMet ? `一共 ${S.count} 下，太棒了！` : '本轮结束，辛苦啦');
   }
@@ -1761,7 +1834,7 @@ function endSession() {
   if (unlocks.length) speak('恭喜解锁' + unlocks.join('，'));
   saveProfile();
 
-  if (goalMet) setTimeout(() => { S.screen = 'result'; bump(); }, 1800);
+  if (celebrated) setTimeout(() => { S.screen = 'result'; bump(); }, 1900);
   else { S.screen = 'result'; bump(); }
 }
 
@@ -1991,8 +2064,29 @@ $('a-mode-back').addEventListener('click', () => { audio(); goHome(); });
 function renderSettings() {
   $('as-goal').textContent = profile.goalNum === 0 ? '自由跳' : profile.goalNum + ' 下';
   $('as-len').textContent = S.testMin + ' 分钟';
+  $('as-age').textContent = profile.age;
+  $('as-weight').textContent = profile.weight + ' kg';
+  $('as-remind').textContent = profile.remind;
   $('as-voice').textContent = voiceOn ? '开' : '关';
 }
+const WEIGHTS = [25, 30, 35, 40, 45, 50, 60, 70, 80, 90];
+const REMINDS = ['关', '19:00', '20:00', '21:00'];
+$('as-age').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  profile.age = AGES[(AGES.indexOf(profile.age) + 1) % AGES.length];
+  saveProfile(); renderSettings(); bump();
+});
+$('as-weight').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  profile.weight = WEIGHTS[(WEIGHTS.indexOf(profile.weight) + 1) % WEIGHTS.length];
+  saveProfile(); renderSettings(); bump();
+});
+$('as-remind').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  profile.remind = REMINDS[(REMINDS.indexOf(profile.remind) + 1) % REMINDS.length];
+  saveProfile(); renderSettings();
+  speak(profile.remind === '关' ? '提醒已关闭' : `每天 ${profile.remind} 提醒你来跳绳`);
+});
 $('a-settings-btn').addEventListener('click', (e) => {
   e.stopPropagation(); audio(); renderSettings(); $('a-set').classList.add('show');
 });
@@ -2236,6 +2330,7 @@ mountBono('p-bono-result', 100, 'party');
 mountBono('a-bono-idle', 100, 'idle');
 mountBono('a-bono-jump', 60, 'idle');
 mountBono('a-bono-result', 64, 'party');
+mountBono('a-poster-bono', 42, 'party');
 
 initChannel();
 render();
