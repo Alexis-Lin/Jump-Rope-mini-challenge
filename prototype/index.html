@@ -560,9 +560,11 @@
     letter-spacing: .05em; margin-top: .4em;
     font-variant-numeric: tabular-nums;
   }
-  #a-jump .a-bono-slot {
-    position: absolute; bottom: 5%; left: 0; right: 0; height: 55%; z-index: 3;
-    display: flex; justify-content: center; align-items: flex-end;
+  /* 跳绳中改为实时骨骼火柴人（canvas），Bono 陪跳位隐藏 */
+  #a-jump .a-bono-slot { display: none; }
+  .skel {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    z-index: 2; pointer-events: none;
   }
   /* Bono 用 em 定尺寸，跟随圆屏等比缩放（留出贴边环的空隙，避免干涉） */
   #a-bono-jump svg { width: 15.5em; height: 15.5em; }
@@ -873,6 +875,7 @@
                   stroke-linecap="round" stroke-dasharray="1357.2" stroke-dashoffset="1357.2"
                   transform="rotate(-90 233 233)"></circle>
         </svg>
+        <canvas class="skel" id="a-skel" width="466" height="466"></canvas>
         <div class="a-timer" id="a-timer"></div>
         <div class="a-top">
           <div class="a-count-row">
@@ -2045,6 +2048,107 @@ function camTick() {
 }
 
 /* ============================================================
+   实时骨骼火柴人渲染（466×466 @ 15fps）
+
+   AI 团队对接口：window.AtomSkeleton.feed(pts)
+   - pts: 33 个关键点数组 [{x, y, v?}, ...]，MediaPipe Pose 拓扑
+     （0 鼻 / 7,8 耳 / 11,12 肩 / 13,14 肘 / 15,16 腕 /
+       23,24 髋 / 25,26 膝 / 27,28 踝）
+   - 坐标归一化 0–1，原点左上，请在喂入前完成镜像
+   - 建议喂入频率 ≥15Hz；500ms 无数据自动切回内置模拟
+   - 计数管线独立（registerJump），骨骼只负责渲染与触地动效
+   ============================================================ */
+const skel = { ctx: null, pts: null, lastFeed: 0, ripples: [], prevFootY: 0, lastStrike: 0, dirty: false };
+window.AtomSkeleton = {
+  feed(pts) { skel.pts = pts; skel.lastFeed = performance.now(); },
+};
+/* 内置模拟：连续跳绳动作（腾空 62% + 落地屈膝缓冲 + 手腕摆绳） */
+function simPose(now) {
+  const t = now / 1000, f = 2.3;
+  const ph = (t * f) % 1;
+  const air = ph < 0.62 ? Math.sin(Math.PI * ph / 0.62) : 0;
+  const crouch = ph >= 0.62 ? 0.018 * Math.sin(Math.PI * (ph - 0.62) / 0.38) : 0;
+  const dy = -0.055 * air + crouch;
+  const swing = Math.sin(2 * Math.PI * t * f) * 0.012;
+  const P = [];
+  const set = (i, x, y) => { P[i] = { x, y, v: 1 }; };
+  set(0, 0.5, 0.47 + dy);
+  set(7, 0.465, 0.475 + dy); set(8, 0.535, 0.475 + dy);
+  set(11, 0.435, 0.545 + dy); set(12, 0.565, 0.545 + dy);
+  set(13, 0.385, 0.615 + dy); set(14, 0.615, 0.615 + dy);
+  set(15, 0.36 + swing, 0.665 + dy * 0.7); set(16, 0.64 - swing, 0.665 + dy * 0.7);
+  set(23, 0.462, 0.665 + dy); set(24, 0.538, 0.665 + dy);
+  set(25, 0.455, 0.775 + dy * 0.75 + crouch); set(26, 0.545, 0.775 + dy * 0.75 + crouch);
+  set(27, 0.45, 0.878 + dy * 0.5); set(28, 0.55, 0.878 + dy * 0.5);
+  return P;
+}
+function skelFrame() {
+  const c = skel.ctx; if (!c) return;
+  const active = S.screen === 'jump' || S.screen === 'celebrate';
+  if (!active) {
+    if (skel.dirty) { c.clearRect(0, 0, 466, 466); skel.dirty = false; skel.ripples = []; }
+    return;
+  }
+  const now = performance.now();
+  const pts = (now - skel.lastFeed < 500 && skel.pts) ? skel.pts : simPose(now);
+  skel.dirty = true;
+  c.clearRect(0, 0, 466, 466);
+  const X = (p) => p.x * 466, Y = (p) => p.y * 466;
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  c.strokeStyle = '#F2F4F2'; c.lineWidth = 7;
+  const seg = (a, b) => {
+    if (!pts[a] || !pts[b]) return;
+    c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
+  };
+  /* 头：耳中点上方画圆（纯火柴人风格） */
+  if (pts[7] && pts[8]) {
+    c.beginPath();
+    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 10, 24, 0, Math.PI * 2);
+    c.stroke();
+  }
+  /* 躯干 + 四肢 */
+  if (pts[11] && pts[12] && pts[23] && pts[24]) {
+    c.beginPath();
+    c.moveTo((X(pts[11]) + X(pts[12])) / 2, (Y(pts[11]) + Y(pts[12])) / 2);
+    c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
+    c.stroke();
+  }
+  seg(11, 12); seg(23, 24);
+  seg(11, 13); seg(13, 15); seg(12, 14); seg(14, 16);
+  seg(23, 25); seg(25, 27); seg(24, 26); seg(26, 28);
+  /* 品牌绿点：手腕与脚踝 */
+  c.fillStyle = '#23C766';
+  [15, 16, 27, 28].forEach(i => {
+    if (pts[i]) { c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), 6, 0, Math.PI * 2); c.fill(); }
+  });
+
+  /* 触地检测：脚踝下行穿过地面线 → 触地事件（去抖 240ms） */
+  const la = pts[27], ra = pts[28];
+  const footY = Math.max(la ? la.y : 0, ra ? ra.y : 0);
+  const G = 0.872;
+  if (skel.prevFootY < G && footY >= G && now - skel.lastStrike > 240) {
+    skel.lastStrike = now;
+    [la, ra].forEach(a => {
+      if (a) skel.ripples.push({ x: a.x * 466, r: 10, o: 0.55 }, { x: a.x * 466, r: -10, o: 0.5 });
+    });
+  }
+  skel.prevFootY = footY;
+  /* 涟漪：触地点沿地面向上扩散的半圆弧（负半径 = 延迟一环，形成波纹） */
+  const gy = 466 * 0.9;
+  skel.ripples = skel.ripples.filter(rp => rp.o > 0.05);
+  skel.ripples.forEach(rp => {
+    if (rp.r > 4) {
+      c.strokeStyle = `rgba(35,199,102,${rp.o})`;
+      c.lineWidth = 3.5;
+      c.beginPath(); c.arc(rp.x, gy, rp.r, Math.PI, 2 * Math.PI); c.stroke();
+      rp.o *= 0.8;
+    }
+    rp.r += 9;
+  });
+}
+setInterval(skelFrame, 66);   /* 66ms ≈ 15fps，与设备刷新率一致 */
+
+/* ============================================================
    事件绑定
    ============================================================ */
 /* 每日目标设置：入口 → 浮层（步进 ±50 / 预设 / 自由跳） */
@@ -2332,6 +2436,7 @@ mountBono('a-bono-jump', 60, 'idle');
 mountBono('a-bono-result', 64, 'party');
 mountBono('a-poster-bono', 42, 'party');
 
+skel.ctx = $('a-skel').getContext('2d');
 initChannel();
 render();
 $('a-history-btn').innerHTML = ico('list') + ' 记录';
