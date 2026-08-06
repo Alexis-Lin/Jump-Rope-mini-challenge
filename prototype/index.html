@@ -2173,11 +2173,11 @@ function skelFrame() {
   }
 
   /* 涟漪：双脚落点的单个透视椭圆环，0.5s 生命周期
-     半径 20→96，线宽 6→1，不透明度 0.95→0（0 帧最强） */
+     半径 20→192，线宽 6→1，不透明度 0.95→0（0 帧最强） */
   skel.ripples = skel.ripples.filter(rp => now - rp.t0 < 500);
   skel.ripples.forEach(rp => {
     const age = (now - rp.t0) / 500;
-    const rx = (20 + 76 * age) * (rp.s || 1);   /* 涟漪尺寸随人物远近 */
+    const rx = (20 + 172 * age) * (rp.s || 1);   /* 涟漪尺寸随人物远近 */
     c.strokeStyle = `rgba(242,244,242,${0.95 * (1 - age)})`;
     c.lineWidth = 1 + 5 * (1 - age);
     c.beginPath();
