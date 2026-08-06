@@ -535,9 +535,9 @@
 
   /* Atom 跳绳中：第一行计时(小字) → 第二行大数字+🌟目标倍数 → 下 3/5 纯火柴人 */
   #a-jump { z-index: 2; }
-  #a-jump .ring-svg { position: absolute; inset: 3%; z-index: 2; width: 94%; height: 94%; }
+  #a-jump .ring-svg { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
   .a-timer {
-    position: absolute; top: 4.5%; left: 0; right: 0; z-index: 3;
+    position: absolute; top: 2.2%; left: 0; right: 0; z-index: 3;
     text-align: center;
     font-size: 1.375em; color: var(--stage-soft); font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -871,9 +871,9 @@
       <!-- 跳绳中：上半屏数字，下半屏大火柴人；达标不打断，继续往上数 -->
       <div class="ascreen" id="a-jump">
         <svg class="ring-svg" viewBox="0 0 466 466">
-          <circle id="a-ring-base" cx="233" cy="233" r="216" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="11"></circle>
-          <circle id="a-ring-arc" cx="233" cy="233" r="216" fill="none" stroke="#23C766" stroke-width="11"
-                  stroke-linecap="round" stroke-dasharray="1357.2" stroke-dashoffset="1357.2"
+          <circle id="a-ring-base" cx="233" cy="233" r="227" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="11"></circle>
+          <circle id="a-ring-arc" cx="233" cy="233" r="227" fill="none" stroke="#23C766" stroke-width="11"
+                  stroke-linecap="round" stroke-dasharray="1426.3" stroke-dashoffset="1426.3"
                   transform="rotate(-90 233 233)"></circle>
         </svg>
         <canvas class="skel" id="a-skel" width="466" height="466"></canvas>
@@ -1340,11 +1340,11 @@ function bonoSVG(size) {
     <g class="body-g" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
       <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
       <circle cx="60" cy="29" r="15.5" fill="currentColor" stroke="none"/>
-      <path d="M52 52 L68 52 L64 83 L56 83 Z" fill="currentColor" stroke-width="10" stroke-linejoin="round"/>
-      <path d="M54 55 L43 71"/>
-      <path d="M66 55 L77 71"/>
-      <path d="M57 84 L48 105"/>
-      <path d="M63 84 L72 105"/>
+      <path d="M60 51 L60 83" stroke-width="13"/>
+      <path d="M60 57 L43 71"/>
+      <path d="M60 57 L77 71"/>
+      <path d="M60 83 L48 105"/>
+      <path d="M60 83 L72 105"/>
       <circle cx="43" cy="71" r="5.5" fill="currentColor" stroke="none"/>
       <circle cx="77" cy="71" r="5.5" fill="currentColor" stroke="none"/>
       <circle cx="48" cy="105" r="6" fill="currentColor" stroke="none"/>
@@ -1460,11 +1460,11 @@ function render() {
     /* 测试模式：环 = 剩余时间（随 ticker 持续消退） */
     const timePct = Math.min(1, sessionElapsed() / testMs());
     $('p-ring-arc').style.strokeDashoffset = 295.3 * timePct;
-    $('a-ring-arc').style.strokeDashoffset = 1357.2 * timePct;
+    $('a-ring-arc').style.strokeDashoffset = 1426.3 * timePct;
     $('p-pct').textContent = fmtTime(Math.max(0, testMs() - sessionElapsed()));
   } else {
     $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - lapPct);
-    $('a-ring-arc').style.strokeDashoffset = 1357.2 * (1 - lapPct);
+    $('a-ring-arc').style.strokeDashoffset = 1426.3 * (1 - lapPct);
     $('p-pct').textContent = Math.round(lapPct * 100) + '%';
   }
   /* 每跳满 50 就多点一颗星 */
@@ -1661,7 +1661,7 @@ setInterval(() => {
     $('a-timer').textContent = fmtTime(rem);
     $('p-count-sub').textContent = ' ⏱ ' + fmtTime(rem);
     $('a-timer').classList.toggle('urgent', rem <= 10000);
-    $('a-ring-arc').style.strokeDashoffset = 1357.2 * (sessionElapsed() / testMs());
+    $('a-ring-arc').style.strokeDashoffset = 1426.3 * (sessionElapsed() / testMs());
     $('p-ring-arc').style.strokeDashoffset = 295.3 * (sessionElapsed() / testMs());
     if (rem <= 30000 && !testMark30) { testMark30 = true; speak('还有三十秒'); }
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak('最后十秒，冲刺！'); }
@@ -2138,21 +2138,25 @@ function skelFrame() {
     c.lineWidth = w * ws;
     c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
   };
-  /* 躯干：肩髋四关节连成单一体块，fill+同色round stroke = 均匀圆角轮廓
-     —— 侧边从肩到髋是一条顺直的线，无任何关节鼓包 */
+  /* 躯干：等宽直柱（颈点→髋中点），经典火柴人式直上直下，无宽肩无梯形 */
   c.fillStyle = '#F2F4F2';
+  let neck = null;
   if (pts[11] && pts[12] && pts[23] && pts[24]) {
-    c.lineWidth = 22 * ws;
+    neck = { x: (X(pts[11]) + X(pts[12])) / 2, y: (Y(pts[11]) + Y(pts[12])) / 2 };
+    c.lineWidth = 26 * ws;
     c.beginPath();
-    c.moveTo(X(pts[11]), Y(pts[11]));
-    c.lineTo(X(pts[12]), Y(pts[12]));
-    c.lineTo(X(pts[24]), Y(pts[24]));
-    c.lineTo(X(pts[23]), Y(pts[23]));
-    c.closePath();
-    c.fill(); c.stroke();
+    c.moveTo(neck.x, neck.y);
+    c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
+    c.stroke();
   }
-  /* 四肢：端帽半径(9/10)小于躯干扩张(11)，接缝处轮廓齐平 */
-  seg(11, 13, 18); seg(13, 15, 18); seg(12, 14, 18); seg(14, 16, 18);
+  /* 手臂：从颈点分出（火柴人式）；腿：从真实髋点下来（髋点在柱体宽度内，侧边仍直） */
+  const armSeg = (elbow, wrist) => {
+    if (!neck || !pts[elbow]) return;
+    c.lineWidth = 18 * ws;
+    c.beginPath(); c.moveTo(neck.x, neck.y); c.lineTo(X(pts[elbow]), Y(pts[elbow])); c.stroke();
+    seg(elbow, wrist, 18);
+  };
+  armSeg(13, 15); armSeg(14, 16);
   seg(23, 25, 20); seg(25, 27, 20); seg(24, 26, 20); seg(26, 28, 20);
   /* 手部 / 脚部小圆头 */
   const knob = (i, r) => {
