@@ -1331,22 +1331,22 @@ function outfitLayer(idx) {
     default: return '';
   }
 }
-/* 吉祥物：纯粹的火柴人。线条用 currentColor —— 深色屏白线、浅色屏黑线；绿色只在绳子上 */
+/* 吉祥物：粗壮 pictogram 火柴人 —— 粗线条身体(currentColor) + 绿色实心圆头，远距离可读 */
 function bonoSVG(size) {
   return `
   <svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-label="吉祥物 Bono">
     <g class="rope"><ellipse cx="60" cy="74" rx="46" ry="38" fill="none" stroke="#23C766" stroke-width="2.5" opacity=".7"/></g>
-    <g class="body-g" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round">
+    <g class="body-g" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
       <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
-      <circle cx="60" cy="30" r="17"/>
-      <circle cx="54" cy="28" r="2.4" fill="currentColor" stroke="none"/>
-      <circle cx="66" cy="28" r="2.4" fill="currentColor" stroke="none"/>
-      <path d="M55 35 Q60 39 65 35" stroke-width="3"/>
-      <path d="M60 47 L60 82"/>
-      <path d="M60 60 L42 72"/>
-      <path d="M60 60 L78 72"/>
-      <path d="M60 82 L48 106"/>
-      <path d="M60 82 L72 106"/>
+      <circle cx="60" cy="29" r="15.5" fill="#23C766" stroke="none"/>
+      <circle cx="54.5" cy="27" r="2.4" fill="#0E100F" stroke="none"/>
+      <circle cx="65.5" cy="27" r="2.4" fill="#0E100F" stroke="none"/>
+      <path d="M55 33.5 Q60 37.5 65 33.5" stroke="#0E100F" stroke-width="2.8"/>
+      <path d="M60 50 L60 83" stroke-width="12"/>
+      <path d="M60 58 L43 71"/>
+      <path d="M60 58 L77 71"/>
+      <path d="M60 83 L48 105"/>
+      <path d="M60 83 L72 105"/>
       ${outfitLayer(profile.outfit)}
     </g>
   </svg>`;
@@ -2094,33 +2094,33 @@ function skelFrame() {
   skel.dirty = true;
   c.clearRect(0, 0, 466, 466);
   const X = (p) => p.x * 466, Y = (p) => p.y * 466;
+  /* 粗壮 pictogram 风格：粗白身体 + 绿色实心圆头，远距离可读 */
   c.lineCap = 'round'; c.lineJoin = 'round';
-  c.strokeStyle = '#F2F4F2'; c.lineWidth = 7;
-  const seg = (a, b) => {
+  c.strokeStyle = '#F2F4F2';
+  const seg = (a, b, w) => {
     if (!pts[a] || !pts[b]) return;
+    c.lineWidth = w;
     c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
   };
-  /* 头：耳中点上方画圆（纯火柴人风格） */
-  if (pts[7] && pts[8]) {
-    c.beginPath();
-    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 10, 24, 0, Math.PI * 2);
-    c.stroke();
-  }
-  /* 躯干 + 四肢 */
+  /* 躯干：粗柱体（肩中点→髋中点）+ 圆端肩/髋横条形成体块 */
   if (pts[11] && pts[12] && pts[23] && pts[24]) {
+    c.lineWidth = 34;
     c.beginPath();
     c.moveTo((X(pts[11]) + X(pts[12])) / 2, (Y(pts[11]) + Y(pts[12])) / 2);
     c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
     c.stroke();
   }
-  seg(11, 12); seg(23, 24);
-  seg(11, 13); seg(13, 15); seg(12, 14); seg(14, 16);
-  seg(23, 25); seg(25, 27); seg(24, 26); seg(26, 28);
-  /* 品牌绿点：手腕与脚踝 */
-  c.fillStyle = '#23C766';
-  [15, 16, 27, 28].forEach(i => {
-    if (pts[i]) { c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), 6, 0, Math.PI * 2); c.fill(); }
-  });
+  seg(11, 12, 26); seg(23, 24, 26);
+  /* 四肢：略细于躯干 */
+  seg(11, 13, 18); seg(13, 15, 18); seg(12, 14, 18); seg(14, 16, 18);
+  seg(23, 25, 20); seg(25, 27, 20); seg(24, 26, 20); seg(26, 28, 20);
+  /* 头：绿色实心圆，与肩部留出 pictogram 式间隙 */
+  if (pts[7] && pts[8]) {
+    c.fillStyle = '#23C766';
+    c.beginPath();
+    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 14, 26, 0, Math.PI * 2);
+    c.fill();
+  }
 
   /* 触地检测：脚踝下行穿过地面线 → 触地事件（去抖 240ms） */
   const la = pts[27], ra = pts[28];
