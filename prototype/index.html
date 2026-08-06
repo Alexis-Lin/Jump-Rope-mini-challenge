@@ -537,14 +537,15 @@
   #a-jump { z-index: 2; }
   #a-jump .ring-svg { position: absolute; inset: 3%; z-index: 2; width: 94%; height: 94%; }
   .a-timer {
-    position: absolute; top: 10.5%; left: 0; right: 0; z-index: 3;
+    position: absolute; top: 4.5%; left: 0; right: 0; z-index: 3;
     text-align: center;
     font-size: 1.375em; color: var(--stage-soft); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
   .a-timer.urgent { color: #FFB020; font-weight: 700; }   /* 测试最后 10 秒 */
+  /* 计数区收进顶部 1/3（渲染视口缩至 2/3 后永久让出的区域） */
   #a-jump .a-top {
-    position: absolute; top: 11%; left: 0; right: 0; height: 30%; z-index: 3;
+    position: absolute; top: 8%; left: 0; right: 0; height: 25%; z-index: 3;
     display: flex; align-items: flex-end; justify-content: center;
   }
   .a-count-row { display: flex; align-items: flex-start; gap: .35em; }
@@ -2071,7 +2072,8 @@ function spawnRipple() {
   const pts = skel.rpts;
   const la = pts && pts[27], ra = pts && pts[28];
   const x = la && ra ? (la.x + ra.x) / 2 * 466 : 233;
-  skel.ripples.push({ x, t0: performance.now() });
+  const y = la && ra ? (Math.max(la.y, ra.y) + 0.02) * 466 : 466 * 0.93;
+  skel.ripples.push({ x, y, t0: performance.now() });
 }
 /* 内置模拟：连续跳绳动作（腾空 62% + 落地屈膝缓冲 + 手腕摆绳） */
 function simPose(now) {
@@ -2093,28 +2095,16 @@ function simPose(now) {
   set(27, 0.45, 0.878 + dy * 0.5); set(28, 0.55, 0.878 + dy * 0.5);
   return P;
 }
-/* 舞台安全区适配：把任意来源的骨骼点归一到"数字区以下"的固定舞台
-   （y 0.55–0.905，宽度 ≤0.72），数字和火柴人永不打架。
-   缩放/中心用慢速 EMA 自适应（人离远离近不跳变）；
-   地面线用非对称 EMA 锚定（落地快贴合、腾空几乎不动）→ 跳跃位移被保留 */
-const fit = { h: null, w: null, cx: null, gy: null };
-function fitStage(pts) {
-  const xs = [], ys = [];
-  pts.forEach(p => { if (p) { xs.push(p.x); ys.push(p.y); } });
-  if (ys.length < 4) return pts;
-  const top = Math.min(...ys), bot = Math.max(...ys);
-  const w = Math.max(0.05, Math.max(...xs) - Math.min(...xs));
-  const h = Math.max(0.08, bot - top);
-  const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
-  fit.h = fit.h === null ? h : fit.h * 0.95 + h * 0.05;
-  fit.w = fit.w === null ? w : fit.w * 0.95 + w * 0.05;
-  fit.cx = fit.cx === null ? cx : fit.cx * 0.92 + cx * 0.08;
-  if (fit.gy === null) fit.gy = bot;
-  else if (bot >= fit.gy) fit.gy = fit.gy * 0.7 + bot * 0.3;   /* 落地：快速贴合 */
-  else fit.gy = fit.gy * 0.995 + bot * 0.005;                  /* 腾空：地面线不动 */
-  const ST = 0.57, SG = 0.905;   /* 舞台顶留出头部圆与跳跃腾空的余量 */
-  const s = Math.min((SG - ST) / fit.h, 0.72 / fit.w);
-  return pts.map(p => p && { x: 0.5 + (p.x - fit.cx) * s, y: SG + (p.y - fit.gy) * s, v: p.v });
+/* 渲染视口：整个相机帧固定缩至 2/3，底边居中锚定 —— 顶部 1/3 永久让给数字。
+   骨骼在帧内的真实位置关系原样保留（不播相机画面，只按此比例渲染火柴人）。
+   帧坐标 (x,y) → 屏幕：x' = 0.5 + (x-0.5)×⅔；y' = 1 - (1-y)×⅔ */
+const VIEW_S = 2 / 3;
+function toStage(pts) {
+  return pts.map(p => p && {
+    x: 0.5 + (p.x - 0.5) * VIEW_S,
+    y: 1 - (1 - p.y) * VIEW_S,
+    v: p.v,
+  });
 }
 
 function skelFrame() {
@@ -2125,7 +2115,7 @@ function skelFrame() {
     return;
   }
   const now = performance.now();
-  const pts = fitStage((now - skel.lastFeed < 500 && skel.pts) ? skel.pts : simPose(now));
+  const pts = toStage((now - skel.lastFeed < 500 && skel.pts) ? skel.pts : simPose(now));
   skel.rpts = pts;
   skel.dirty = true;
   c.clearRect(0, 0, 466, 466);
@@ -2167,7 +2157,6 @@ function skelFrame() {
 
   /* 涟漪：双脚落点的单个透视椭圆环，0.5s 生命周期
      半径 20→96，线宽 6→1，不透明度 0.95→0（0 帧最强） */
-  const gy = 466 * 0.905;
   skel.ripples = skel.ripples.filter(rp => now - rp.t0 < 500);
   skel.ripples.forEach(rp => {
     const age = (now - rp.t0) / 500;
@@ -2175,7 +2164,7 @@ function skelFrame() {
     c.strokeStyle = `rgba(242,244,242,${0.95 * (1 - age)})`;
     c.lineWidth = 1 + 5 * (1 - age);
     c.beginPath();
-    c.ellipse(rp.x, gy, rx, rx * 0.3, 0, 0, Math.PI * 2);
+    c.ellipse(rp.x, rp.y, rx, rx * 0.3, 0, 0, Math.PI * 2);
     c.stroke();
   });
 }
