@@ -1340,11 +1340,11 @@ function bonoSVG(size) {
     <g class="body-g" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
       <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
       <circle cx="60" cy="29" r="15.5" fill="currentColor" stroke="none"/>
-      <path d="M60 50 L60 83" stroke-width="12"/>
-      <path d="M60 58 L43 71"/>
-      <path d="M60 58 L77 71"/>
-      <path d="M60 83 L48 105"/>
-      <path d="M60 83 L72 105"/>
+      <path d="M52 52 L68 52 L64 83 L56 83 Z" fill="currentColor" stroke-width="10" stroke-linejoin="round"/>
+      <path d="M54 55 L43 71"/>
+      <path d="M66 55 L77 71"/>
+      <path d="M57 84 L48 105"/>
+      <path d="M63 84 L72 105"/>
       <circle cx="43" cy="71" r="5.5" fill="currentColor" stroke="none"/>
       <circle cx="77" cy="71" r="5.5" fill="currentColor" stroke="none"/>
       <circle cx="48" cy="105" r="6" fill="currentColor" stroke="none"/>
@@ -2138,20 +2138,23 @@ function skelFrame() {
     c.lineWidth = w * ws;
     c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
   };
-  /* 躯干：粗柱体（肩中点→髋中点）+ 圆端肩/髋横条形成体块 */
+  /* 躯干：肩髋四关节连成单一体块，fill+同色round stroke = 均匀圆角轮廓
+     —— 侧边从肩到髋是一条顺直的线，无任何关节鼓包 */
+  c.fillStyle = '#F2F4F2';
   if (pts[11] && pts[12] && pts[23] && pts[24]) {
-    c.lineWidth = 34 * ws;
+    c.lineWidth = 22 * ws;
     c.beginPath();
-    c.moveTo((X(pts[11]) + X(pts[12])) / 2, (Y(pts[11]) + Y(pts[12])) / 2);
-    c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
-    c.stroke();
+    c.moveTo(X(pts[11]), Y(pts[11]));
+    c.lineTo(X(pts[12]), Y(pts[12]));
+    c.lineTo(X(pts[24]), Y(pts[24]));
+    c.lineTo(X(pts[23]), Y(pts[23]));
+    c.closePath();
+    c.fill(); c.stroke();
   }
-  seg(11, 12, 26); seg(23, 24, 26);
-  /* 四肢：略细于躯干 */
+  /* 四肢：端帽半径(9/10)小于躯干扩张(11)，接缝处轮廓齐平 */
   seg(11, 13, 18); seg(13, 15, 18); seg(12, 14, 18); seg(14, 16, 18);
   seg(23, 25, 20); seg(25, 27, 20); seg(24, 26, 20); seg(26, 28, 20);
   /* 手部 / 脚部小圆头 */
-  c.fillStyle = '#F2F4F2';
   const knob = (i, r) => {
     if (!pts[i]) return;
     c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), r * ws, 0, Math.PI * 2); c.fill();
@@ -2161,7 +2164,7 @@ function skelFrame() {
   /* 头：白色实心圆，与肩部留出 pictogram 式间隙 */
   if (pts[7] && pts[8]) {
     c.beginPath();
-    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 14 * ws, 26 * ws, 0, Math.PI * 2);
+    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 17 * ws, 26 * ws, 0, Math.PI * 2);
     c.fill();
   }
 
