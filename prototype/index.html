@@ -1339,9 +1339,6 @@ function bonoSVG(size) {
     <g class="body-g" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
       <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
       <circle cx="60" cy="29" r="15.5" fill="currentColor" stroke="none"/>
-      <circle cx="54.5" cy="27" r="2.4" fill="#23C766" stroke="none"/>
-      <circle cx="65.5" cy="27" r="2.4" fill="#23C766" stroke="none"/>
-      <path d="M55 33.5 Q60 37.5 65 33.5" stroke="#23C766" stroke-width="2.8"/>
       <path d="M60 50 L60 83" stroke-width="12"/>
       <path d="M60 58 L43 71"/>
       <path d="M60 58 L77 71"/>
@@ -1729,6 +1726,7 @@ function registerJump() {
   profile.total++;
   sndJump(S.count);
   popCount(); bonoHopOnce();
+  spawnRipple();
 
   /* 惊喜机制 */
   if (S.count % 10 === 0) {
@@ -1906,7 +1904,7 @@ function initChannel() {
       Object.assign(S, m.state);
       profile = m.profile; saveProfile();
       /* 远端跳了一下 → 本端也出反馈 */
-      if (S.count > prev.count && S.screen === 'jump') { sndJump(S.count); popCount(); bonoHopOnce(); }
+      if (S.count > prev.count && S.screen === 'jump') { sndJump(S.count); popCount(); bonoHopOnce(); spawnRipple(); }
       if (!prev.goalHit && S.goalHit) {
         sndFanfare(); confetti($('atomRoot'), 50); confetti($('phoneRoot'), 50);
       }
@@ -2062,10 +2060,19 @@ function camTick() {
    - 建议喂入频率 ≥15Hz；500ms 无数据自动切回内置模拟
    - 计数管线独立（registerJump），骨骼只负责渲染与触地动效
    ============================================================ */
-const skel = { ctx: null, pts: null, lastFeed: 0, ripples: [], prevFootY: 0, lastStrike: 0, dirty: false };
+const skel = { ctx: null, pts: null, lastFeed: 0, ripples: [], dirty: false };
 window.AtomSkeleton = {
   feed(pts) { skel.pts = pts; skel.lastFeed = performance.now(); },
 };
+/* 触地涟漪：只在"判定计数落地"时触发（registerJump 调用），一次一个椭圆环。
+   0 帧最强，0.5s 内半径增大、线宽与不透明度衰减到消失 */
+function spawnRipple() {
+  if (!skel.ctx) return;
+  const pts = skel.pts || simPose(performance.now());
+  const la = pts[27], ra = pts[28];
+  const x = la && ra ? (la.x + ra.x) / 2 * 466 : 233;
+  skel.ripples.push({ x, t0: performance.now() });
+}
 /* 内置模拟：连续跳绳动作（腾空 62% + 落地屈膝缓冲 + 手腕摆绳） */
 function simPose(now) {
   const t = now / 1000, f = 2.3;
@@ -2133,28 +2140,18 @@ function skelFrame() {
     c.fill();
   }
 
-  /* 触地检测：脚踝下行穿过地面线 → 触地事件（去抖 240ms） */
-  const la = pts[27], ra = pts[28];
-  const footY = Math.max(la ? la.y : 0, ra ? ra.y : 0);
-  const G = 0.872;
-  if (skel.prevFootY < G && footY >= G && now - skel.lastStrike > 240) {
-    skel.lastStrike = now;
-    [la, ra].forEach(a => {
-      if (a) skel.ripples.push({ x: a.x * 466, r: 10, o: 0.55 }, { x: a.x * 466, r: -10, o: 0.5 });
-    });
-  }
-  skel.prevFootY = footY;
-  /* 涟漪：触地点沿地面向上扩散的半圆弧（负半径 = 延迟一环，形成波纹） */
-  const gy = 466 * 0.9;
-  skel.ripples = skel.ripples.filter(rp => rp.o > 0.05);
+  /* 涟漪：双脚落点的单个透视椭圆环，0.5s 生命周期
+     半径 20→96，线宽 6→1，不透明度 0.95→0（0 帧最强） */
+  const gy = 466 * 0.905;
+  skel.ripples = skel.ripples.filter(rp => now - rp.t0 < 500);
   skel.ripples.forEach(rp => {
-    if (rp.r > 4) {
-      c.strokeStyle = `rgba(35,199,102,${rp.o})`;
-      c.lineWidth = 3.5;
-      c.beginPath(); c.arc(rp.x, gy, rp.r, Math.PI, 2 * Math.PI); c.stroke();
-      rp.o *= 0.8;
-    }
-    rp.r += 9;
+    const age = (now - rp.t0) / 500;
+    const rx = 20 + 76 * age;
+    c.strokeStyle = `rgba(242,244,242,${0.95 * (1 - age)})`;
+    c.lineWidth = 1 + 5 * (1 - age);
+    c.beginPath();
+    c.ellipse(rp.x, gy, rx, rx * 0.3, 0, 0, Math.PI * 2);
+    c.stroke();
   });
 }
 setInterval(skelFrame, 66);   /* 66ms ≈ 15fps，与设备刷新率一致 */
