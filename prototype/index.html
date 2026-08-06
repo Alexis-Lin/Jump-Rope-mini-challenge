@@ -2073,7 +2073,7 @@ function spawnRipple() {
   const la = pts && pts[27], ra = pts && pts[28];
   const x = la && ra ? (la.x + ra.x) / 2 * 466 : 233;
   const y = la && ra ? (Math.max(la.y, ra.y) + 0.02) * 466 : 466 * 0.93;
-  skel.ripples.push({ x, y, t0: performance.now() });
+  skel.ripples.push({ x, y, s: skel.ws || 1, t0: performance.now() });
 }
 /* 内置模拟：连续跳绳动作（腾空 62% + 落地屈膝缓冲 + 手腕摆绳） */
 function simPose(now) {
@@ -2093,7 +2093,12 @@ function simPose(now) {
   set(23, 0.462, 0.665 + dy); set(24, 0.538, 0.665 + dy);
   set(25, 0.455, 0.775 + dy * 0.75 + crouch); set(26, 0.545, 0.775 + dy * 0.75 + crouch);
   set(27, 0.45, 0.878 + dy * 0.5); set(28, 0.55, 0.878 + dy * 0.5);
-  return P;
+  /* 随机漫游（多正弦叠加的平滑漂移）：远近缩放 ±26%、左右 ±13%、高低 ±4%
+     —— 演示固定视口下火柴人大小与位置的真实变化 */
+  const d = 1 + 0.26 * Math.sin(t * 0.55 + 1.3) * Math.sin(t * 0.13 + 0.4);
+  const ox = 0.09 * Math.sin(t * 0.31 + 0.7) + 0.04 * Math.sin(t * 0.09);
+  const oy = 0.04 * Math.sin(t * 0.22 + 2.1);
+  return P.map(p => p && { x: 0.5 + (p.x - 0.5) * d + ox, y: 0.878 + (p.y - 0.878) * d + oy, v: 1 });
 }
 /* 渲染视口：整个相机帧固定缩至 2/3，底边居中锚定 —— 顶部 1/3 永久让给数字。
    骨骼在帧内的真实位置关系原样保留（不播相机画面，只按此比例渲染火柴人）。
@@ -2120,17 +2125,22 @@ function skelFrame() {
   skel.dirty = true;
   c.clearRect(0, 0, 466, 466);
   const X = (p) => p.x * 466, Y = (p) => p.y * 466;
-  /* 粗壮 pictogram 风格：粗白身体 + 绿色实心圆头，远距离可读 */
+  /* 线宽随人物远近缩放：以肩宽为尺（基准 40px），远小近大 */
+  const span = pts[11] && pts[12]
+    ? Math.hypot(X(pts[12]) - X(pts[11]), Y(pts[12]) - Y(pts[11])) : 40;
+  const ws = Math.max(0.55, Math.min(1.5, span / 40));
+  skel.ws = ws;
+  /* 粗壮 pictogram 风格：粗白身体 + 白色实心圆头，远距离可读 */
   c.lineCap = 'round'; c.lineJoin = 'round';
   c.strokeStyle = '#F2F4F2';
   const seg = (a, b, w) => {
     if (!pts[a] || !pts[b]) return;
-    c.lineWidth = w;
+    c.lineWidth = w * ws;
     c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
   };
   /* 躯干：粗柱体（肩中点→髋中点）+ 圆端肩/髋横条形成体块 */
   if (pts[11] && pts[12] && pts[23] && pts[24]) {
-    c.lineWidth = 34;
+    c.lineWidth = 34 * ws;
     c.beginPath();
     c.moveTo((X(pts[11]) + X(pts[12])) / 2, (Y(pts[11]) + Y(pts[12])) / 2);
     c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
@@ -2144,14 +2154,14 @@ function skelFrame() {
   c.fillStyle = '#F2F4F2';
   const knob = (i, r) => {
     if (!pts[i]) return;
-    c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), r, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), r * ws, 0, Math.PI * 2); c.fill();
   };
   knob(15, 13); knob(16, 13);
   knob(27, 14); knob(28, 14);
   /* 头：白色实心圆，与肩部留出 pictogram 式间隙 */
   if (pts[7] && pts[8]) {
     c.beginPath();
-    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 14, 26, 0, Math.PI * 2);
+    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 14 * ws, 26 * ws, 0, Math.PI * 2);
     c.fill();
   }
 
@@ -2160,7 +2170,7 @@ function skelFrame() {
   skel.ripples = skel.ripples.filter(rp => now - rp.t0 < 500);
   skel.ripples.forEach(rp => {
     const age = (now - rp.t0) / 500;
-    const rx = 20 + 76 * age;
+    const rx = (20 + 76 * age) * (rp.s || 1);   /* 涟漪尺寸随人物远近 */
     c.strokeStyle = `rgba(242,244,242,${0.95 * (1 - age)})`;
     c.lineWidth = 1 + 5 * (1 - age);
     c.beginPath();
