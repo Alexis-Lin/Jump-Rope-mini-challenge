@@ -1338,15 +1338,19 @@ function bonoSVG(size) {
     <g class="rope"><ellipse cx="60" cy="74" rx="46" ry="38" fill="none" stroke="#23C766" stroke-width="2.5" opacity=".7"/></g>
     <g class="body-g" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
       <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
-      <circle cx="60" cy="29" r="15.5" fill="#23C766" stroke="none"/>
-      <circle cx="54.5" cy="27" r="2.4" fill="#0E100F" stroke="none"/>
-      <circle cx="65.5" cy="27" r="2.4" fill="#0E100F" stroke="none"/>
-      <path d="M55 33.5 Q60 37.5 65 33.5" stroke="#0E100F" stroke-width="2.8"/>
+      <circle cx="60" cy="29" r="15.5" fill="currentColor" stroke="none"/>
+      <circle cx="54.5" cy="27" r="2.4" fill="#23C766" stroke="none"/>
+      <circle cx="65.5" cy="27" r="2.4" fill="#23C766" stroke="none"/>
+      <path d="M55 33.5 Q60 37.5 65 33.5" stroke="#23C766" stroke-width="2.8"/>
       <path d="M60 50 L60 83" stroke-width="12"/>
       <path d="M60 58 L43 71"/>
       <path d="M60 58 L77 71"/>
       <path d="M60 83 L48 105"/>
       <path d="M60 83 L72 105"/>
+      <circle cx="43" cy="71" r="5.5" fill="currentColor" stroke="none"/>
+      <circle cx="77" cy="71" r="5.5" fill="currentColor" stroke="none"/>
+      <circle cx="48" cy="105" r="6" fill="currentColor" stroke="none"/>
+      <circle cx="72" cy="105" r="6" fill="currentColor" stroke="none"/>
       ${outfitLayer(profile.outfit)}
     </g>
   </svg>`;
@@ -2114,9 +2118,16 @@ function skelFrame() {
   /* 四肢：略细于躯干 */
   seg(11, 13, 18); seg(13, 15, 18); seg(12, 14, 18); seg(14, 16, 18);
   seg(23, 25, 20); seg(25, 27, 20); seg(24, 26, 20); seg(26, 28, 20);
-  /* 头：绿色实心圆，与肩部留出 pictogram 式间隙 */
+  /* 手部 / 脚部小圆头 */
+  c.fillStyle = '#F2F4F2';
+  const knob = (i, r) => {
+    if (!pts[i]) return;
+    c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), r, 0, Math.PI * 2); c.fill();
+  };
+  knob(15, 13); knob(16, 13);
+  knob(27, 14); knob(28, 14);
+  /* 头：白色实心圆，与肩部留出 pictogram 式间隙 */
   if (pts[7] && pts[8]) {
-    c.fillStyle = '#23C766';
     c.beginPath();
     c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 14, 26, 0, Math.PI * 2);
     c.fill();
