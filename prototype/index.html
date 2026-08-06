@@ -1295,7 +1295,13 @@ function tone(freq, dur, type, gainV, when) {
   o.connect(g); g.connect(ac.destination);
   o.start(t); o.stop(t + dur + 0.02);
 }
-const sndJump = (n) => tone(660 + (n % 10) * 18, 0.09, 'triangle', 0.10);
+/* 确认音：五声音阶循环（C D E G A），永远和谐悦耳；叠一层八度泛音增加"叮"的亮度 */
+const PENTA = [523.25, 587.33, 659.25, 783.99, 880.0];
+const sndJump = (n) => {
+  const f = PENTA[n % PENTA.length];
+  tone(f, 0.13, 'sine', 0.12);
+  tone(f * 2, 0.10, 'sine', 0.045);
+};
 const sndBeep = () => tone(520, 0.12, 'sine', 0.14);
 const sndGo   = () => tone(880, 0.25, 'sine', 0.16);
 const sndMilestone = () => { tone(523,0.12,'sine',0.12); tone(659,0.12,'sine',0.12,0.10); tone(784,0.2,'sine',0.12,0.20); };
@@ -2192,25 +2198,25 @@ function skelFrame() {
     c.fill();
   }
 
-  /* 涟漪：与计数动画同一套"打击语法"（0.5s 生命周期）
-     半径爆发式扩张(easeOutCubic, 前2帧冲出~60%) → 缓滑到 192
+  /* 涟漪：与计数动画同一套"打击语法"（0.7s 生命周期）
+     0 帧起始圈 36 → 爆发式扩张(easeOutCubic) → 缓滑到 173
      环宽压缩-回弹(9 → 2.5 → 4 → 1, 对应数字的 squash/rebound)
-     落点第 0 帧叠一记金色闪光(对应数字的金闪) */
-  skel.ripples = skel.ripples.filter(rp => now - rp.t0 < 500);
+     落点金色闪光占前 22% 生命周期(对应数字的金闪) */
+  skel.ripples = skel.ripples.filter(rp => now - rp.t0 < 700);
   skel.ripples.forEach(rp => {
-    const age = (now - rp.t0) / 500;
+    const age = (now - rp.t0) / 700;
     const sc = rp.s || 1;
-    /* 落点闪光：前 14% 生命周期的金色实心椭圆，急速淡出 */
-    if (age < 0.14) {
-      const f = age / 0.14;
+    /* 落点闪光：金色实心椭圆，急速淡出 */
+    if (age < 0.22) {
+      const f = age / 0.22;
       c.fillStyle = `rgba(255,219,128,${0.5 * (1 - f)})`;
-      const fr = (26 + 34 * f) * sc;
+      const fr = (34 + 42 * f) * sc;
       c.beginPath();
       c.ellipse(rp.x, rp.y, fr, fr * 0.3, 0, 0, Math.PI * 2);
       c.fill();
     }
     const p = 1 - Math.pow(1 - age, 3);          /* 爆发式扩张 */
-    const rx = (20 + 172 * p) * sc;
+    const rx = (36 + 137 * p) * sc;
     const k = Math.min(1, age / 0.4);            /* 金 → 白 */
     const cr = Math.round(255 + (242 - 255) * k);
     const cg = Math.round(219 + (244 - 219) * k);
