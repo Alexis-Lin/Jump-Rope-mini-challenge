@@ -2192,19 +2192,33 @@ function skelFrame() {
     c.fill();
   }
 
-  /* 涟漪：双脚落点的单个透视椭圆环，0.5s 生命周期
-     半径 20→192，线宽 6→1，不透明度 0.95→0（0 帧最强） */
+  /* 涟漪：与计数动画同一套"打击语法"（0.5s 生命周期）
+     半径爆发式扩张(easeOutCubic, 前2帧冲出~60%) → 缓滑到 192
+     环宽压缩-回弹(9 → 2.5 → 4 → 1, 对应数字的 squash/rebound)
+     落点第 0 帧叠一记金色闪光(对应数字的金闪) */
   skel.ripples = skel.ripples.filter(rp => now - rp.t0 < 500);
   skel.ripples.forEach(rp => {
     const age = (now - rp.t0) / 500;
-    const rx = (20 + 172 * age) * (rp.s || 1);   /* 涟漪尺寸随人物远近 */
-    /* 砸地一瞬带一点金黄，前 40% 生命周期内渐变回白 */
-    const k = Math.min(1, age / 0.4);
+    const sc = rp.s || 1;
+    /* 落点闪光：前 14% 生命周期的金色实心椭圆，急速淡出 */
+    if (age < 0.14) {
+      const f = age / 0.14;
+      c.fillStyle = `rgba(255,219,128,${0.5 * (1 - f)})`;
+      const fr = (26 + 34 * f) * sc;
+      c.beginPath();
+      c.ellipse(rp.x, rp.y, fr, fr * 0.3, 0, 0, Math.PI * 2);
+      c.fill();
+    }
+    const p = 1 - Math.pow(1 - age, 3);          /* 爆发式扩张 */
+    const rx = (20 + 172 * p) * sc;
+    const k = Math.min(1, age / 0.4);            /* 金 → 白 */
     const cr = Math.round(255 + (242 - 255) * k);
     const cg = Math.round(219 + (244 - 219) * k);
     const cb = Math.round(128 + (242 - 128) * k);
     c.strokeStyle = `rgba(${cr},${cg},${cb},${0.95 * (1 - age)})`;
-    c.lineWidth = 1 + 5 * (1 - age);
+    c.lineWidth = age < 0.35 ? 9 - 6.5 * (age / 0.35)          /* 砸入后急压 */
+                : age < 0.7 ? 2.5 + 1.5 * ((age - 0.35) / 0.35) /* 小回弹 */
+                : 4 - 3 * ((age - 0.7) / 0.3);                  /* 收尾变细 */
     c.beginPath();
     c.ellipse(rp.x, rp.y, rx, rx * 0.3, 0, 0, Math.PI * 2);
     c.stroke();
