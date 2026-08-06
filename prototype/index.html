@@ -888,9 +888,9 @@
       <!-- 跳绳中：上半屏数字，下半屏大火柴人；达标不打断，继续往上数 -->
       <div class="ascreen" id="a-jump">
         <svg class="ring-svg" viewBox="0 0 466 466">
-          <circle id="a-ring-base" cx="233" cy="233" r="227" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="11"></circle>
-          <circle id="a-ring-arc" cx="233" cy="233" r="227" fill="none" stroke="#23C766" stroke-width="11"
-                  stroke-linecap="round" stroke-dasharray="1426.3" stroke-dashoffset="1426.3"
+          <circle id="a-ring-base" cx="233" cy="233" r="226" fill="none" stroke="rgba(255,255,255,.09)" stroke-width="13"></circle>
+          <circle id="a-ring-arc" cx="233" cy="233" r="226" fill="none" stroke="#23C766" stroke-width="13"
+                  stroke-linecap="round" stroke-dasharray="1420.0" stroke-dashoffset="1420.0"
                   transform="rotate(-90 233 233)"></circle>
         </svg>
         <canvas class="skel" id="a-skel" width="466" height="466"></canvas>
@@ -1477,11 +1477,11 @@ function render() {
     /* 测试模式：环 = 剩余时间（随 ticker 持续消退） */
     const timePct = Math.min(1, sessionElapsed() / testMs());
     $('p-ring-arc').style.strokeDashoffset = 295.3 * timePct;
-    $('a-ring-arc').style.strokeDashoffset = 1426.3 * timePct;
+    $('a-ring-arc').style.strokeDashoffset = 1420.0 * timePct;
     $('p-pct').textContent = fmtTime(Math.max(0, testMs() - sessionElapsed()));
   } else {
     $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - lapPct);
-    $('a-ring-arc').style.strokeDashoffset = 1426.3 * (1 - lapPct);
+    $('a-ring-arc').style.strokeDashoffset = 1420.0 * (1 - lapPct);
     $('p-pct').textContent = Math.round(lapPct * 100) + '%';
   }
   /* 每跳满 50 就多点一颗星 */
@@ -1680,7 +1680,7 @@ setInterval(() => {
     $('a-timer').textContent = fmtTime(rem);
     $('p-count-sub').textContent = ' ⏱ ' + fmtTime(rem);
     $('a-timer').classList.toggle('urgent', rem <= 10000);
-    $('a-ring-arc').style.strokeDashoffset = 1426.3 * (sessionElapsed() / testMs());
+    $('a-ring-arc').style.strokeDashoffset = 1420.0 * (sessionElapsed() / testMs());
     $('p-ring-arc').style.strokeDashoffset = 295.3 * (sessionElapsed() / testMs());
     if (rem <= 30000 && !testMark30) { testMark30 = true; speak('还有三十秒'); }
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak('最后十秒，冲刺！'); }
