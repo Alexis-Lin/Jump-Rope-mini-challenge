@@ -32,43 +32,6 @@
   button { font-family: inherit; cursor: pointer; border: none; }
   .hidden { display: none !important; }
 
-  /* ---------------- 启动器 ---------------- */
-  #launcher {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 28px;
-    padding: 40px 20px;
-    text-align: center;
-  }
-  #launcher .logo { font-size: 52px; }
-  #launcher h1 { font-size: 26px; margin: 0; font-weight: 700; }
-  #launcher p  { margin: 0; color: var(--stage-soft); font-size: 14px; max-width: 34em; line-height: 1.7; }
-  .mode-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-  .mode-card {
-    width: 180px;
-    padding: 22px 16px 18px;
-    border-radius: 18px;
-    background: #1B201D;
-    color: var(--stage-ink);
-    border: 1.5px solid #2B332E;
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    transition: transform .15s, border-color .15s;
-  }
-  .mode-card:hover { transform: translateY(-3px); border-color: var(--accent); }
-  .mode-card .ic { font-size: 34px; }
-  .mode-card b { font-size: 16px; }
-  .mode-card span { font-size: 12px; color: var(--stage-soft); line-height: 1.5; }
-  .mode-card.primary { border-color: var(--accent); background: linear-gradient(160deg, #12281B, #1B201D); }
-  .link-hint {
-    font-size: 12.5px; color: var(--stage-soft);
-    border: 1px dashed #2B332E; border-radius: 12px;
-    padding: 10px 16px; max-width: 46em; line-height: 1.7;
-  }
-  .link-hint b { color: var(--stage-ink); }
-
   /* ---------------- 原型控制条（页面底部，非产品 UI） ---------------- */
   #protobar {
     position: fixed;
@@ -104,206 +67,17 @@
     flex-wrap: wrap;
   }
   #stage > * { margin: auto; }   /* 溢出时也能滚到边缘的安全居中 */
-  body[data-mode="phone"] #atomWrap { display: none; }
-  body[data-mode="atom"]  #phoneRoot { display: none; }
   body[data-mode="atom"] #stage { padding: 10px 10px 60px; }
 
-  /* ================= 手机端 ================= */
-  #phoneRoot {
-    width: min(385px, 100vw - 16px);
-    height: min(760px, 100vh - 84px);
-    min-height: 560px;
-    background: var(--paper);
-    color: var(--ink);
-    border-radius: 30px;
-    border: 3px solid #050707;
-    box-shadow: 0 18px 60px rgba(0,0,0,.5);
-    overflow: hidden;
-    position: relative;
-    flex: none;
-    display: flex;
-    flex-direction: column;
+  .milestone-toast {
+    position: absolute; left: 50%; top: 34%; transform: translate(-50%,-50%) scale(.8);
+    background: rgba(16,22,34,.85); color: #fff;
+    border-radius: 16px; padding: 12px 22px;
+    font-size: 17px; font-weight: 700; white-space: nowrap;
+    opacity: 0; pointer-events: none; z-index: 5;
+    transition: opacity .25s, transform .25s;
   }
-  .pscreen { position: absolute; inset: 0; display: none; flex-direction: column; padding: 20px 18px 18px; }
-  .pscreen.show { display: flex; }
-
-  .topline { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .chip {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: var(--card); border-radius: 999px;
-    padding: 5px 12px; font-size: 13px; font-weight: 600;
-    box-shadow: 0 1px 4px rgba(31,38,46,.08);
-    font-variant-numeric: tabular-nums;
-  }
-  .chip .fl { color: var(--accent); }
-  .chip .st { color: var(--gold); }
-
-  .week { display: flex; gap: 6px; justify-content: center; margin: 14px 0 4px; }
-  .day {
-    width: 30px; height: 34px; border-radius: 9px;
-    background: var(--card); color: var(--ink-soft);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-size: 10px; gap: 1px;
-    box-shadow: 0 1px 3px rgba(31,38,46,.06);
-  }
-  .day b { font-size: 11px; }
-  .day.done { background: var(--mint); color: #fff; }
-  .day.today { outline: 2px solid var(--accent); outline-offset: 1px; color: var(--accent); }
-  .day.today.done { color: #fff; }
-
-  .mascot-zone {
-    flex: 1;
-    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
-    min-height: 0;
-  }
-  .hello { font-size: 15px; color: var(--ink-soft); }
-  .totline { font-size: 12.5px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-  .outfit-row { display: flex; align-items: center; gap: 14px; }
-  .arrow {
-    width: 34px; height: 34px; border-radius: 50%;
-    background: var(--card); color: var(--ink-soft);
-    font-size: 12px; box-shadow: 0 1px 4px rgba(31,38,46,.1);
-  }
-  .unlock-line { text-align: center; font-size: 13px; color: #16A353; font-weight: 600; margin-top: 8px; min-height: 1em; }
-
-  /* 排行榜 */
-  .board-entry {
-    display: flex; align-items: center; justify-content: center; gap: 6px;
-    background: var(--card); color: var(--ink);
-    border-radius: 999px; padding: 8px 14px; margin-top: 10px;
-    font-size: 13px; font-weight: 600;
-    box-shadow: 0 1px 4px rgba(23,25,27,.07);
-  }
-  .board-entry .chev { color: var(--ink-soft); }
-  .board-entry span { font-variant-numeric: tabular-nums; color: var(--accent); }
-  .board {
-    position: absolute; inset: 0; z-index: 15;
-    background: var(--paper);
-    display: flex; flex-direction: column;
-    padding: 18px 16px 14px;
-  }
-  .board-head { display: flex; align-items: center; gap: 10px; }
-  .board-head b { font-size: 17px; }
-  .board-head .arrow { margin-left: auto; }
-  .tabs { display: flex; gap: 6px; }
-  .tab {
-    background: var(--card); color: var(--ink-soft);
-    border-radius: 999px; padding: 5px 14px; font-size: 12.5px; font-weight: 600;
-  }
-  .tab.on { background: var(--ink); color: #fff; }
-  .board-list { flex: 1; overflow-y: auto; margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
-  .brow {
-    display: flex; align-items: center; gap: 10px;
-    background: var(--card); border-radius: 12px; padding: 9px 12px;
-    font-size: 13.5px;
-  }
-  .brow .rk {
-    width: 26px; height: 26px; border-radius: 50%; flex: none;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--paper); color: var(--ink-soft);
-    font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
-  }
-  .brow.top3 .rk { background: var(--accent); color: #fff; }
-  .brow .nm { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .brow .ct { font-weight: 700; font-variant-numeric: tabular-nums; }
-  .brow .ct small { font-weight: 400; color: var(--ink-soft); }
-  .brow.me { border: 1.5px solid var(--accent); background: var(--accent-soft); }
-  .brow.me .nm { color: var(--accent-deep, #16A353); font-weight: 700; }
-  .bgap { text-align: center; color: var(--ink-soft); font-size: 12px; padding: 2px 0; }
-  .board-foot { text-align: center; font-size: 11.5px; color: var(--ink-soft); padding-top: 10px; }
-
-  /* 每日目标设置 */
-  .set-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; }
-  .set-num-row { display: flex; align-items: center; gap: 22px; }
-  .set-num { font-size: 52px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 3ch; text-align: center; }
-  .set-btn {
-    width: 52px; height: 52px; border-radius: 50%;
-    background: var(--card); color: var(--ink);
-    font-size: 24px; font-weight: 700;
-    box-shadow: 0 1px 5px rgba(23,25,27,.1);
-  }
-  .set-hint { font-size: 12.5px; color: var(--ink-soft); }
-  .set-body .cta { align-self: stretch; }
-
-  .goal-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 12px; }
-  .goal-pill {
-    background: var(--card); color: var(--ink-soft);
-    border: 1.5px solid transparent;
-    border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 600;
-  }
-  .goal-pill.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
-
-  .cta {
-    background: linear-gradient(180deg, var(--accent), var(--accent-deep));
-    color: #fff; font-size: 17px; font-weight: 700;
-    border-radius: 999px; padding: 15px;
-    box-shadow: 0 6px 18px rgba(35,199,102,.35);
-    transition: transform .1s;
-  }
-  .cta:active { transform: scale(.97); }
-  .ghost {
-    background: var(--card); color: var(--ink-soft);
-    border-radius: 999px; padding: 13px; font-size: 14px; font-weight: 600;
-  }
-
-  /* 准备页 */
-  .viewfinder {
-    flex: 1;
-    border-radius: 18px;
-    background:
-      linear-gradient(rgba(16,19,17,.55), rgba(16,19,17,.55)),
-      repeating-linear-gradient(45deg, #242A27 0 12px, #2B322E 12px 24px);
-    position: relative;
-    overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
-    min-height: 0;
-  }
-  .viewfinder video {
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    object-fit: cover; transform: scaleX(-1); opacity: .85;
-  }
-  .silhouette {
-    width: 45%; height: 80%;
-    border: 2.5px dashed #AEB5B0;
-    border-radius: 42% 42% 16% 16% / 26% 26% 9% 9%;
-    background: rgba(255,255,255,.06);
-    display: flex; align-items: flex-end; justify-content: center;
-    padding-bottom: 12px;
-    color: #DDE2DE; font-size: 13px; font-weight: 600; text-align: center;
-    position: relative; z-index: 2;
-    transition: border-color .3s, background .3s;
-  }
-  .silhouette.locked { border-color: var(--mint); background: rgba(35,199,102,.16); color: #CFF3DD; }
-  .vf-tip {
-    position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-    background: rgba(16,22,34,.8); color: var(--stage-ink);
-    border-radius: 999px; padding: 5px 14px; font-size: 12px; white-space: nowrap; z-index: 2;
-  }
-  .countdown-num {
-    position: absolute; inset: 0; z-index: 3;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 120px; font-weight: 800; color: #fff;
-    text-shadow: 0 4px 30px rgba(0,0,0,.5);
-    font-variant-numeric: tabular-nums;
-  }
-
-  /* 跳绳中（手机） */
-  .jump-bg {
-    position: absolute; inset: 0;
-    transition: background 1s;
-  }
-  .jump-layer { position: relative; z-index: 2; display: flex; flex-direction: column; height: 100%; }
-  .bigcount {
-    text-align: center;
-    font-size: 92px; font-weight: 800; line-height: 1;
-    font-variant-numeric: tabular-nums;
-    margin-top: 12px;
-    transition: transform .12s, color .3s;
-  }
-  .bigcount small { font-size: 22px; font-weight: 700; color: var(--ink-soft); }
-  .bigcount.pop { animation: cpunch .26s linear; }
-  .bigcount.pow { animation: cpow .4s linear; }
-  .bigcount.over { color: #FFB020; }
+  .milestone-toast.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
   /* 格斗游戏式打击数字：大字砸入 → 压缩回弹 → 落定；金光闪于第 0 帧 */
   @keyframes cpunch {
     0%   { transform: scale(1.5) rotate(-2deg); filter: brightness(1.9); text-shadow: 0 0 .18em rgba(255,219,128,.95); }
@@ -319,55 +93,6 @@
     65%  { transform: scale(.96) translateX(-.03em); }
     100% { transform: scale(1); filter: brightness(1); }
   }
-  /* 跳绳界面是黑色舞台：手机端文字换浅色 */
-  #p-jump .bigcount { color: #F2F4F2; }
-  #p-jump .bigcount small { color: #8D9591; }
-  #p-jump .tap-hint { color: #8D9591; }
-  #p-jump .bono { color: #F2F4F2; }
-  #p-jump .goal-ring .pct { color: #F2F4F2; }
-  .lapstars {
-    text-align: center; color: var(--accent);
-    font-size: 15px; font-weight: 700; letter-spacing: 2px;
-    min-height: 20px; font-variant-numeric: tabular-nums;
-  }
-  .goal-ring {
-    width: 108px; height: 108px; border-radius: 50%;
-    margin: 14px auto 0;
-    display: flex; align-items: center; justify-content: center;
-    position: relative; flex: none;
-  }
-  .goal-ring svg { position: absolute; inset: 0; transform: rotate(-90deg); }
-  .goal-ring .pct { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .milestone-toast {
-    position: absolute; left: 50%; top: 34%; transform: translate(-50%,-50%) scale(.8);
-    background: rgba(16,22,34,.85); color: #fff;
-    border-radius: 16px; padding: 12px 22px;
-    font-size: 17px; font-weight: 700; white-space: nowrap;
-    opacity: 0; pointer-events: none; z-index: 5;
-    transition: opacity .25s, transform .25s;
-  }
-  .milestone-toast.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
-  .tap-hint { text-align: center; font-size: 12.5px; color: var(--ink-soft); padding: 8px 0 2px; }
-
-  /* 结算页 */
-  .result-hero { text-align: center; margin-top: 6px; }
-  .result-hero .num { font-size: 60px; font-weight: 800; font-variant-numeric: tabular-nums; }
-  .result-hero .lab { font-size: 16px; color: var(--ink-soft); font-weight: 600; }
-  .earn-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    background: var(--accent-soft); color: var(--accent-deep);
-    border-radius: 999px; padding: 7px 16px; font-size: 14px; font-weight: 700;
-    margin-top: 10px;
-  }
-  .streak-line { text-align: center; font-size: 13.5px; color: var(--ink-soft); margin-top: 14px; }
-  .streak-line b { color: var(--mint); font-size: 16px; }
-  .op-note {
-    margin-top: auto; margin-bottom: 12px;
-    border: 1.5px dashed #C6CCC8; border-radius: 12px;
-    padding: 9px 12px; font-size: 12px; color: var(--ink-soft); text-align: center;
-  }
-  .btn-row { display: flex; gap: 10px; }
-  .btn-row > * { flex: 1; }
 
   /* ================= Atom 端（466×466 圆屏，按 466 设计稿等比缩放） ================= */
   #atomWrap { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: none; }
@@ -554,7 +279,7 @@
   #a-jump { z-index: 2; }
   #a-jump .ring-svg { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; }
   .a-timer {
-    position: absolute; top: 2.2%; left: 0; right: 0; z-index: 3;
+    position: absolute; top: 4.6%; left: 0; right: 0; z-index: 3;
     text-align: center;
     font-size: 1.5em; color: var(--stage-soft); font-weight: 600;
     font-variant-numeric: tabular-nums;
@@ -592,7 +317,7 @@
   #a-bono-result svg { width: 2.8em; height: 2.8em; }
   /* 火柴人线条颜色：深色屏白线，浅色屏黑线 */
   .bono { color: var(--ink); }
-  #atomRoot .bono, #launcher .bono { color: var(--stage-ink); }
+  #atomRoot .bono { color: var(--accent); }
 
   /* Atom 结算：两页翻页（成绩 ⇄ 二维码），点按切换 */
   #a-result { z-index: 2; }
@@ -618,7 +343,7 @@
   .poster .p-num { font-size: 2.6em; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
   .poster .p-sub { font-size: 1.25em; color: var(--ink-soft); }
   .poster .p-rate { font-size: 1.4em; color: var(--accent-deep); font-weight: 700; }
-  .poster .bono { color: var(--ink); }
+  .poster .bono { color: var(--accent-deep); }
   #a-poster-bono svg { width: 2.6em; height: 2.6em; }
 
   /* 漫画放射光背景（燃起来）：前 50 纯黑；每满 50 火焰升一级，暖橙黄色系 */
@@ -764,7 +489,7 @@
   @keyframes cfall {
     to { transform: translateY(110vh) rotate(720deg); opacity: .2; }
   }
-  #atomRoot .confetti-p, #phoneRoot .confetti-p { animation-name: cfall2; }
+  #atomRoot .confetti-p { animation-name: cfall2; }
   @keyframes cfall2 { to { transform: translateY(900px) rotate(720deg); opacity: .2; } }
 
   /* 星星飞入 */
@@ -782,32 +507,6 @@
     body[data-mode="duo"] #atomRoot { width: 100%; }
   }
 </style>
-
-<!-- ==================== 启动器 ==================== -->
-<div id="launcher">
-  <div class="logo" id="logo-bono"></div>
-  <h1>跳绳小挑战 · 可交互原型</h1>
-  <p>Body Park × Atom。选择要体验的设备端 —— 三种打开方式对应三个真实使用场景。</p>
-  <div class="mode-row">
-    <button class="mode-card primary" data-pick="atom">
-      <span class="ic">⭕</span><b>Atom 端</b>
-      <span>466×466 圆屏 · 大字计数<br>语音播报 · 免触屏流程</span>
-    </button>
-    <button class="mode-card" data-pick="phone">
-      <span class="ic">📱</span><b>手机 App</b>
-      <span>竖屏 · 单独使用<br>完整打卡闭环</span>
-    </button>
-    <button class="mode-card" data-pick="duo">
-      <span class="ic">⿻</span><b>双端同屏</b>
-      <span>App + Atom 同时运行<br>状态实时互通</span>
-    </button>
-  </div>
-  <div class="link-hint">
-    💡 也可以<b>把本页在两个浏览器窗口各开一份</b>，一个选「手机」、一个选「Atom」——
-    两个窗口会自动联动（开始、计数、结算实时同步），模拟"手机 + Atom 同时打开"的真实场景。<br>
-    计数方式：<b>模拟跳</b>（空格键 / 点按 / 自动演示）或<b>摄像头动作检测</b>（在底部控制条开启）。
-  </div>
-</div>
 
 <!-- ==================== 舞台 ==================== -->
 <div id="stage" class="hidden">
@@ -981,137 +680,7 @@
     <div class="atom-caption">Atom · 466×466 圆屏 · 15fps 刷新率模拟</div>
   </div>
 
-  <!-- ========== 手机端 ========== -->
-  <div id="phoneRoot">
 
-    <!-- 今日页 -->
-    <div class="pscreen show" id="p-home">
-      <div class="topline">
-        <span class="chip"><span class="fl">🔥</span><span id="p-streak-num">0</span> 天</span>
-        <span class="chip"><span class="st">⭐</span><span id="p-stars-num">0</span></span>
-      </div>
-      <div class="week" id="p-week"></div>
-      <button class="board-entry" id="p-board-entry">🏆 今日排行榜 <span id="p-board-rank"></span><span class="chev">›</span></button>
-      <div class="mascot-zone">
-        <div class="outfit-row">
-          <button class="arrow" id="p-outfit-prev">◀</button>
-          <div id="p-bono-home"></div>
-          <button class="arrow" id="p-outfit-next">▶</button>
-        </div>
-        <div class="hello" id="p-hello">今天也一起跳吧！</div>
-        <div class="totline" id="p-total">累计 0 下 · 场景 3/6 · 装扮 1/6</div>
-        <div class="totline" id="p-daily"></div>
-      </div>
-      <button class="board-entry" id="p-goal-entry" style="margin: 0 0 12px;">🎯 每日目标 <span id="p-goal-cur">100 下</span><span class="chev">›</span></button>
-      <button class="cta" id="p-start">开始跳绳</button>
-    </div>
-
-    <!-- 准备页 -->
-    <div class="pscreen" id="p-ready">
-      <div class="viewfinder">
-        <video id="p-video" autoplay playsinline muted class="hidden"></video>
-        <div class="vf-tip" id="p-vf-tip">把手机立好 · 退后 2 米</div>
-        <div class="silhouette" id="p-sil">站进框内<br>自动开始</div>
-        <div class="countdown-num hidden" id="p-cd"></div>
-      </div>
-      <button class="ghost" id="p-fake-stand" style="margin-top:12px;">（原型）我站好了</button>
-      <button class="ghost" data-act="home" style="margin-top:8px;">返回</button>
-    </div>
-
-    <!-- 跳绳中 -->
-    <div class="pscreen" id="p-jump" style="padding:0;">
-      <div class="jump-bg" id="p-jump-bg"></div>
-      <div class="rays" id="p-rays"></div>
-      <div class="jump-layer" style="padding:20px 18px 14px;">
-        <div class="topline">
-          <span class="chip" id="p-goal-chip">目标 50</span>
-          <span class="chip"><span class="st">⭐</span><span id="p-star-live">0</span></span>
-        </div>
-        <div class="bigcount" id="p-count">0<small id="p-count-sub"> / 50</small></div>
-        <div class="lapstars" id="p-lapstars"></div>
-        <div class="goal-ring" id="p-ring">
-          <svg width="108" height="108" viewBox="0 0 108 108">
-            <circle id="p-ring-base" cx="54" cy="54" r="47" fill="none" stroke="#E4E7E5" stroke-width="9"></circle>
-            <circle id="p-ring-arc" cx="54" cy="54" r="47" fill="none" stroke="#23C766" stroke-width="9"
-                    stroke-linecap="round" stroke-dasharray="295.3" stroke-dashoffset="295.3"></circle>
-          </svg>
-          <span class="pct" id="p-pct">0%</span>
-        </div>
-        <div class="mascot-zone" style="flex:1;">
-          <div id="p-bono-jump"></div>
-        </div>
-        <div class="tap-hint">模拟模式：空格键或点按屏幕任意处 = 跳一下</div>
-        <button class="ghost" id="p-finish-free">结束本轮</button>
-      </div>
-      <div class="milestone-toast" id="p-toast"></div>
-      <div class="pauseveil" id="p-pause">
-        已暂停<span>回到画面继续 · 5 秒后自动结算</span>
-        <button class="cta" data-act="resume" style="padding:10px 26px;font-size:14px;">继续</button>
-        <button class="ghost" data-act="end" style="padding:10px 26px;font-size:14px;">立即结算</button>
-      </div>
-    </div>
-
-    <!-- 结算页 -->
-    <div class="pscreen" id="p-result">
-      <div class="mascot-zone" style="flex:none;margin-top:8px;">
-        <div id="p-bono-result"></div>
-      </div>
-      <div class="result-hero">
-        <div class="num" id="p-r-num">50</div>
-        <div class="lab" id="p-r-lab">目标达成！</div>
-        <div><span class="earn-chip" id="p-r-earn">⭐ +10 · 今日打卡成功</span></div>
-        <div class="unlock-line" id="p-r-unlock"></div>
-      </div>
-      <div class="week" id="p-r-week" style="margin-top:16px;"></div>
-      <div class="streak-line">已连续打卡 <b id="p-r-streak">1</b> 天</div>
-      <div class="streak-line" id="p-r-rank" style="margin-top:4px;"></div>
-      <div class="op-note">🎁 连续 21 天可兑换 Body Park 周边（运营位示意）</div>
-      <div class="btn-row">
-        <button class="ghost" data-act="home">回首页</button>
-        <button class="cta" data-act="again" style="padding:13px;">再跳一轮</button>
-      </div>
-    </div>
-
-    <!-- 每日目标设置（步进 50，可自定义任意值） -->
-    <div class="board hidden" id="p-settings">
-      <div class="board-head">
-        <b>每日目标</b>
-        <button class="arrow" id="p-set-close">✕</button>
-      </div>
-      <div class="set-body">
-        <div class="set-num-row">
-          <button class="set-btn" id="p-goal-minus">−</button>
-          <div class="set-num" id="p-goal-num">100</div>
-          <button class="set-btn" id="p-goal-plus">＋</button>
-        </div>
-        <div class="set-hint">步进 50 · 跳满目标即完成当日打卡</div>
-        <div class="goal-row">
-          <button class="goal-pill" data-goal="100">100</button>
-          <button class="goal-pill" data-goal="200">200</button>
-          <button class="goal-pill" data-goal="300">300</button>
-          <button class="goal-pill" data-goal="0">自由跳</button>
-          <button class="goal-pill" data-goal="-1">1 分钟测试</button>
-        </div>
-        <button class="cta" id="p-set-done">完成</button>
-      </div>
-    </div>
-
-    <!-- 排行榜浮层（仅手机端本地导航，不参与双端状态同步） -->
-    <div class="board hidden" id="p-board">
-      <div class="board-head">
-        <b>今日排行榜</b>
-        <div class="tabs">
-          <button class="tab on" data-scope="global">全球</button>
-          <button class="tab" data-scope="local">同城</button>
-        </div>
-        <button class="arrow" id="p-board-close">✕</button>
-      </div>
-      <div class="board-list" id="p-board-list"></div>
-      <div class="board-foot">每天 0 点重置 · 当天所有轮次累计 · 示意数据</div>
-    </div>
-
-    <div class="celebrate" id="p-celebrate"><div class="txt">🎉 达成！</div></div>
-  </div>
 </div>
 
 <!-- ==================== 原型控制条 ==================== -->
@@ -1119,7 +688,6 @@
   <span class="tag">原型</span>
   <span class="sep"></span>
   <button id="pb-auto">▶ 自动演示</button>
-  <button id="pb-cam">📷 摄像头计数</button>
   <button id="pb-voice" class="on">🔊 教练语音</button>
   <button id="pb-f10">10fps</button>
   <button id="pb-f13">13fps</button>
@@ -1128,18 +696,23 @@
   <button id="pb-s1" class="on">1×</button>
   <button id="pb-s2">2×</button>
   <button id="pb-s3">3×</button>
-  <span class="sep"></span>
-  <span id="peers">未联动</span>
 </div>
 
 <script>
 /* ============================================================
    工具
    ============================================================ */
-const $ = (id) => document.getElementById(id);
+const _stub = {};
+const $ = (id) => {
+  let el = document.getElementById(id);
+  if (!el) {                     /* 已移除的手机端元素 → 空节点吸收 */
+    el = _stub[id] || (_stub[id] = document.createElement('div'));
+    if (!el.firstChild) el.appendChild(document.createTextNode(''));
+  }
+  return el;
+};
 const todayKey = () => new Date().toISOString().slice(0, 10);
 const dayKeyOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
-const WEEK_CN = ['日','一','二','三','四','五','六'];
 const myId = Math.random().toString(36).slice(2, 9);
 
 /* 单色 SVG 图标（Atom 端替代 emoji，跟随品牌色） */
@@ -1289,27 +862,6 @@ const daily = {
   sceneOffset: seedFrom(todayKey()) % SCENES.length, /* 今日主打场景轮换 */
 };
 
-let boardScope = 'global';
-function renderBoard() {
-  const me = myRank(boardScope), list = fakeBoard(boardScope);
-  const mkRow = (rk, nm, ct, isMe) =>
-    `<div class="brow${rk <= 3 ? ' top3' : ''}${isMe ? ' me' : ''}">` +
-    `<span class="rk">${rk}</span><span class="nm">${nm}</span><span class="ct">${ct}<small> 下</small></span></div>`;
-  const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
-  if (me.count > 0) merged.push({ name: '你', count: me.count, me: true });
-  merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
-  const rows = [];
-  merged.slice(0, 10).forEach((u, i) => rows.push(mkRow(i + 1, u.name, u.count, u.me)));
-  const meIdx = merged.findIndex(u => u.me);
-  if (meIdx >= 10) {
-    rows.push('<div class="bgap">···</div>');
-    rows.push(mkRow(meIdx + 1, '你', me.count, true));
-  } else if (me.count === 0) {
-    rows.push('<div class="bgap">···</div>');
-    rows.push(mkRow(merged.length + 1, '你（今天还没跳）', 0, true));
-  }
-  $('p-board-list').innerHTML = rows.join('');
-}
 
 /* ============================================================
    音效（WebAudio 合成，无外部资源）
@@ -1448,25 +1000,8 @@ function showScreens() {
     const a = $('a-' + s);
     if (a) a.classList.toggle('show', S.screen === s || (S.screen === 'celebrate' && s === 'jump'));
   });
-  const pMap = { launch: 'p-home', idle: 'p-home', mode: 'p-home', ready: 'p-ready', jump: 'p-jump', celebrate: 'p-jump', result: 'p-result' };
-  ['p-home','p-ready','p-jump','p-result'].forEach(id => $(id).classList.toggle('show', pMap[S.screen] === id));
   $('a-celebrate').classList.toggle('show', S.screen === 'celebrate');
-  $('p-celebrate').classList.toggle('show', S.screen === 'celebrate');
   $('a-pause').classList.toggle('show', S.paused && S.screen === 'jump');
-  $('p-pause').classList.toggle('show', S.paused && S.screen === 'jump');
-}
-
-function renderWeek(el, animateToday) {
-  el.innerHTML = '';
-  for (let i = -6; i <= 0; i++) {
-    const key = dayKeyOffset(i);
-    const d = new Date(); d.setDate(d.getDate() + i);
-    const done = profile.history[key] && profile.history[key].done;
-    const div = document.createElement('div');
-    div.className = 'day' + (done ? ' done' : '') + (i === 0 ? ' today' : '');
-    div.innerHTML = `<b>${WEEK_CN[d.getDay()]}</b><span>${done ? '✓' : d.getDate()}</span>`;
-    el.appendChild(div);
-  }
 }
 
 let lastRenderedScreen = null;
@@ -1477,36 +1012,14 @@ function render() {
   if (lastRenderedOutfit !== profile.outfit) { lastRenderedOutfit = profile.outfit; refreshBonos(); }
 
   /* 首页 / 待机 */
-  $('p-streak-num').textContent = profile.streak;
-  $('p-stars-num').textContent = profile.stars;
   /* 模式选择页：两个选择框的副标随设置更新 */
   $('a-opt-timed-sub').textContent = `${S.testMin} 分钟倒计时 · 测出你的极限`;
   $('a-opt-free-sub').textContent = profile.goalNum === 0
     ? '跳多少算多少 · 自由模式' : `跳多少算多少 · 每日任务 ${profile.goalNum} 下`;
-  $('p-goal-cur').textContent = S.goal === 0 ? '自由跳' : S.goal === TEST ? `${S.testMin} 分钟测试` : S.goal + ' 下';
-  $('p-goal-num').textContent = S.goal === 0 ? '自由' : S.goal === TEST ? '测试' : S.goal;
-  const outfitIdx = unlockedOutfits().findIndex(o => OUTFITS.indexOf(o) === profile.outfit);
-  $('p-total').textContent =
-    `累计 ${profile.total} 下 · 场景 ${profile.scenes}/${SCENES.length} · 装扮 ${unlockedOutfits().length}/${OUTFITS.length}`;
-  $('p-hello').textContent = OUTFITS[profile.outfit] && profile.outfit > 0
-    ? `Bono · ${OUTFITS[profile.outfit].name}` : daily.greet;
-  $('p-daily').textContent = `${daily.moon} ${daily.amb} · 今日隐藏数字藏在 55–99`;
-  renderWeek($('p-week'));
-  document.querySelectorAll('.goal-pill').forEach(b =>
-    b.classList.toggle('on', Number(b.dataset.goal) === S.goal));
-
-  /* 排行榜入口与排名 */
-  const gRank = myRank('global');
-  $('p-board-rank').textContent = gRank.count > 0 ? `· 全球第 ${gRank.rank} 名` : '';
-  if (!$('p-board').classList.contains('hidden')) renderBoard();
 
   /* 跳绳中（达标后数字转暖色，继续往上数；副标行改为计时） */
-  $('p-count').childNodes[0].textContent = S.count;
   $('a-count').textContent = S.count;
-  $('p-count').classList.toggle('over', S.goalHit);
   $('a-count').classList.toggle('over', S.goalHit);
-  $('p-goal-chip').textContent = S.goal === 0 ? '自由跳' : S.goal === TEST ? `${S.testMin} 分钟测试` : '目标 ' + S.goal;
-  $('p-star-live').textContent = profile.stars + S.earned;
 
   const inJump = S.screen === 'jump' || S.screen === 'celebrate';
 
@@ -1517,30 +1030,23 @@ function render() {
   if (S.goal === TEST && inJump) {
     /* 测试模式：环 = 剩余时间（随 ticker 持续消退） */
     const timePct = Math.min(1, sessionElapsed() / testMs());
-    $('p-ring-arc').style.strokeDashoffset = 295.3 * timePct;
     $('a-ring-arc').style.strokeDashoffset = 1420.0 * timePct;
-    $('p-pct').textContent = fmtTime(Math.max(0, testMs() - sessionElapsed()));
   } else {
-    $('p-ring-arc').style.strokeDashoffset = 295.3 * (1 - lapPct);
     $('a-ring-arc').style.strokeDashoffset = 1420.0 * (1 - lapPct);
-    $('p-pct').textContent = Math.round(lapPct * 100) + '%';
   }
   /* 每跳满 50 就多点一颗星 */
   $('a-lapstars').textContent = fmtStars(lap);
-  $('p-lapstars').textContent = fmtStars(lap);
 
   /* 燃起来分级：前 50 纯黑背景；每满 50 火焰升一级（暖橙色），3 级封顶 */
   const fire = Math.min(lap, 3);
   const rayCls = 'rays' + (inJump && fire > 0 ? ' on f' + fire : '');
   $('a-rays').className = rayCls;
-  $('p-rays').className = rayCls;
 
   /* 课中计时（第一行，小字）；测试模式显示剩余时间 */
   const rawMs = S.goal === TEST ? Math.max(0, testMs() - sessionElapsed()) : sessionElapsed();
   $('a-timer').textContent = inJump ? fmtTime(rawMs) : '';
   $('a-timer').classList.toggle('urgent',
     inJump && S.goal === TEST && testMs() - sessionElapsed() <= 10000);
-  $('p-count-sub').textContent = inJump ? ' ⏱ ' + fmtTime(rawMs) : '';
 
   /* Atom 入口卡 / 首页卡组刷新 */
   if (S.screen === 'idle' || S.screen === 'launch') renderQuickCards();
@@ -1549,8 +1055,6 @@ function render() {
   const unlockedN = Math.max(1, Math.min(profile.scenes, SCENES.length));
   const scene = SCENES[(S.bgStep + daily.sceneOffset) % unlockedN];
   $('atomBg').style.background = inJump ? '#0A0C0B' : scene.atom;
-  $('p-jump-bg').style.background = '#101312';
-  $('p-home').style.background = scene.phone;
 
   /* 边缘光状态灯：准备中白灰呼吸，锁定/跳绳中绿色 */
   $('atomRoot').classList.toggle('waiting', S.screen === 'ready' && S.countdown === 0);
@@ -1559,9 +1063,8 @@ function render() {
   /* 倒计时 */
   const cdOn = S.countdown > 0;
   $('a-cd').classList.toggle('hidden', !cdOn);
+  if (cdOn) $('a-cd').textContent = S.countdown;
   $('a-ready-tip').classList.toggle('hidden', cdOn);
-  $('p-cd').classList.toggle('hidden', !cdOn);
-  if (cdOn) { $('a-cd').textContent = S.countdown; $('p-cd').textContent = S.countdown; }
 
   /* 刚进入结算页 → Atom 翻页复位到成绩页 */
   if (S.screen === 'result' && lastRenderedScreen !== 'result') {
@@ -1574,21 +1077,17 @@ function render() {
   if (S.screen === 'result') {
     const goalMet = S.goal > 0 && S.count >= S.goal;
     const rec = profile.history[todayKey()];
-    $('p-r-num').textContent = S.count;
     $('a-r-num').textContent = S.count;
     if (S.goal === TEST) {
       const bt = profile.bests[S.testMin] || 0;
-      $('p-r-lab').textContent = (S.newBest ? '新纪录！' : '时间到！') + ` · ${S.testMin}' 最佳 ${bt} 下`;
-      $('a-r-lab').textContent = S.newBest ? '新纪录！' : '时间到！';
+        $('a-r-lab').textContent = S.newBest ? '新纪录！' : '时间到！';
     } else {
-      $('p-r-lab').textContent = (goalMet ? '目标达成！' : '本轮结束') + ' · ⏱ ' + fmtTime(S.elapsedMs);
-      $('a-r-lab').textContent = goalMet ? '目标达成！' : '本轮结束';
+        $('a-r-lab').textContent = (goalMet ? '目标达成！' : '本轮结束') + ' · ' + fmtTime(S.elapsedMs);
     }
     /* 体测评级（仅 1 分钟测试） + 卡路里 */
     $('a-r-rate').textContent = (S.goal === TEST && S.testMin === 1)
       ? `体测评级：${rateTest(S.count)}（${profile.age} 岁段 · 示意标准）` : '';
     const kcal = sessionKcal();
-    $('p-r-earn').textContent = `⭐ +${S.earned}${rec && rec.done ? ' · 今日打卡成功' : ''}`;
     $('a-r-earn').innerHTML =
       `${ico('star', '#1FA85B')} +${S.earned} · ${ico('clock')} ${fmtTime(S.elapsedMs)}` +
       (kcal > 0 ? ` · ${kcal.toFixed(1)} 千卡` : '');
@@ -1598,15 +1097,11 @@ function render() {
       (S.goal === TEST ? `${S.testMin} 分钟测试` : S.goal === 0 ? '自由跳' : `目标 ${S.goal}`);
     $('a-poster-rate').textContent = S.goal === TEST && S.testMin === 1
       ? `评级 ${rateTest(S.count)}` : (goalMet ? '每日任务达成' : '');
-    $('p-r-streak').textContent = profile.streak;
     $('a-r-streak').innerHTML = `${ico('flame', '#FFB020')} 连续 ${profile.streak} 天打卡`;
-    $('p-r-unlock').textContent = S.unlock;
     $('a-r-unlock').innerHTML = S.unlock ? `${ico('gift', '#7FE3A8')} ${S.unlock}` : '';
     const rg = myRank('global'), rl = myRank('local');
-    $('p-r-rank').textContent = `🏆 今日全球第 ${rg.rank} 名 · 同城第 ${rl.rank} 名`;
     $('a-r-rank').innerHTML = `${ico('trophy')} 全球第 ${rg.rank} 名` +
       (S.goal === TEST ? ` · ${S.testMin}' 最佳 ${profile.bests[S.testMin] || 0}` : '');
-    renderWeek($('p-r-week'));
     drawQR($('a-qr'));
   }
 
@@ -1619,14 +1114,14 @@ function render() {
    动效
    ============================================================ */
 function popCount(strong) {
-  ['p-count','a-count'].forEach(id => {
+  ['a-count'].forEach(id => {
     const el = $(id);
     el.classList.remove('pop', 'pow'); void el.offsetWidth;
     el.classList.add(strong ? 'pow' : 'pop');
   });
 }
 function toast(msg, ms) {
-  ['p-toast','a-toast'].forEach(id => {
+  ['a-toast'].forEach(id => {
     const el = $(id); el.textContent = msg; el.classList.add('show');
     clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), ms || 1400);
   });
@@ -1683,7 +1178,6 @@ function startSession(g) {
 
 function standLocked() {              /* 站进框稳定 → 开始倒计时 */
   if (S.screen !== 'ready' || S.countdown > 0) return;
-  $('p-sil').classList.add('locked');
   S.countdown = 3; bump();
   sndBeep(); speak('三');
   clearInterval(cdTimer);
@@ -1695,7 +1189,6 @@ function standLocked() {              /* 站进框稳定 → 开始倒计时 */
       S.screen = 'jump';
       S.elapsedMs = 0; S.runSince = Date.now();
       sndGo(); speak('跳！');
-      $('p-sil').classList.remove('locked');
     }
     bump();
   }, 900);
@@ -1719,15 +1212,12 @@ setInterval(() => {
     const rem = testMs() - sessionElapsed();
     if (rem <= 0) { endSession(); return; }
     $('a-timer').textContent = fmtTime(rem);
-    $('p-count-sub').textContent = ' ⏱ ' + fmtTime(rem);
     $('a-timer').classList.toggle('urgent', rem <= 10000);
     $('a-ring-arc').style.strokeDashoffset = 1420.0 * (sessionElapsed() / testMs());
-    $('p-ring-arc').style.strokeDashoffset = 295.3 * (sessionElapsed() / testMs());
     if (rem <= 30000 && !testMark30) { testMark30 = true; speak('还有三十秒'); }
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak('最后十秒，冲刺！'); }
   } else {
     $('a-timer').textContent = fmtTime(sessionElapsed());
-    $('p-count-sub').textContent = ' ⏱ ' + fmtTime(sessionElapsed());
   }
 }, 250);
 
@@ -1797,10 +1287,10 @@ function registerJump() {
     let msg = `${S.count} 下 · ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`;
     if (S.count % 20 === 0) {
       let gain = 2;
-      if (Math.random() < 0.15) { gain = 4; msg = `彩蛋！双倍星星 +${gain}`; confetti($('atomRoot'), 24); confetti($('phoneRoot'), 24); }
+      if (Math.random() < 0.15) { gain = 4; msg = `彩蛋！双倍星星 +${gain}`; confetti($('atomRoot'), 24); }
       else msg = `${S.count} 下 · 星星 +${gain}`;
       S.earned += gain;
-      sndStar(); flyStar($('phoneRoot')); flyStar($('atomRoot'));
+      sndStar(); flyStar($('atomRoot'));
     }
     const unit = S.goal > 0 ? S.goal : 50;
     if (S.count % unit === 0) {
@@ -1823,7 +1313,7 @@ function registerJump() {
     S.earned += 5;
     profile.luckyHits = (profile.luckyHits || 0) + 1;
     sndStar();
-    confetti($('atomRoot'), 30); confetti($('phoneRoot'), 30);
+    confetti($('atomRoot'), 30);
     toast(`踩中今日隐藏数字 ${daily.lucky}！星星 +5`, 1800);
     speak(`哇，踩中今天的隐藏数字${daily.lucky}，奖励五颗星！`);
   }
@@ -1833,7 +1323,7 @@ function registerJump() {
     S.goalHit = true;
     S.earned += 10;
     sndFanfare();
-    confetti($('atomRoot'), 50); confetti($('phoneRoot'), 50);
+    confetti($('atomRoot'), 50);
     toast(`${S.goal} 下达成！继续冲！`, 1800);
     speak(`目标达成！继续保持！`);
   }
@@ -1862,7 +1352,7 @@ function endSession() {
     S.screen = 'celebrate';
     bump();
     sndFanfare();
-    confetti($('atomRoot'), 70); confetti($('phoneRoot'), 70);
+    confetti($('atomRoot'), 70);
   }
   if (S.goal === TEST) {
     const rateTxt = S.testMin === 1 ? `，体测评级${rateTest(S.count)}` : '';
@@ -1939,58 +1429,10 @@ function drawQR(cv) {
   });
 }
 
-/* ============================================================
-   双窗口联动（BroadcastChannel，同一浏览器内实时同步）
-   ============================================================ */
-let chan = null;
-const peers = {};   /* id → {mode, ts} */
-let applying = false;
-
-function bump() {
-  render();
-  if (chan && !applying) {
-    S.seq++;
-    chan.postMessage({ t: 'snap', src: myId, state: JSON.parse(JSON.stringify(S)), profile: profile });
-  }
-}
-function initChannel() {
-  if (typeof BroadcastChannel === 'undefined') return;
-  chan = new BroadcastChannel('bodypark-jump-proto');
-  chan.onmessage = (ev) => {
-    const m = ev.data;
-    if (!m || m.src === myId) return;
-    if (m.t === 'hb') { peers[m.src] = { mode: m.mode, ts: Date.now() }; renderPeers(); return; }
-    if (m.t === 'snap') {
-      const prev = { count: S.count, screen: S.screen, goalHit: S.goalHit };
-      applying = true;
-      Object.assign(S, m.state);
-      profile = m.profile; saveProfile();
-      /* 远端跳了一下 → 本端也出反馈 */
-      if (S.count > prev.count && S.screen === 'jump') { sndJump(S.count); popCount(S.count % 10 === 0); bonoHopOnce(); spawnRipple(); }
-      if (!prev.goalHit && S.goalHit) {
-        sndFanfare(); confetti($('atomRoot'), 50); confetti($('phoneRoot'), 50);
-      }
-      if (prev.screen !== 'celebrate' && S.screen === 'celebrate') {
-        sndFanfare(); confetti($('atomRoot'), 60); confetti($('phoneRoot'), 60);
-      }
-      render();
-      applying = false;
-    }
-  };
-  setInterval(() => {
-    chan.postMessage({ t: 'hb', src: myId, mode: MODE });
-    const now = Date.now();
-    Object.keys(peers).forEach(k => { if (now - peers[k].ts > 4000) delete peers[k]; });
-    renderPeers();
-  }, 1500);
-}
-function renderPeers() {
-  const list = Object.values(peers).map(p => p.mode === 'atom' ? 'Atom' : p.mode === 'phone' ? '手机' : '双端');
-  $('peers').textContent = list.length ? `⇄ 已联动：${list.join('、')}窗口` : '未联动';
-}
+function bump() { render(); }
 
 /* ============================================================
-   输入源 1：模拟跳（空格 / 点按 / 自动演示）
+   输入源 1：模拟跳（调试）（空格 / 点按 / 自动演示）
    ============================================================ */
 let autoTimer = null;
 function setAuto(on) {
@@ -2016,100 +1458,10 @@ document.addEventListener('keydown', (e) => {
     setCard(cardIdx + (e.code === 'ArrowRight' ? 1 : -1));
 });
 /* 跳绳界面点按 = 跳一下 */
-['p-jump','a-jump'].forEach(id => $(id).addEventListener('pointerdown', (e) => {
+['a-jump'].forEach(id => $(id).addEventListener('pointerdown', (e) => {
   if (e.target.closest('button')) return;
   audio(); registerJump();
 }));
-
-/* ============================================================
-   输入源 2：摄像头动作检测（帧差 + 垂直重心振荡，零依赖）
-   ============================================================ */
-const cam = {
-  on: false, stream: null, timer: null,
-  W: 64, H: 48, prev: null,
-  cy: null, dir: 0, extreme: null, lastJump: 0,
-  present: false, lastMotion: 0, presentSince: 0, absentSince: 0,
-};
-const camCanvas = document.createElement('canvas');
-camCanvas.width = cam.W; camCanvas.height = cam.H;
-const camCtx = camCanvas.getContext('2d', { willReadFrequently: true });
-
-async function setCam(on) {
-  $('pb-cam').classList.toggle('on', on);
-  if (!on) {
-    cam.on = false; clearInterval(cam.timer);
-    if (cam.stream) cam.stream.getTracks().forEach(t => t.stop());
-    cam.stream = null;
-    $('p-video').classList.add('hidden');
-    return;
-  }
-  try {
-    cam.stream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 320, height: 240, facingMode: 'user' }, audio: false,
-    });
-  } catch (e) {
-    $('pb-cam').classList.remove('on');
-    toast('摄像头不可用，已切回模拟模式');
-    return;
-  }
-  cam.on = true;
-  const pv = $('p-video');
-  pv.srcObject = cam.stream;
-  pv.classList.remove('hidden');
-  cam.prev = null; cam.cy = null; cam.dir = 0; cam.extreme = null;
-  cam.timer = setInterval(camTick, 66);
-}
-
-function camTick() {
-  const v = $('p-video');
-  if (!cam.on || v.readyState < 2) return;
-  camCtx.drawImage(v, 0, 0, cam.W, cam.H);
-  const img = camCtx.getImageData(0, 0, cam.W, cam.H).data;
-  if (!cam.prev) { cam.prev = new Uint8ClampedArray(img); return; }
-
-  let motion = 0, sumY = 0;
-  for (let i = 0; i < img.length; i += 4) {
-    const g  = (img[i] + img[i+1] + img[i+2]) / 3;
-    const pg = (cam.prev[i] + cam.prev[i+1] + cam.prev[i+2]) / 3;
-    if (Math.abs(g - pg) > 26) {
-      motion++;
-      sumY += ((i / 4) / cam.W) | 0;
-    }
-  }
-  cam.prev.set(img);
-  const now = performance.now();
-
-  /* 在场检测：驱动"站进框自动开始"与"离开自动暂停" */
-  if (motion > 40) { cam.lastMotion = now; }
-  const nowPresent = (now - cam.lastMotion) < 1200;
-  if (nowPresent && !cam.present) { cam.present = true; cam.presentSince = now; }
-  if (!nowPresent && cam.present) { cam.present = false; cam.absentSince = now; }
-  /* Atom 圆屏：真实在场时边缘光变绿（覆盖状态推导的灯色） */
-  if (S.screen === 'ready' && S.countdown === 0) {
-    $('atomRoot').classList.toggle('presence', cam.present);
-    $('atomRoot').classList.toggle('waiting', !cam.present);
-  }
-  if (S.screen === 'ready' && cam.present && now - cam.presentSince > 1000 && S.countdown === 0) standLocked();
-  if (S.screen === 'jump' && !S.paused && !cam.present && now - cam.absentSince > 5000) pauseSession(true);
-  if (S.screen === 'jump' && S.paused && cam.present && now - cam.presentSince > 800) pauseSession(false);
-
-  if (motion < 25) return;
-  /* 垂直重心振荡 → 跳跃判定 */
-  const y = sumY / motion;
-  cam.cy = cam.cy === null ? y : cam.cy * 0.55 + y * 0.45;
-  if (cam.extreme === null) { cam.extreme = cam.cy; return; }
-  const dy = cam.cy - cam.extreme;
-  if (Math.abs(dy) < 0.5) return;
-  const dir = dy < 0 ? -1 : 1;                 /* -1 = 重心上移（起跳） */
-  if (cam.dir === -1 && dir === 1) {           /* 顶点出现 → 计一跳 */
-    if (now - cam.lastJump > 300 && Math.abs(dy) >= 0.5) {
-      cam.lastJump = now;
-      registerJump();
-    }
-  }
-  if (dir !== cam.dir) { cam.dir = dir; cam.extreme = cam.cy; }
-  else if ((dir === -1 && cam.cy < cam.extreme) || (dir === 1 && cam.cy > cam.extreme)) cam.extreme = cam.cy;
-}
 
 /* ============================================================
    实时骨骼火柴人渲染（466×466 @ 15fps）
@@ -2133,7 +1485,7 @@ function spawnRipple() {
   const pts = skel.rpts;
   const la = pts && pts[27], ra = pts && pts[28];
   const x = la && ra ? (la.x + ra.x) / 2 * 466 : 233;
-  const y = la && ra ? (Math.max(la.y, ra.y) + 0.02) * 466 : 466 * 0.93;
+  const y = la && ra ? (Math.max(la.y, ra.y) + 0.02) * 466 : 466 * 0.88;
   skel.ripples.push({ x, y, s: skel.ws || 1, t0: performance.now() });
 }
 /* 内置模拟：连续跳绳动作（腾空 62% + 落地屈膝缓冲 + 手腕摆绳） */
@@ -2163,12 +1515,13 @@ function simPose(now) {
 }
 /* 渲染视口：整个相机帧固定缩至 2/3，底边居中锚定 —— 顶部 1/3 永久让给数字。
    骨骼在帧内的真实位置关系原样保留（不播相机画面，只按此比例渲染火柴人）。
-   帧坐标 (x,y) → 屏幕：x' = 0.5 + (x-0.5)×⅔；y' = 1 - (1-y)×⅔ */
+   帧坐标 (x,y) → 屏幕：x' = 0.5 + (x-0.5)×⅔；y' = 0.94 - (1-y)×⅔
+   （底边锚在 0.94 而非 1.0，双脚与贴边计数环保持安全间距） */
 const VIEW_S = 2 / 3;
 function toStage(pts) {
   return pts.map(p => p && {
     x: 0.5 + (p.x - 0.5) * VIEW_S,
-    y: 1 - (1 - p.y) * VIEW_S,
+    y: 0.94 - (1 - p.y) * VIEW_S,
     v: p.v,
   });
 }
@@ -2191,16 +1544,16 @@ function skelFrame() {
     ? Math.hypot(X(pts[12]) - X(pts[11]), Y(pts[12]) - Y(pts[11])) : 40;
   const ws = Math.max(0.55, Math.min(1.5, span / 40));
   skel.ws = ws;
-  /* 粗壮 pictogram 风格：粗白身体 + 白色实心圆头，远距离可读 */
+  /* 粗壮 pictogram 风格：品牌绿实心身体，远距离可读 */
   c.lineCap = 'round'; c.lineJoin = 'round';
-  c.strokeStyle = '#F2F4F2';
+  c.strokeStyle = '#23C766';
   const seg = (a, b, w) => {
     if (!pts[a] || !pts[b]) return;
     c.lineWidth = w * ws;
     c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
   };
   /* 躯干：等宽直柱（颈点→髋中点），经典火柴人式直上直下，无宽肩无梯形 */
-  c.fillStyle = '#F2F4F2';
+  c.fillStyle = '#23C766';
   let neck = null;
   if (pts[11] && pts[12] && pts[23] && pts[24]) {
     neck = { x: (X(pts[11]) + X(pts[12])) / 2, y: (Y(pts[11]) + Y(pts[12])) / 2 };
@@ -2270,14 +1623,6 @@ let skelTimer = setInterval(skelFrame, 66);   /* 帧率随 setFps 联动 */
 /* ============================================================
    事件绑定
    ============================================================ */
-/* 每日目标设置：入口 → 浮层（步进 ±50 / 预设 / 自由跳） */
-$('p-goal-entry').addEventListener('click', () => { audio(); $('p-settings').classList.remove('hidden'); });
-$('p-set-close').addEventListener('click', () => $('p-settings').classList.add('hidden'));
-$('p-set-done').addEventListener('click', () => $('p-settings').classList.add('hidden'));
-$('p-goal-minus').addEventListener('click', () => { audio(); setGoal(S.goal <= 0 ? 100 : Math.max(50, S.goal - 50)); });
-$('p-goal-plus').addEventListener('click', () => { audio(); setGoal(S.goal <= 0 ? 100 : Math.min(1000, S.goal + 50)); });
-document.querySelectorAll('#p-settings .goal-pill')
-  .forEach(b => b.addEventListener('click', () => { audio(); setGoal(Number(b.dataset.goal)); }));
 /* Atom 流程：开始 → 模式选择页（两个选择框）→ 选模式即开跳 */
 $('a-opt-timed').addEventListener('click', () => { audio(); startSession(TEST); });
 $('a-opt-free').addEventListener('click', () => { audio(); startSession(profile.goalNum); });
@@ -2336,8 +1681,6 @@ $('as-voice').addEventListener('click', (e) => {
   renderSettings();
 });
 /* 换装：手机左右箭头（JRC 同款交互），Atom 待机点 Bono 循环 */
-$('p-outfit-prev').addEventListener('click', () => { audio(); cycleOutfit(-1); });
-$('p-outfit-next').addEventListener('click', () => { audio(); cycleOutfit(1); });
 $('a-bono-idle').addEventListener('click', () => { audio(); cycleOutfit(1); });
 /* ------------------------------------------------------------
    排行榜独立模块（Atom）：Top3 + 你的邻近区间 + 超越目标提示
@@ -2491,14 +1834,6 @@ $('a-history-btn').addEventListener('click', (e) => {
 });
 $('a-history').addEventListener('click', () => $('a-history').classList.remove('show'));
 
-/* 排行榜 */
-$('p-board-entry').addEventListener('click', () => { audio(); renderBoard(); $('p-board').classList.remove('hidden'); });
-$('p-board-close').addEventListener('click', () => $('p-board').classList.add('hidden'));
-document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => {
-  boardScope = t.dataset.scope;
-  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t));
-  renderBoard();
-}));
 
 /* Atom 结算：点按翻页 成绩 ⇄ 二维码 */
 $('a-result').addEventListener('click', (e) => {
@@ -2506,10 +1841,7 @@ $('a-result').addEventListener('click', (e) => {
   $('a-r-page1').classList.toggle('hidden');
   $('a-r-page2').classList.toggle('hidden');
 });
-$('p-start').addEventListener('click', () => { audio(); startSession(); });
 $('a-start').addEventListener('click', () => { audio(); openMode(); });
-$('p-fake-stand').addEventListener('click', () => { audio(); standLocked(); });
-$('p-finish-free').addEventListener('click', () => endSession());
 document.querySelectorAll('[data-act="end"]').forEach(b => b.addEventListener('click', () => endSession()));
 document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('click', goHome));
 document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener('click', () => { audio(); startSession(); }));
@@ -2556,26 +1888,17 @@ let MODE = null;
 function enter(mode) {
   MODE = mode;
   document.body.dataset.mode = mode;
-  $('launcher').classList.add('hidden');
   $('stage').classList.remove('hidden');
   $('protobar').classList.remove('hidden');
-  location.hash = mode;
   render();
 }
-document.querySelectorAll('.mode-card').forEach(b =>
-  b.addEventListener('click', () => { audio(); enter(b.dataset.pick); }));
 
-mountBono('logo-bono', 96, 'idle');
-mountBono('p-bono-home', 130, 'idle');
-mountBono('p-bono-jump', 150, 'idle');
-mountBono('p-bono-result', 100, 'party');
 mountBono('a-bono-idle', 100, 'idle');
 mountBono('a-bono-jump', 60, 'idle');
 mountBono('a-bono-result', 64, 'party');
 mountBono('a-poster-bono', 42, 'party');
 
 skel.ctx = $('a-skel').getContext('2d');
-initChannel();
 render();
 $('a-history-btn').innerHTML = ico('list') + ' 记录';
 $('a-settings-btn').innerHTML = ico('gear');
