@@ -14,5 +14,6 @@ Body Park 跳绳小挑战 —— 打开就能跳的摄像头跳绳小应用（At
 入口与文档：
 
 - 🦘 **可交互原型**：[`prototype/index.html`](prototype/index.html)（浏览器打开即用；自动演示在底部控制条）
+- 📟 **嵌入式版本**：[`embedded/index.html`](embedded/index.html)（设备 WebView 单文件运行，AI 桥接接口见 [`embedded/README.md`](embedded/README.md)；桌面调试加 `?debug`）
 - 📄 [产品设计文档](docs/product-design.md) —— 定位、玩法、双端、排行榜架构、商业与增长、评审 backlog
 - 📐 [早期线框图](docs/wireframes.html)（历史存档）
