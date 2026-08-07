@@ -157,13 +157,36 @@
   .idle-streak { font-size: 2em; font-weight: 700; }
   /* Quick Card 卡组 */
   .cards-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
-  #a-cards { display: flex; width: 300%; height: 100%; transition: transform .25s; }
+  #a-cards { display: flex; width: 400%; height: 100%; transition: transform .25s; }
   .qcard {
-    width: 33.3333%; height: 100%;
+    width: 25%; height: 100%;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: .5em; text-align: center;
   }
   .card-big { font-size: 3.6em; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .qcard { position: relative; }
+  .qcard.page { justify-content: flex-start; padding-top: 9.5%; gap: .7em; }
+  .page-title { font-size: 1.75em; font-weight: 700; }
+  .page-cta {
+    position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
+    background: transparent; color: var(--accent);
+    border: 2px solid var(--accent); border-radius: 999px;
+    padding: .42em 0; width: 56%;
+    font-size: 1.5em; font-weight: 700;
+  }
+  .page-cta:active { transform: translateX(-50%) scale(.95); background: #12281B; }
+  .pb-line {
+    display: flex; align-items: center; gap: .7em;
+    font-size: 1.75em; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .pb-badge {
+    background: #FFB020; color: #141614;
+    font-size: .8em; font-weight: 800;
+    border-radius: .3em; padding: .04em .3em;
+  }
+  .total-line { font-size: 1.5em; color: var(--stage-soft); font-variant-numeric: tabular-nums; }
+  .total-line .st { color: var(--accent); font-weight: 700; }
+  .board-foot-q { font-size: 1.5em; color: var(--accent); font-weight: 700; }
   .card-mid { font-size: 2em; font-weight: 700; }
   .qcard .h-list { gap: .35em; }
   .card-dots {
@@ -531,30 +554,37 @@
       <div class="ascreen" id="a-idle">
         <div class="cards-viewport" id="a-cards-vp">
           <div id="a-cards">
+            <!-- Page 1 · Home -->
             <div class="qcard" id="qc-home">
               <div class="card-big" id="a-card-streak">0</div>
-              <div class="sub-tip">天连胜</div>
               <div class="card-mid" id="a-card-today">今日 0 下</div>
-              <div class="sub-tip" id="a-card-pb"></div>
-              <button class="atom-cta big" id="a-start">开始</button>
+              <div class="pb-line" id="a-card-pb"></div>
+              <div class="total-line" id="a-card-total"></div>
               <div class="a-chip-row bottom-row">
-                <button class="a-goal-chip ghost-chip sm" id="a-history-btn">记录</button>
+                <button class="atom-cta big" id="a-start">Start</button>
                 <button class="round-btn" id="a-settings-btn"></button>
               </div>
             </div>
-            <div class="qcard" id="qc-entries">
-              <button class="mode-opt" id="qc2-history">
-                <b>历史打卡</b><span id="qc2-history-sub">还没有记录</span>
-              </button>
-              <button class="mode-opt" id="qc2-board">
-                <b>排行榜</b><span id="qc2-board-sub">今日全球排名</span>
-              </button>
+            <!-- Page 2 · 打卡记录 -->
+            <div class="qcard page" id="qc-rec">
+              <div class="page-title">打卡记录</div>
+              <div class="a-week" id="a-week"></div>
+              <div class="h-list" id="a-qrec"></div>
+              <button class="page-cta" id="qc-rec-go">查看全部</button>
             </div>
-            <div class="qcard" id="qc-achv">
-              <div class="card-mid">成就</div>
+            <!-- Page 3 · 全球排行 -->
+            <div class="qcard page" id="qc-board">
+              <div class="page-title">全球排行</div>
+              <div class="h-list" id="a-qboard"></div>
+              <div class="board-foot-q" id="a-qboard-foot"></div>
+              <button class="page-cta" id="qc-board-go">完整榜单</button>
+            </div>
+            <!-- Page 4 · 我的成就 -->
+            <div class="qcard page" id="qc-achv">
+              <div class="page-title">我的成就</div>
               <div class="medal-row" id="qc3-medals"></div>
               <div class="sub-tip" id="qc3-star"></div>
-              <div class="flip-hint">点按看全部勋章</div>
+              <button class="page-cta" id="qc-achv-go">全部勋章</button>
             </div>
           </div>
         </div>
@@ -1798,7 +1828,7 @@ $('a-board').addEventListener('click', () => $('a-board').classList.remove('show
    首页 Quick Cards：滑动切换 [封面][主卡][排行榜][记录]
    ------------------------------------------------------------ */
 let cardIdx = 0, swiped = false, swX = null;
-const CARD_N = 3;
+const CARD_N = 4;
 function setCard(i) {
   cardIdx = Math.max(0, Math.min(CARD_N - 1, i));
   $('a-cards').style.transform = `translateX(-${cardIdx * 100 / CARD_N}%)`;
@@ -1821,21 +1851,49 @@ const MEDALS = [
 function renderQuickCards() {
   /* 系统入口卡 */
   $('a-launch-streak').textContent = `已连续打卡 ${profile.streak} 天`;
-  /* 首页卡：连胜 / 今日 + 历史最佳 / 开始 */
+  /* Page 1 · Home */
   $('a-card-streak').textContent = profile.streak;
   $('a-card-today').textContent = `今日 ${todayCount()} 下`;
-  $('a-card-pb').textContent =
-    `日最高 ${maxDaily() || '—'} · 单次 ${profile.bestSession || '—'} · 1' ${profile.bests[1] || '—'}`;
-  /* 入口卡：历史打卡 / 排行榜 */
+  $('a-card-pb').innerHTML =
+    `<span class="pb-badge">PB</span> ${profile.bestSession || '—'}` +
+    `<span>${profile.bests[1] || '—'} / 1'</span>`;
+  $('a-card-total').innerHTML =
+    `累计 ${profile.total} <span class="st">★${profile.stars}</span>`;
+  /* Page 2 · 打卡记录：周点 + 最近 3 天 */
+  const wk = $('a-week'); wk.innerHTML = '';
+  for (let i = -6; i <= 0; i++) {
+    const rec = profile.history[dayKeyOffset(i)];
+    const dot = document.createElement('span');
+    dot.className = 'adot' + (rec && rec.done ? ' done' : '') + (i === 0 ? ' today' : '');
+    wk.appendChild(dot);
+  }
   const keys = Object.keys(profile.history).filter(k => profile.history[k].count > 0).sort();
-  const week = [-6, -5, -4, -3, -2, -1, 0]
-    .filter(i => { const r = profile.history[dayKeyOffset(i)]; return r && r.done; }).length;
-  $('qc2-history-sub').textContent = keys.length
-    ? `Day ${keys.length} · 本周打卡 ${week} 天` : '还没有记录';
-  const rk = myRank('global');
-  $('qc2-board-sub').textContent = rk.count > 0
-    ? `今日全球第 ${rk.rank} 名` : '今天还没上榜';
-  /* 成就卡：勋章 + 积分 */
+  const dayNo = {}; keys.forEach((k, i) => { dayNo[k] = i + 1; });
+  $('a-qrec').innerHTML = keys.length
+    ? keys.slice(-3).reverse().map(k => {
+        const r = profile.history[k];
+        return `<div class="hrow"><span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
+          `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${r.count} 下</span>` +
+          `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span></div>`;
+      }).join('')
+    : '<div class="h-empty">还没有记录，跳一轮就有啦</div>';
+  /* Page 3 · 全球排行：Top3 + 你 */
+  const list = fakeBoard('global');
+  const me = myRank('global');
+  const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
+  merged.push({ name: '你', count: me.count, me: true });
+  merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
+  const meIdx = merged.findIndex(u => u.me);
+  const row = (i, u) =>
+    `<div class="hrow${u.me ? ' me-row' : ''}"><span class="hd${i < 3 ? ' done' : ''}">${i + 1}</span>` +
+    `<span class="nm">${u.name}</span><span class="hc">${u.count}</span></div>`;
+  const rows = merged.slice(0, 3).map((u, i) => row(i, u));
+  if (meIdx > 2) rows.push(row(meIdx, merged[meIdx]));
+  $('a-qboard').innerHTML = rows.join('');
+  const above = meIdx > 0 ? merged[meIdx - 1] : null;
+  $('a-qboard-foot').textContent = above
+    ? `再跳 ${above.count - me.count + 1} 下超过 ${above.name}` : '你是今日第一！';
+  /* Page 4 · 我的成就 */
   const got = MEDALS.filter(m => m.cond());
   $('qc3-medals').innerHTML = MEDALS.slice(0, 6)
     .map(m => `<span style="color:${m.cond() ? 'var(--accent)' : 'rgba(255,255,255,.18)'}">${ico('medal')}</span>`)
@@ -1865,15 +1923,14 @@ $('a-cards-vp').addEventListener('pointerup', (e) => {
 $('a-launch').addEventListener('click', () => {
   audio(); S.screen = 'idle'; bump(); speak(daily.greet);
 });
-/* 入口卡 → 各自的二级页面 */
-$('qc2-history').addEventListener('click', () => {
+/* 各页底部胶囊 → 二级页面 */
+$('qc-rec-go').addEventListener('click', () => {
   if (swiped) return; audio(); renderHistory(); $('a-history').classList.add('show');
 });
-$('qc2-board').addEventListener('click', () => {
+$('qc-board-go').addEventListener('click', () => {
   if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
 });
-/* 成就卡 → 勋章二级页 */
-$('qc-achv').addEventListener('click', () => {
+$('qc-achv-go').addEventListener('click', () => {
   if (swiped) return; audio(); renderMedals(); $('a-medal').classList.add('show');
 });
 $('a-medal').addEventListener('click', () => $('a-medal').classList.remove('show'));
