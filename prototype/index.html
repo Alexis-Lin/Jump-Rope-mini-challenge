@@ -1508,8 +1508,12 @@ function ropeGhosts(pts, ws, dt) {
   const footY = Math.max(pts[27] ? Y(pts[27]) : wym + 120, pts[28] ? Y(pts[28]) : wym + 120);
   const headTop = pts[7] && pts[8]
     ? (Y(pts[7]) + Y(pts[8])) / 2 - 43 * ws : wym - 120;
-  const Rlow = (footY + 16 * ws) - wym;      /* 谷底：过脚下留余量 */
-  const Rhigh = wym - (headTop - 12 * ws);   /* 顶点：过头顶留余量 */
+  const Rlow = (footY + 34 * ws) - wym;      /* 谷底：过脚下大弧度（宽松感） */
+  const Rhigh = wym - (headTop - 30 * ws);   /* 顶点：过头顶大弧度 */
+  /* 活跃度：只在"正在跳"时显示 —— 距上次计数 1.2s 内全显，之后 0.7s 内淡出 */
+  const act = skel.lastJumpT
+    ? Math.max(0, Math.min(1, 1 - ((performance.now() - skel.lastJumpT) - 1200) / 700)) : 0;
+  if (act <= 0.02) return [];
   const step = Math.max(0.25, skel.ropeOmega * dt * 0.55);
   const out = [];
   for (let i = 0; i < 3; i++) {
@@ -1517,7 +1521,7 @@ function ropeGhosts(pts, ws, dt) {
     const sag = sn >= 0 ? sn * Rlow : sn * Rhigh;
     out.push({
       front: sn >= 0,
-      alpha: [0.85, 0.4, 0.18][i] * (Math.abs(sn) < 0.18 ? 0.5 : 1),
+      alpha: [0.85, 0.4, 0.18][i] * (Math.abs(sn) < 0.18 ? 0.5 : 1) * act,
       w: (sn >= 0 ? 4.5 : 3.2) * ws * [1, 0.85, 0.7][i],
       lx: X(L), ly: Y(L), rx: X(R), ry: Y(R),
       cx: (X(L) + X(R)) / 2, cy: wym + 2 * sag,
@@ -1528,7 +1532,7 @@ function ropeGhosts(pts, ws, dt) {
 function drawRopeSet(c, set, front) {
   for (const g of set) {
     if (g.front !== front) continue;
-    c.strokeStyle = `rgba(35,199,102,${g.alpha})`;
+    c.strokeStyle = `rgba(48,232,120,${g.alpha})`;   /* 翠绿 */
     c.lineWidth = g.w;
     c.lineCap = 'round';
     c.beginPath();
