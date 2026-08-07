@@ -95,14 +95,15 @@
 
   /* ---------------- 舞台布局 ---------------- */
   #stage {
-    min-height: 100vh;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;              /* 2×/3× 放大超出视口时在舞台内滚动 */
     display: flex;
-    align-items: center;
-    justify-content: center;
     gap: 28px;
     padding: 18px 14px 64px;
     flex-wrap: wrap;
   }
+  #stage > * { margin: auto; }   /* 溢出时也能滚到边缘的安全居中 */
   body[data-mode="phone"] #atomWrap { display: none; }
   body[data-mode="atom"]  #phoneRoot { display: none; }
   body[data-mode="atom"] #stage { padding: 10px 10px 60px; }
@@ -372,7 +373,7 @@
   #atomWrap { display: flex; flex-direction: column; align-items: center; gap: 10px; flex: none; }
   .atom-caption { font-size: 12px; color: var(--stage-soft); letter-spacing: .06em; }
   #atomRoot {
-    --asz: min(74vmin, 500px);
+    --asz: 466px;   /* 物理分辨率 1:1；控制条可切 2×/3× 放大 */
     width: var(--asz); height: var(--asz);
     font-size: calc(var(--asz) / 466 * 16);   /* 1em ≈ 设计稿 16px */
     background: var(--stage);
@@ -384,7 +385,6 @@
     overflow: hidden;
     flex: none;
   }
-  body[data-mode="atom"] #atomRoot { --asz: min(88vmin, calc(100vh - 110px)); }
   .ascreen {
     position: absolute; inset: 0; display: none;
     flex-direction: column; align-items: center; justify-content: center;
@@ -582,6 +582,7 @@
   .skel {
     position: absolute; inset: 0; width: 100%; height: 100%;
     z-index: 2; pointer-events: none;
+    image-rendering: pixelated;   /* 放大时保持 466 真实像素 */
   }
   /* Bono 用 em 定尺寸，跟随圆屏等比缩放（留出贴边环的空隙，避免干涉） */
   #a-bono-jump svg { width: 15.5em; height: 15.5em; }
@@ -1093,6 +1094,10 @@
   <button id="pb-cam">📷 摄像头计数</button>
   <button id="pb-voice" class="on">🔊 教练语音</button>
   <button id="pb-fps" class="on">🎞 15fps 模拟</button>
+  <span class="sep"></span>
+  <button id="pb-s1" class="on">1×</button>
+  <button id="pb-s2">2×</button>
+  <button id="pb-s3">3×</button>
   <span class="sep"></span>
   <span id="peers">未联动</span>
 </div>
@@ -2494,6 +2499,14 @@ $('pb-fps').addEventListener('click', () => {
   $('atomRoot').classList.toggle('fps15', on);
   $('pb-fps').classList.toggle('on', on);
 });
+/* 屏幕缩放：466 物理分辨率 1× / 2× / 3× */
+function setScale(n) {
+  $('atomRoot').style.setProperty('--asz', (466 * n) + 'px');
+  [1, 2, 3].forEach(k => $('pb-s' + k).classList.toggle('on', k === n));
+  document.querySelector('.atom-caption').textContent =
+    `Atom · 466×466 圆屏 · 15fps · ${n}×`;
+}
+[1, 2, 3].forEach(k => $('pb-s' + k).addEventListener('click', () => setScale(k)));
 
 /* ============================================================
    启动
