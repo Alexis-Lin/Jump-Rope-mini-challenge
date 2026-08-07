@@ -187,6 +187,26 @@
   .total-line { font-size: 1.5em; color: var(--stage-soft); font-variant-numeric: tabular-nums; }
   .total-line .st { color: var(--accent); font-weight: 700; }
   .board-foot-q { font-size: 1.5em; color: var(--accent); font-weight: 700; }
+  /* Home 数据区块 = 可点击入口 */
+  .home-block {
+    background: none; border: none; color: inherit; font: inherit;
+    display: flex; flex-direction: column; align-items: center; gap: .15em;
+  }
+  .home-block:active { filter: brightness(1.4); transform: scale(.97); }
+  .home-block.pb-line { flex-direction: row; }
+  .chev-s { color: var(--stage-soft); font-size: .72em; margin-left: .3em; }
+  /* 翻页提示箭头（可点按翻页；未滑动过时脉动引导） */
+  .pg-hint {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    background: none; border: none; z-index: 5;
+    font-size: 2em; font-weight: 700; color: rgba(255,255,255,.4);
+    padding: .3em .3em; cursor: pointer;
+  }
+  .pg-hint.left { left: 2%; }
+  .pg-hint.right { right: 2%; }
+  .pg-hint:active { color: var(--accent); }
+  .pg-hint.pulse { animation: hintpulse 1.8s ease-in-out infinite; }
+  @keyframes hintpulse { 50% { opacity: .3; } }
   .card-mid { font-size: 2em; font-weight: 700; }
   .qcard .h-list { gap: .35em; }
   .card-dots {
@@ -194,7 +214,7 @@
     display: flex; justify-content: center; gap: .5em;
   }
   .cdot { width: .5em; height: .5em; border-radius: 50%; background: rgba(255,255,255,.22); }
-  .cdot.on { background: var(--accent); }
+  .cdot.on { background: var(--accent); width: 1em; border-radius: .3em; }
   /* 勋章 */
   .medal-row { display: flex; gap: .55em; font-size: 2em; }
   .medal-row .ico { width: 1.1em; height: 1.1em; }
@@ -554,12 +574,15 @@
       <div class="ascreen" id="a-idle">
         <div class="cards-viewport" id="a-cards-vp">
           <div id="a-cards">
-            <!-- Page 1 · Home -->
+            <!-- Page 1 · Home：每个数据区块都是入口，点击直达对应二级页 -->
             <div class="qcard" id="qc-home">
-              <div class="card-big" id="a-card-streak">0</div>
-              <div class="card-mid" id="a-card-today">今日 0 下</div>
-              <div class="pb-line" id="a-card-pb"></div>
-              <div class="total-line" id="a-card-total"></div>
+              <button class="home-block" id="a-go-rec">
+                <div class="card-big" id="a-card-streak">0</div>
+                <div class="sub-tip">天连胜</div>
+              </button>
+              <button class="home-block card-mid" id="a-card-today">今日 0 下</button>
+              <button class="home-block pb-line" id="a-card-pb"></button>
+              <button class="home-block total-line" id="a-card-total"></button>
               <div class="a-chip-row bottom-row">
                 <button class="atom-cta big" id="a-start">Start</button>
                 <button class="round-btn" id="a-settings-btn"></button>
@@ -589,6 +612,8 @@
           </div>
         </div>
         <div class="card-dots" id="a-dots"></div>
+        <button class="pg-hint left" id="a-hint-l">‹</button>
+        <button class="pg-hint right" id="a-hint-r">›</button>
       </div>
 
       <!-- 模式选择（点"开始"后的中间页）：只有两个选择框 -->
@@ -1833,6 +1858,26 @@ function setCard(i) {
   cardIdx = Math.max(0, Math.min(CARD_N - 1, i));
   $('a-cards').style.transform = `translateX(-${cardIdx * 100 / CARD_N}%)`;
   document.querySelectorAll('.cdot').forEach((d, j) => d.classList.toggle('on', j === cardIdx));
+  $('a-hint-l').style.visibility = cardIdx > 0 ? 'visible' : 'hidden';
+  $('a-hint-r').style.visibility = cardIdx < CARD_N - 1 ? 'visible' : 'hidden';
+}
+
+/* ---- 翻页引导：未滑动过时右箭头脉动 + 进入首页时卡片"探头"一下 ---- */
+let userSwiped = false;
+function swipeLearned() {
+  if (userSwiped) return;
+  userSwiped = true;
+  $('a-hint-r').classList.remove('pulse');
+}
+function nudge() {
+  if (userSwiped || cardIdx !== 0 || S.screen !== 'idle') return;
+  const seq = [-3, -6, -7.5, -6, -3, 0];   /* 单页宽度的 % */
+  let k = 0;
+  const iv = setInterval(() => {
+    if (userSwiped || cardIdx !== 0) { clearInterval(iv); return; }
+    $('a-cards').style.transform = `translateX(${seq[k] / CARD_N}%)`;
+    if (++k >= seq.length) clearInterval(iv);
+  }, 80);
 }
 
 /* 勋章体系：全部由现有数据计算得出 */
@@ -1853,12 +1898,12 @@ function renderQuickCards() {
   $('a-launch-streak').textContent = `已连续打卡 ${profile.streak} 天`;
   /* Page 1 · Home */
   $('a-card-streak').textContent = profile.streak;
-  $('a-card-today').textContent = `今日 ${todayCount()} 下`;
+  $('a-card-today').innerHTML = `今日 ${todayCount()} 下<span class="chev-s">›</span>`;
   $('a-card-pb').innerHTML =
     `<span class="pb-badge">PB</span> ${profile.bestSession || '—'}` +
-    `<span>${profile.bests[1] || '—'} / 1'</span>`;
+    `<span>${profile.bests[1] || '—'} / 1'</span><span class="chev-s">›</span>`;
   $('a-card-total').innerHTML =
-    `累计 ${profile.total} <span class="st">★${profile.stars}</span>`;
+    `累计 ${profile.total} <span class="st">★${profile.stars}</span><span class="chev-s">›</span>`;
   /* Page 2 · 打卡记录：周点 + 最近 3 天 */
   const wk = $('a-week'); wk.innerHTML = '';
   for (let i = -6; i <= 0; i++) {
@@ -1915,6 +1960,7 @@ $('a-cards-vp').addEventListener('pointerup', (e) => {
   const dx = e.clientX - swX; swX = null;
   if (Math.abs(dx) > 40) {
     swiped = true;
+    swipeLearned();
     setCard(cardIdx + (dx < 0 ? 1 : -1));
     setTimeout(() => { swiped = false; }, 80);
   }
@@ -1922,7 +1968,27 @@ $('a-cards-vp').addEventListener('pointerup', (e) => {
 /* 系统入口卡 → 进入 APP */
 $('a-launch').addEventListener('click', () => {
   audio(); S.screen = 'idle'; bump(); speak(daily.greet);
+  setTimeout(nudge, 900);
+  setTimeout(nudge, 10000);
 });
+/* Home 区域入口：数字区块点击直达对应二级页 */
+$('a-go-rec').addEventListener('click', () => {
+  if (swiped) return; audio(); renderHistory(); $('a-history').classList.add('show');
+});
+$('a-card-today').addEventListener('click', () => {
+  if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
+});
+$('a-card-pb').addEventListener('click', () => {
+  if (swiped) return; audio(); renderMedals(); $('a-medal').classList.add('show');
+});
+$('a-card-total').addEventListener('click', () => {
+  if (swiped) return; audio(); renderMedals(); $('a-medal').classList.add('show');
+});
+/* 翻页箭头可点按 */
+$('a-hint-l').addEventListener('click', () => { audio(); swipeLearned(); setCard(cardIdx - 1); });
+$('a-hint-r').addEventListener('click', () => { audio(); swipeLearned(); setCard(cardIdx + 1); });
+$('a-hint-r').classList.add('pulse');
+
 /* 各页底部胶囊 → 二级页面 */
 $('qc-rec-go').addEventListener('click', () => {
   if (swiped) return; audio(); renderHistory(); $('a-history').classList.add('show');
