@@ -392,7 +392,9 @@
   }
   .ascreen.show { display: flex; }
   .atom-bg { position: absolute; inset: 0; transition: background 1.2s; }
-  /* 字阶（466 设计稿 px → em）：22=1.375 / 24=1.5 / 28=1.75 / 32=2 / 36=2.25 */
+  /* ===== 统一字阶（466 设计稿，最小 24px）=====
+     T3 正文/辅助 24px(1.5em) · T2 按钮/强调 28px(1.75em) · T1 标题/状态 32px(2em)
+     · 庆祝 36px(2.25em) · 数字档: 中 56-64 / 大计数 96 / 倒计时 136 */
   /* 单色 SVG 图标（替代 emoji） */
   .ico { width: 1em; height: 1em; vertical-align: -0.12em; fill: currentColor; }
   /* 边缘光：圆屏的"站位状态灯"（取代相机小窗） */
@@ -413,7 +415,7 @@
   .atom-cta {
     z-index: 3;
     background: linear-gradient(180deg, var(--accent), var(--accent-deep));
-    color: #fff; font-size: 1.5em; font-weight: 700;
+    color: #fff; font-size: 1.75em; font-weight: 700;
     border-radius: 999px; padding: .6em 2em; min-width: 7em;
     box-shadow: 0 .3em 1.2em rgba(35,199,102,.4);
   }
@@ -426,8 +428,8 @@
 
   /* Atom 待机（首页）：连胜/成就前置，设置贴边 */
   #a-idle { gap: .5em; z-index: 2; }
-  #a-idle .sub-tip { color: var(--stage-soft); font-size: 1.375em; }
-  .idle-streak { font-size: 1.75em; font-weight: 700; }
+  #a-idle .sub-tip { color: var(--stage-soft); font-size: 1.5em; }
+  .idle-streak { font-size: 2em; font-weight: 700; }
   /* Quick Card 卡组 */
   .cards-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
   #a-cards { display: flex; width: 300%; height: 100%; transition: transform .25s; }
@@ -437,7 +439,7 @@
     gap: .5em; text-align: center;
   }
   .card-big { font-size: 3.6em; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
-  .card-mid { font-size: 1.75em; font-weight: 700; }
+  .card-mid { font-size: 2em; font-weight: 700; }
   .qcard .h-list { gap: .35em; }
   .card-dots {
     position: absolute; bottom: 3.5%; left: 0; right: 0; z-index: 4;
@@ -446,22 +448,22 @@
   .cdot { width: .5em; height: .5em; border-radius: 50%; background: rgba(255,255,255,.22); }
   .cdot.on { background: var(--accent); }
   /* 勋章 */
-  .medal-row { display: flex; gap: .55em; font-size: 1.75em; }
+  .medal-row { display: flex; gap: .55em; font-size: 2em; }
   .medal-row .ico { width: 1.1em; height: 1.1em; }
   .medal-grid {
     display: grid; grid-template-columns: repeat(2, auto);
-    gap: .7em 1.6em; font-size: 1.375em;
+    gap: .7em 1.6em; font-size: 1.5em;
   }
   .medal-item { display: flex; align-items: center; gap: .4em; color: var(--stage-soft); }
   .medal-item.got { color: var(--accent); }
   .medal-item .ico { width: 1.2em; height: 1.2em; }
-  .atom-cta.big { font-size: 1.5em; padding: .55em 1.7em; }
-  .a-goal-chip.sm { font-size: 1.375em; padding: .4em .9em; }
+  .atom-cta.big { font-size: 1.75em; padding: .55em 1.7em; }
+  .a-goal-chip.sm { font-size: 1.5em; padding: .4em .9em; }
   .bottom-row { align-items: center; gap: .6em; margin-top: .3em; }
   .round-btn {
     width: 2.7em; height: 2.7em; border-radius: 50%;
     background: #1B201D; border: 1.5px solid rgba(255,255,255,.25);
-    color: var(--stage-soft); font-size: 1.375em;
+    color: var(--stage-soft); font-size: 1.5em;
     display: flex; align-items: center; justify-content: center;
     z-index: 3;
   }
@@ -469,16 +471,16 @@
   .round-btn .ico { width: 1.15em; height: 1.15em; }
 
   /* 设置行 */
-  .set-rows { display: flex; flex-direction: column; gap: .9em; width: 62%; }
+  .set-rows { display: flex; flex-direction: column; gap: .7em; width: 58%; }
   .srow {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 1.375em; color: var(--stage-ink);
+    font-size: 1.5em; color: var(--stage-ink);
   }
   .srow .a-goal-chip.sm { font-size: 1em; min-width: 4.2em; }
 
   /* 模式选择页 */
   #a-mode { gap: .55em; z-index: 2; }
-  .mode-title { font-size: 1.75em; font-weight: 700; }
+  .mode-title { font-size: 2em; font-weight: 700; }
   .mode-opt {
     width: 68%;
     background: #1B201D;
@@ -488,13 +490,13 @@
     display: flex; flex-direction: column; align-items: center; gap: .15em;
     color: var(--stage-ink);
   }
-  .mode-opt b { font-size: 1.75em; }
-  .mode-opt span { font-size: 1.29em; color: var(--stage-soft); line-height: 1.4; }
+  .mode-opt b { font-size: 2em; }
+  .mode-opt span { font-size: 1.5em; color: var(--stage-soft); line-height: 1.4; }
   .mode-opt:active { transform: scale(.96); border-color: var(--accent); filter: brightness(1.15); }
   .a-goal-chip {
     background: #1B201D; color: var(--accent);
     border: 1.5px solid var(--accent); border-radius: 999px;
-    padding: .5em 1.1em; font-size: 1.5em; font-weight: 700;
+    padding: .5em 1.1em; font-size: 1.75em; font-weight: 700;
     z-index: 3;
   }
 
@@ -509,11 +511,11 @@
     gap: .8em; text-align: center;
   }
   .a-history.show { display: flex; }
-  .a-history .h-title { font-size: 1.75em; font-weight: 700; }
+  .a-history .h-title { font-size: 2em; font-weight: 700; }
   .h-list { display: flex; flex-direction: column; gap: .45em; }
   .hrow {
     display: flex; align-items: baseline; gap: .8em;
-    font-size: 1.375em; font-variant-numeric: tabular-nums;
+    font-size: 1.5em; font-variant-numeric: tabular-nums;
     color: var(--stage-ink);
   }
   .hrow .hd { color: var(--stage-soft); min-width: 3.2em; text-align: right; }
@@ -521,12 +523,12 @@
   .hrow .hday { color: var(--stage-soft); min-width: 3.4em; }
   .hrow .hc { font-weight: 700; min-width: 3.4em; text-align: right; }
   .hrow .ht { color: var(--stage-soft); min-width: 2.8em; text-align: right; }
-  .h-empty { font-size: 1.375em; color: var(--stage-soft); }
+  .h-empty { font-size: 1.5em; color: var(--stage-soft); }
   /* 排行榜行 */
   .hrow .nm { min-width: 6.4em; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hrow.me-row { color: var(--accent); font-weight: 700; }
   .hrow.me-row .hd, .hrow.me-row .nm { color: var(--accent); }
-  .bgap2 { color: var(--stage-soft); font-size: 1.375em; line-height: .6; }
+  .bgap2 { color: var(--stage-soft); font-size: 1.5em; line-height: .6; }
   .today-btn { background: none; border: none; cursor: pointer; }
   .today-btn:active { filter: brightness(1.3); }
 
@@ -541,8 +543,8 @@
 
   /* Atom 准备：无取景器，靠边缘光 + 语音 */
   #a-ready { gap: .6em; z-index: 2; }
-  #a-ready .status { font-size: 1.75em; font-weight: 700; max-width: 76%; line-height: 1.45; }
-  #a-ready .hint { font-size: 1.375em; color: var(--stage-soft); }
+  #a-ready .status { font-size: 2em; font-weight: 700; max-width: 76%; line-height: 1.45; }
+  #a-ready .hint { font-size: 1.5em; color: var(--stage-soft); }
   .countdown-big {
     font-size: 8.5em; font-weight: 800; line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -554,7 +556,7 @@
   .a-timer {
     position: absolute; top: 2.2%; left: 0; right: 0; z-index: 3;
     text-align: center;
-    font-size: 1.375em; color: var(--stage-soft); font-weight: 600;
+    font-size: 1.5em; color: var(--stage-soft); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
   .a-timer.urgent { color: #FFB020; font-weight: 700; }   /* 测试最后 10 秒 */
@@ -573,7 +575,7 @@
   .a-count.pow { animation: cpow .4s linear; }
   .a-count.over { color: #FFB020; }   /* 达标后计数转暖色，与火焰呼应 */
   .a-lapstars {
-    color: var(--accent); font-size: 1.5em; font-weight: 700;
+    color: var(--accent); font-size: 1.75em; font-weight: 700;
     letter-spacing: .05em; margin-top: .4em;
     font-variant-numeric: tabular-nums;
   }
@@ -597,15 +599,15 @@
   #a-result .r-page {
     position: absolute; inset: 0; z-index: 3;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: .3em;
+    gap: .25em;
   }
   #a-result .num { font-size: 3.6em; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
-  #a-result .lab { font-size: 1.75em; font-weight: 700; }
-  #a-result .earn { color: var(--gold); font-size: 1.5em; font-weight: 700; }
-  #a-result .streak { color: var(--mint); font-size: 1.375em; }
-  #a-result .unlock { color: #7FE3A8; font-size: 1.375em; font-weight: 600; }
+  #a-result .lab { font-size: 2em; font-weight: 700; }
+  #a-result .earn { color: var(--gold); font-size: 1.75em; font-weight: 700; }
+  #a-result .streak { color: var(--mint); font-size: 1.5em; }
+  #a-result .unlock { color: #7FE3A8; font-size: 1.5em; font-weight: 600; }
   #a-result .unlock:empty, #a-result .streak:empty { display: none; }
-  .flip-hint { color: var(--stage-soft); font-size: 1.375em; margin-top: .2em; }
+  .flip-hint { color: var(--stage-soft); font-size: 1.5em; margin-top: .2em; }
   #a-r-page2 canvas { width: 6.5em; height: 6.5em; background: #fff; border-radius: .5em; padding: .3em; }
   /* 迷你成绩海报 */
   .poster {
@@ -614,8 +616,8 @@
     display: flex; flex-direction: column; align-items: center; gap: .1em;
   }
   .poster .p-num { font-size: 2.6em; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
-  .poster .p-sub { font-size: 1.1em; color: var(--ink-soft); }
-  .poster .p-rate { font-size: 1.2em; color: var(--accent-deep); font-weight: 700; }
+  .poster .p-sub { font-size: 1.25em; color: var(--ink-soft); }
+  .poster .p-rate { font-size: 1.4em; color: var(--accent-deep); font-weight: 700; }
   .poster .bono { color: var(--ink); }
   #a-poster-bono svg { width: 2.6em; height: 2.6em; }
 
@@ -654,15 +656,41 @@
     .rays.f1, .rays.f2, .rays.f3 { animation: none; }
   }
 
-  /* ===== 15fps 刷新率模拟（Atom 真机约束：466×466 @ ~15fps）=====
-     连续动画量化为 1/15s 一帧（steps 数 = 时长 × 15）；
-     过渡动画直切 —— 低刷新率设备上 300ms 的 tween 只有 4 帧，不如状态直切干净 */
+  /* ===== 刷新率模拟（10 / 13 / 15 fps，steps = 时长 × fps）=====
+     连续动画量化为逐帧；过渡动画直切（低刷新率下 tween 无意义） */
+
+  #atomRoot.fps10, #atomRoot.fps10 * { transition: none !important; }
+  #atomRoot.fps10 .rays.f1 { animation: rayspin 18s steps(180) infinite; }
+  #atomRoot.fps10 .rays.f2 { animation: rayspin 9s steps(90) infinite; }
+  #atomRoot.fps10 .rays.f3 { animation: rayspin 5s steps(50) infinite, raypulse 1.06s steps(11) infinite; }
+  #atomRoot.fps10 .bono.idle .body-g  { animation-timing-function: steps(26); }
+  #atomRoot.fps10 .bono.hop .body-g   { animation-timing-function: steps(4); }
+  #atomRoot.fps10 .bono.party .body-g { animation-timing-function: steps(8); }
+  #atomRoot.fps10 .bono .rope         { animation-timing-function: steps(4); }
+  #atomRoot.fps10.waiting .edge       { animation-timing-function: steps(15); }
+  #atomRoot.fps10 .confetti-p         { animation-timing-function: steps(20); }
+  #atomRoot.fps10 .celebrate .txt     { animation-timing-function: steps(5); }
+  #atomRoot.fps10 .a-count.pop        { animation-timing-function: steps(3); }
+  #atomRoot.fps10 .a-count.pow        { animation-timing-function: steps(4); }
+
+  #atomRoot.fps13, #atomRoot.fps13 * { transition: none !important; }
+  #atomRoot.fps13 .rays.f1 { animation: rayspin 18s steps(234) infinite; }
+  #atomRoot.fps13 .rays.f2 { animation: rayspin 9s steps(117) infinite; }
+  #atomRoot.fps13 .rays.f3 { animation: rayspin 5s steps(65) infinite, raypulse 1.06s steps(14) infinite; }
+  #atomRoot.fps13 .bono.idle .body-g  { animation-timing-function: steps(34); }
+  #atomRoot.fps13 .bono.hop .body-g   { animation-timing-function: steps(5); }
+  #atomRoot.fps13 .bono.party .body-g { animation-timing-function: steps(10); }
+  #atomRoot.fps13 .bono .rope         { animation-timing-function: steps(5); }
+  #atomRoot.fps13.waiting .edge       { animation-timing-function: steps(20); }
+  #atomRoot.fps13 .confetti-p         { animation-timing-function: steps(26); }
+  #atomRoot.fps13 .celebrate .txt     { animation-timing-function: steps(6); }
+  #atomRoot.fps13 .a-count.pop        { animation-timing-function: steps(3); }
+  #atomRoot.fps13 .a-count.pow        { animation-timing-function: steps(5); }
+
   #atomRoot.fps15, #atomRoot.fps15 * { transition: none !important; }
   #atomRoot.fps15 .rays.f1 { animation: rayspin 18s steps(270) infinite; }
   #atomRoot.fps15 .rays.f2 { animation: rayspin 9s steps(135) infinite; }
-  #atomRoot.fps15 .rays.f3 {
-    animation: rayspin 5s steps(75) infinite, raypulse 1.06s steps(16) infinite;
-  }
+  #atomRoot.fps15 .rays.f3 { animation: rayspin 5s steps(75) infinite, raypulse 1.06s steps(16) infinite; }
   #atomRoot.fps15 .bono.idle .body-g  { animation-timing-function: steps(39); }
   #atomRoot.fps15 .bono.hop .body-g   { animation-timing-function: steps(6); }
   #atomRoot.fps15 .bono.party .body-g { animation-timing-function: steps(12); }
@@ -674,8 +702,8 @@
   #atomRoot.fps15 .a-count.pow        { animation-timing-function: steps(6); }
 
   /* 圆屏内的覆盖层字号 */
-  #atomRoot .milestone-toast { font-size: 1.5em; top: 30%; max-width: 86%; white-space: normal; }
-  #atomRoot .pauseveil { font-size: 1.75em; }
+  #atomRoot .milestone-toast { font-size: 1.75em; top: 30%; max-width: 86%; white-space: normal; }
+  #atomRoot .pauseveil { font-size: 2em; }
   #atomRoot .pauseveil span { font-size: .786em; }   /* 22px */
   #atomRoot .pauseveil .atom-cta { font-size: .857em; }  /* 24px */
   #atomRoot .celebrate .txt { font-size: 2.25em; }
@@ -1093,7 +1121,9 @@
   <button id="pb-auto">▶ 自动演示</button>
   <button id="pb-cam">📷 摄像头计数</button>
   <button id="pb-voice" class="on">🔊 教练语音</button>
-  <button id="pb-fps" class="on">🎞 15fps 模拟</button>
+  <button id="pb-f10">10fps</button>
+  <button id="pb-f13">13fps</button>
+  <button id="pb-f15" class="on">15fps</button>
   <span class="sep"></span>
   <button id="pb-s1" class="on">1×</button>
   <button id="pb-s2">2×</button>
@@ -2235,7 +2265,7 @@ function skelFrame() {
     c.stroke();
   });
 }
-setInterval(skelFrame, 66);   /* 66ms ≈ 15fps，与设备刷新率一致 */
+let skelTimer = setInterval(skelFrame, 66);   /* 帧率随 setFps 联动 */
 
 /* ============================================================
    事件绑定
@@ -2492,19 +2522,30 @@ $('pb-voice').addEventListener('click', () => {
   $('pb-voice').classList.toggle('on', voiceOn);
   if (!voiceOn) { try { speechSynthesis.cancel(); } catch (e) {} }
 });
-/* 15fps 刷新率模拟：默认开启（真机约束），可关闭对比 60fps 观感 */
-$('atomRoot').classList.add('fps15');
-$('pb-fps').addEventListener('click', () => {
-  const on = !$('atomRoot').classList.contains('fps15');
-  $('atomRoot').classList.toggle('fps15', on);
-  $('pb-fps').classList.toggle('on', on);
-});
+
+/* 刷新率三档（真机波动范围）：10 / 13 / 15 fps */
+let curFps = 15, curScale = 1;
+function caption() {
+  document.querySelector('.atom-caption').textContent =
+    `Atom · 466×466 圆屏 · ${curFps}fps · ${curScale}×`;
+}
+function setFps(n) {
+  curFps = n;
+  [10, 13, 15].forEach(k => {
+    $('atomRoot').classList.toggle('fps' + k, k === n);
+    $('pb-f' + k).classList.toggle('on', k === n);
+  });
+  clearInterval(skelTimer);
+  skelTimer = setInterval(skelFrame, Math.round(1000 / n));
+  caption();
+}
+[10, 13, 15].forEach(k => $('pb-f' + k).addEventListener('click', () => setFps(k)));
 /* 屏幕缩放：466 物理分辨率 1× / 2× / 3× */
 function setScale(n) {
+  curScale = n;
   $('atomRoot').style.setProperty('--asz', (466 * n) + 'px');
   [1, 2, 3].forEach(k => $('pb-s' + k).classList.toggle('on', k === n));
-  document.querySelector('.atom-caption').textContent =
-    `Atom · 466×466 圆屏 · 15fps · ${n}×`;
+  caption();
 }
 [1, 2, 3].forEach(k => $('pb-s' + k).addEventListener('click', () => setScale(k)));
 
@@ -2538,7 +2579,7 @@ initChannel();
 render();
 $('a-history-btn').innerHTML = ico('list') + ' 记录';
 $('a-settings-btn').innerHTML = ico('gear');
-/* 当前阶段只做 Atom 设备端：启动直达（手机/双端保留在 #phone / #duo 供后续开发） */
-const h = location.hash.replace('#', '');
-enter(['phone', 'atom', 'duo'].includes(h) ? h : 'atom');
+setFps(15);   /* 默认 15fps（真机波动时可切 13/10 检查动效） */
+/* 只做 Atom 设备端（手机端 DOM 仅作内部脚手架保留，demo 不暴露） */
+enter('atom');
 </script>
