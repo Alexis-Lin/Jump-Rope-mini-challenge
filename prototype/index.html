@@ -317,7 +317,7 @@
   #a-bono-result svg { width: 2.8em; height: 2.8em; }
   /* 火柴人线条颜色：深色屏白线，浅色屏黑线 */
   .bono { color: var(--ink); }
-  #atomRoot .bono { color: var(--accent); }
+  #atomRoot .bono { color: var(--stage-ink); }
 
   /* Atom 结算：两页翻页（成绩 ⇄ 二维码），点按切换 */
   #a-result { z-index: 2; }
@@ -343,7 +343,7 @@
   .poster .p-num { font-size: 2.6em; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
   .poster .p-sub { font-size: 1.25em; color: var(--ink-soft); }
   .poster .p-rate { font-size: 1.4em; color: var(--accent-deep); font-weight: 700; }
-  .poster .bono { color: var(--accent-deep); }
+  .poster .bono { color: var(--ink); }
   #a-poster-bono svg { width: 2.6em; height: 2.6em; }
 
   /* 漫画放射光背景（燃起来）：前 50 纯黑；每满 50 火焰升一级，暖橙黄色系 */
@@ -1480,8 +1480,67 @@ window.AtomSkeleton = {
 };
 /* 触地涟漪：只在"判定计数落地"时触发（registerJump 调用），一次一个椭圆环。
    0 帧最强，0.5s 内半径增大、线宽与不透明度衰减到消失 */
+/* ------------------------------------------------------------
+   虚拟跳绳：相位振荡器驱动
+   - 转速 = 实测跳频（跳跃间隔 EMA），无计数时用默认 2.3 转/秒并缓慢衰减
+   - 每次"判定计数落地"把相位向 π/2（绳过脚下）软校正 40% —— 与计数严格同拍
+   - 前后遮挡：绳在下半周画在人前、上半周画在人后；过侧面时近乎直线并降透明度
+   - 低帧率适配：按当帧角速度拖 3 条残影弧（1.0/0.4/0.18 透明度）
+   ------------------------------------------------------------ */
+function syncRope(now) {
+  if (skel.lastJumpT) {
+    const ivl = now - skel.lastJumpT;
+    if (ivl > 200 && ivl < 1500) skel.jumpIvl = (skel.jumpIvl || 435) * 0.6 + ivl * 0.4;
+  }
+  skel.lastJumpT = now;
+  skel.ropeOmega = 2 * Math.PI * 1000 / (skel.jumpIvl || 435);
+  const target = Math.PI / 2;
+  let d = target - (skel.ropePhase % (2 * Math.PI));
+  while (d > Math.PI) d -= 2 * Math.PI;
+  while (d < -Math.PI) d += 2 * Math.PI;
+  skel.ropePhase += d * 0.4;
+}
+function ropeGhosts(pts, ws, dt) {
+  const L = pts[15], R = pts[16];
+  if (!L || !R) return [];
+  const X = (q) => q.x * 466, Y = (q) => q.y * 466;
+  const wym = (Y(L) + Y(R)) / 2;
+  const footY = Math.max(pts[27] ? Y(pts[27]) : wym + 120, pts[28] ? Y(pts[28]) : wym + 120);
+  const headTop = pts[7] && pts[8]
+    ? (Y(pts[7]) + Y(pts[8])) / 2 - 43 * ws : wym - 120;
+  const Rlow = (footY + 16 * ws) - wym;      /* 谷底：过脚下留余量 */
+  const Rhigh = wym - (headTop - 12 * ws);   /* 顶点：过头顶留余量 */
+  const step = Math.max(0.25, skel.ropeOmega * dt * 0.55);
+  const out = [];
+  for (let i = 0; i < 3; i++) {
+    const sn = Math.sin(skel.ropePhase - i * step);
+    const sag = sn >= 0 ? sn * Rlow : sn * Rhigh;
+    out.push({
+      front: sn >= 0,
+      alpha: [0.85, 0.4, 0.18][i] * (Math.abs(sn) < 0.18 ? 0.5 : 1),
+      w: (sn >= 0 ? 4.5 : 3.2) * ws * [1, 0.85, 0.7][i],
+      lx: X(L), ly: Y(L), rx: X(R), ry: Y(R),
+      cx: (X(L) + X(R)) / 2, cy: wym + 2 * sag,
+    });
+  }
+  return out;
+}
+function drawRopeSet(c, set, front) {
+  for (const g of set) {
+    if (g.front !== front) continue;
+    c.strokeStyle = `rgba(35,199,102,${g.alpha})`;
+    c.lineWidth = g.w;
+    c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(g.lx, g.ly);
+    c.quadraticCurveTo(g.cx, g.cy, g.rx, g.ry);
+    c.stroke();
+  }
+}
+
 function spawnRipple() {
   if (!skel.ctx) return;
+  syncRope(performance.now());
   const pts = skel.rpts;
   const la = pts && pts[27], ra = pts && pts[28];
   const x = la && ra ? (la.x + ra.x) / 2 * 466 : 233;
@@ -1538,22 +1597,30 @@ function skelFrame() {
   skel.rpts = pts;
   skel.dirty = true;
   c.clearRect(0, 0, 466, 466);
+  /* 绳相位推进（1.3s 无计数则转速缓慢衰减到待机感） */
+  const dt = skel.lastFrameT ? (now - skel.lastFrameT) / 1000 : 1 / 15;
+  skel.lastFrameT = now;
+  if (!skel.ropeOmega) skel.ropeOmega = 2 * Math.PI * 2.3;
+  if (!skel.lastJumpT || now - skel.lastJumpT > 1300) skel.ropeOmega *= 0.985;
+  skel.ropePhase = (skel.ropePhase || 0) + skel.ropeOmega * dt;
   const X = (p) => p.x * 466, Y = (p) => p.y * 466;
   /* 线宽随人物远近缩放：以肩宽为尺（基准 40px），远小近大 */
   const span = pts[11] && pts[12]
     ? Math.hypot(X(pts[12]) - X(pts[11]), Y(pts[12]) - Y(pts[11])) : 40;
   const ws = Math.max(0.55, Math.min(1.5, span / 40));
   skel.ws = ws;
-  /* 粗壮 pictogram 风格：品牌绿实心身体，远距离可读 */
+  const rope = ropeGhosts(pts, ws, dt);
+  drawRopeSet(c, rope, false);            /* 上半周：绳在身后 */
+  /* 粗壮 pictogram 风格：浅白身体 + 纯白头/手/脚，远距离可读 */
   c.lineCap = 'round'; c.lineJoin = 'round';
-  c.strokeStyle = '#23C766';
+  c.strokeStyle = '#EDF2EF';
   const seg = (a, b, w) => {
     if (!pts[a] || !pts[b]) return;
     c.lineWidth = w * ws;
     c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
   };
   /* 躯干：等宽直柱（颈点→髋中点），经典火柴人式直上直下，无宽肩无梯形 */
-  c.fillStyle = '#23C766';
+  c.fillStyle = '#EDF2EF';
   let neck = null;
   if (pts[11] && pts[12] && pts[23] && pts[24]) {
     neck = { x: (X(pts[11]) + X(pts[12])) / 2, y: (Y(pts[11]) + Y(pts[12])) / 2 };
@@ -1572,19 +1639,23 @@ function skelFrame() {
   };
   armSeg(13, 15); armSeg(14, 16);
   seg(23, 25, 20); seg(25, 27, 20); seg(24, 26, 20); seg(26, 28, 20);
-  /* 手部 / 脚部小圆头 */
+  /* 手部 / 脚部小圆头（纯白，略亮于肢体） */
+  c.fillStyle = '#FFFFFF';
   const knob = (i, r) => {
     if (!pts[i]) return;
     c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), r * ws, 0, Math.PI * 2); c.fill();
   };
   knob(15, 13); knob(16, 13);
   knob(27, 14); knob(28, 14);
-  /* 头：白色实心圆，与肩部留出 pictogram 式间隙 */
+  /* 头：纯白实心圆，与肩部留出 pictogram 式间隙 */
   if (pts[7] && pts[8]) {
+    c.fillStyle = '#FFFFFF';
     c.beginPath();
     c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 17 * ws, 26 * ws, 0, Math.PI * 2);
     c.fill();
   }
+
+  drawRopeSet(c, rope, true);             /* 下半周：绳在身前（过脚下） */
 
   /* 涟漪：与计数动画同一套"打击语法"（0.7s 生命周期）
      0 帧起始圈 36 → 爆发式扩张(easeOutCubic) → 缓滑到 173
