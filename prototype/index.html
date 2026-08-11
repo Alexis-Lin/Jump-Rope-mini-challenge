@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>跳绳小挑战 · 可交互原型</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
@@ -73,7 +74,7 @@
     position: absolute; left: 50%; top: 34%; transform: translate(-50%,-50%) scale(.8);
     background: rgba(16,22,34,.85); color: #fff;
     border-radius: 16px; padding: 12px 22px;
-    font-size: 17px; font-weight: 700; white-space: nowrap;
+    font-size: var(--t28); font-weight: 700; white-space: nowrap;
     opacity: 0; pointer-events: none; z-index: 5;
     transition: opacity .25s, transform .25s;
   }
@@ -101,6 +102,18 @@
     --asz: 466px;   /* 物理分辨率 1:1；控制条可切 2×/3× 放大 */
     width: var(--asz); height: var(--asz);
     font-size: calc(var(--asz) / 466 * 16);   /* 1em ≈ 设计稿 16px */
+    /* Atom 字号标准 6 档：18 / 22 / 24 / 28 / 32 / 36（见下方字阶注释） */
+    --t18: calc(var(--asz) / 466 * 18);
+    --t22: calc(var(--asz) / 466 * 22);
+    --t24: calc(var(--asz) / 466 * 24);
+    --t28: calc(var(--asz) / 466 * 28);
+    --t32: calc(var(--asz) / 466 * 32);
+    --t36: calc(var(--asz) / 466 * 36);
+    /* 数字展示档（非文字，不占 6 档）：海报 40 / 卡片&结算 56 / 计数 96 / 倒计时 136 */
+    --n40: calc(var(--asz) / 466 * 40);
+    --n56: calc(var(--asz) / 466 * 56);
+    --n96: calc(var(--asz) / 466 * 96);
+    --n136: calc(var(--asz) / 466 * 136);
     background: var(--stage);
     border-radius: 50%;
     border: 10px solid #050707;
@@ -117,9 +130,14 @@
   }
   .ascreen.show { display: flex; }
   .atom-bg { position: absolute; inset: 0; transition: background 1.2s; }
-  /* ===== 统一字阶（466 设计稿，最小 24px）=====
-     T3 正文/辅助 24px(1.5em) · T2 按钮/强调 28px(1.75em) · T1 标题/状态 32px(2em)
-     · 庆祝 36px(2.25em) · 数字档: 中 56-64 / 大计数 96 / 倒计时 136 */
+  /* ===== 统一字阶（466 设计稿，Atom 标准 6 档：18/22/24/28/32/36）=====
+     18 微标注/角标（› 箭头、PB 徽章、海报小字）
+     22 辅助提示（flip-hint、准备页提示、暂停副文案、海报评级）
+     24 正文/列表/次按钮（记录行、设置行、榜单行、模式副文案、page-cta）
+     28 主按钮/强调（Start、goal-chip、page-title、PB 行、星星行、toast）
+     32 标题/状态（二级页标题、模式标题、准备状态、结算标签、暂停标题）
+     36 庆祝（达成覆盖层）
+     数字展示档（不占 6 档）: 海报 40 / 卡片&结算大数 56 / 计数 96 / 倒计时 136 */
   /* 单色 SVG 图标（替代 emoji） */
   .ico { width: 1em; height: 1em; vertical-align: -0.12em; fill: currentColor; }
   /* 边缘光：圆屏的"站位状态灯"（取代相机小窗） */
@@ -140,7 +158,7 @@
   .atom-cta {
     z-index: 3;
     background: linear-gradient(180deg, var(--accent), var(--accent-deep));
-    color: #fff; font-size: 1.75em; font-weight: 700;
+    color: #fff; font-size: var(--t28); font-weight: 700;
     border-radius: 999px; padding: .6em 2em; min-width: 7em;
     box-shadow: 0 .3em 1.2em rgba(35,199,102,.4);
   }
@@ -153,8 +171,8 @@
 
   /* Atom 待机（首页）：连胜/成就前置，设置贴边 */
   #a-idle { gap: .5em; z-index: 2; }
-  #a-idle .sub-tip { color: var(--stage-soft); font-size: 1.5em; }
-  .idle-streak { font-size: 2em; font-weight: 700; }
+  .sub-tip { color: var(--stage-soft); font-size: var(--t24); }
+  .idle-streak { font-size: var(--t32); font-weight: 700; }
   /* Quick Card 卡组 */
   .cards-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
   #a-cards { display: flex; width: 400%; height: 100%; transition: transform .25s; }
@@ -163,30 +181,30 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: .5em; text-align: center;
   }
-  .card-big { font-size: 3.6em; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+  .card-big { font-size: var(--n56); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
   .qcard { position: relative; }
   .qcard.page { justify-content: flex-start; padding-top: 9.5%; gap: .7em; }
-  .page-title { font-size: 1.75em; font-weight: 700; }
+  .page-title { font-size: var(--t28); font-weight: 700; }
   .page-cta {
     position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
     background: transparent; color: var(--accent);
     border: 2px solid var(--accent); border-radius: 999px;
     padding: .42em 0; width: 56%;
-    font-size: 1.5em; font-weight: 700;
+    font-size: var(--t24); font-weight: 700;
   }
   .page-cta:active { transform: translateX(-50%) scale(.95); background: #12281B; }
   .pb-line {
     display: flex; align-items: center; gap: .7em;
-    font-size: 1.75em; font-weight: 700; font-variant-numeric: tabular-nums;
+    font-size: var(--t28); font-weight: 700; font-variant-numeric: tabular-nums;
   }
   .pb-badge {
     background: #FFB020; color: #141614;
-    font-size: .8em; font-weight: 800;
+    font-size: var(--t18); font-weight: 800;
     border-radius: .3em; padding: .04em .3em;
   }
-  .total-line { font-size: 1.5em; color: var(--stage-soft); font-variant-numeric: tabular-nums; }
+  .total-line { font-size: var(--t24); color: var(--stage-soft); font-variant-numeric: tabular-nums; }
   .total-line .st { color: var(--accent); font-weight: 700; }
-  .board-foot-q { font-size: 1.5em; color: var(--accent); font-weight: 700; }
+  .board-foot-q { font-size: var(--t24); color: var(--accent); font-weight: 700; }
   /* Home 数据区块 = 可点击入口 */
   .home-block {
     background: none; border: none; color: inherit; font: inherit;
@@ -194,12 +212,12 @@
   }
   .home-block:active { filter: brightness(1.4); transform: scale(.97); }
   .home-block.pb-line { flex-direction: row; }
-  .chev-s { color: var(--stage-soft); font-size: .72em; margin-left: .3em; }
+  .chev-s { color: var(--stage-soft); font-size: var(--t18); margin-left: .3em; }
   /* 翻页提示箭头（可点按翻页；未滑动过时脉动引导） */
   .pg-hint {
     position: absolute; top: 50%; transform: translateY(-50%);
     background: none; border: none; z-index: 5;
-    font-size: 2em; font-weight: 700; color: rgba(255,255,255,.4);
+    font-size: var(--t32); font-weight: 700; color: rgba(255,255,255,.4);
     padding: .3em .3em; cursor: pointer;
   }
   .pg-hint.left { left: 2%; }
@@ -207,7 +225,7 @@
   .pg-hint:active { color: var(--accent); }
   .pg-hint.pulse { animation: hintpulse 1.8s ease-in-out infinite; }
   @keyframes hintpulse { 50% { opacity: .3; } }
-  .card-mid { font-size: 2em; font-weight: 700; }
+  .card-mid { font-size: var(--t32); font-weight: 700; }
   .qcard .h-list { gap: .35em; }
   .card-dots {
     position: absolute; bottom: 3.5%; left: 0; right: 0; z-index: 4;
@@ -216,22 +234,22 @@
   .cdot { width: .5em; height: .5em; border-radius: 50%; background: rgba(255,255,255,.22); }
   .cdot.on { background: var(--accent); width: 1em; border-radius: .3em; }
   /* 勋章 */
-  .medal-row { display: flex; gap: .55em; font-size: 2em; }
+  .medal-row { display: flex; gap: .55em; font-size: var(--t32); }
   .medal-row .ico { width: 1.1em; height: 1.1em; }
   .medal-grid {
     display: grid; grid-template-columns: repeat(2, auto);
-    gap: .7em 1.6em; font-size: 1.5em;
+    gap: .7em 1.6em; font-size: var(--t24);
   }
   .medal-item { display: flex; align-items: center; gap: .4em; color: var(--stage-soft); }
   .medal-item.got { color: var(--accent); }
   .medal-item .ico { width: 1.2em; height: 1.2em; }
-  .atom-cta.big { font-size: 1.75em; padding: .55em 1.7em; }
-  .a-goal-chip.sm { font-size: 1.5em; padding: .4em .9em; }
+  .atom-cta.big { font-size: var(--t28); padding: .55em 1.7em; }
+  .a-goal-chip.sm { font-size: var(--t24); padding: .4em .9em; }
   .bottom-row { align-items: center; gap: .6em; margin-top: .3em; }
   .round-btn {
     width: 2.7em; height: 2.7em; border-radius: 50%;
     background: #1B201D; border: 1.5px solid rgba(255,255,255,.25);
-    color: var(--stage-soft); font-size: 1.5em;
+    color: var(--stage-soft); font-size: var(--t24);
     display: flex; align-items: center; justify-content: center;
     z-index: 3;
   }
@@ -242,13 +260,13 @@
   .set-rows { display: flex; flex-direction: column; gap: .7em; width: 58%; }
   .srow {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 1.5em; color: var(--stage-ink);
+    font-size: var(--t24); color: var(--stage-ink);
   }
-  .srow .a-goal-chip.sm { font-size: 1em; min-width: 4.2em; }
+  .srow .a-goal-chip.sm { font-size: var(--t24); min-width: 4.2em; }
 
   /* 模式选择页 */
   #a-mode { gap: .55em; z-index: 2; }
-  .mode-title { font-size: 2em; font-weight: 700; }
+  .mode-title { font-size: var(--t32); font-weight: 700; }
   .mode-opt {
     width: 68%;
     background: #1B201D;
@@ -258,13 +276,13 @@
     display: flex; flex-direction: column; align-items: center; gap: .15em;
     color: var(--stage-ink);
   }
-  .mode-opt b { font-size: 2em; }
-  .mode-opt span { font-size: 1.5em; color: var(--stage-soft); line-height: 1.4; }
+  .mode-opt b { font-size: var(--t32); }
+  .mode-opt span { font-size: var(--t24); color: var(--stage-soft); line-height: 1.4; }
   .mode-opt:active { transform: scale(.96); border-color: var(--accent); filter: brightness(1.15); }
   .a-goal-chip {
     background: #1B201D; color: var(--accent);
     border: 1.5px solid var(--accent); border-radius: 999px;
-    padding: .5em 1.1em; font-size: 1.75em; font-weight: 700;
+    padding: .5em 1.1em; font-size: var(--t28); font-weight: 700;
     z-index: 3;
   }
 
@@ -279,11 +297,11 @@
     gap: .8em; text-align: center;
   }
   .a-history.show { display: flex; }
-  .a-history .h-title { font-size: 2em; font-weight: 700; }
+  .a-history .h-title { font-size: var(--t32); font-weight: 700; }
   .h-list { display: flex; flex-direction: column; gap: .45em; }
   .hrow {
     display: flex; align-items: baseline; gap: .8em;
-    font-size: 1.5em; font-variant-numeric: tabular-nums;
+    font-size: var(--t24); font-variant-numeric: tabular-nums;
     color: var(--stage-ink);
   }
   .hrow .hd { color: var(--stage-soft); min-width: 3.2em; text-align: right; }
@@ -291,12 +309,12 @@
   .hrow .hday { color: var(--stage-soft); min-width: 3.4em; }
   .hrow .hc { font-weight: 700; min-width: 3.4em; text-align: right; }
   .hrow .ht { color: var(--stage-soft); min-width: 2.8em; text-align: right; }
-  .h-empty { font-size: 1.5em; color: var(--stage-soft); }
+  .h-empty { font-size: var(--t24); color: var(--stage-soft); }
   /* 排行榜行 */
   .hrow .nm { min-width: 6.4em; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hrow.me-row { color: var(--accent); font-weight: 700; }
   .hrow.me-row .hd, .hrow.me-row .nm { color: var(--accent); }
-  .bgap2 { color: var(--stage-soft); font-size: 1.5em; line-height: .6; }
+  .bgap2 { color: var(--stage-soft); font-size: var(--t24); line-height: .6; }
   .today-btn { background: none; border: none; cursor: pointer; }
   .today-btn:active { filter: brightness(1.3); }
 
@@ -311,10 +329,10 @@
 
   /* Atom 准备：无取景器，靠边缘光 + 语音 */
   #a-ready { gap: .6em; z-index: 2; }
-  #a-ready .status { font-size: 2em; font-weight: 700; max-width: 76%; line-height: 1.45; }
-  #a-ready .hint { font-size: 1.5em; color: var(--stage-soft); }
+  #a-ready .status { font-size: var(--t32); font-weight: 700; max-width: 76%; line-height: 1.45; }
+  #a-ready .hint { font-size: var(--t22); color: var(--stage-soft); }
   .countdown-big {
-    font-size: 8.5em; font-weight: 800; line-height: 1;
+    font-size: var(--n136); font-weight: 800; line-height: 1;
     font-variant-numeric: tabular-nums;
   }
 
@@ -324,7 +342,7 @@
   .a-timer {
     position: absolute; top: 4.6%; left: 0; right: 0; z-index: 3;
     text-align: center;
-    font-size: 1.5em; color: var(--stage-soft); font-weight: 600;
+    font-size: var(--t24); color: var(--stage-soft); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
   .a-timer.urgent { color: #FFB020; font-weight: 700; }   /* 测试最后 10 秒 */
@@ -335,7 +353,7 @@
   }
   .a-count-row { display: flex; align-items: flex-start; gap: .35em; }
   .a-count {
-    font-size: 6em; font-weight: 800; line-height: 1;
+    font-size: var(--n96); font-weight: 800; line-height: 1;
     font-variant-numeric: tabular-nums;
     transition: transform .12s, color .3s;
   }
@@ -343,7 +361,7 @@
   .a-count.pow { animation: cpow .4s linear; }
   .a-count.over { color: #FFB020; }   /* 达标后计数转暖色，与火焰呼应 */
   .a-lapstars {
-    color: var(--accent); font-size: 1.75em; font-weight: 700;
+    color: var(--accent); font-size: var(--t28); font-weight: 700;
     letter-spacing: .05em; margin-top: .4em;
     font-variant-numeric: tabular-nums;
   }
@@ -369,13 +387,13 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: .25em;
   }
-  #a-result .num { font-size: 3.6em; font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
-  #a-result .lab { font-size: 2em; font-weight: 700; }
-  #a-result .earn { color: var(--gold); font-size: 1.75em; font-weight: 700; }
-  #a-result .streak { color: var(--mint); font-size: 1.5em; }
-  #a-result .unlock { color: #7FE3A8; font-size: 1.5em; font-weight: 600; }
+  #a-result .num { font-size: var(--n56); font-weight: 800; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  #a-result .lab { font-size: var(--t32); font-weight: 700; }
+  #a-result .earn { color: var(--gold); font-size: var(--t28); font-weight: 700; }
+  #a-result .streak { color: var(--mint); font-size: var(--t24); }
+  #a-result .unlock { color: #7FE3A8; font-size: var(--t24); font-weight: 600; }
   #a-result .unlock:empty, #a-result .streak:empty { display: none; }
-  .flip-hint { color: var(--stage-soft); font-size: 1.5em; margin-top: .2em; }
+  .flip-hint { color: var(--stage-soft); font-size: var(--t22); margin-top: .2em; }
   #a-r-page2 canvas { width: 6.5em; height: 6.5em; background: #fff; border-radius: .5em; padding: .3em; }
   /* 迷你成绩海报 */
   .poster {
@@ -383,9 +401,9 @@
     border-radius: .8em; padding: .5em 1.4em .6em;
     display: flex; flex-direction: column; align-items: center; gap: .1em;
   }
-  .poster .p-num { font-size: 2.6em; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
-  .poster .p-sub { font-size: 1.25em; color: var(--ink-soft); }
-  .poster .p-rate { font-size: 1.4em; color: var(--accent-deep); font-weight: 700; }
+  .poster .p-num { font-size: var(--n40); font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .poster .p-sub { font-size: var(--t18); color: var(--ink-soft); }
+  .poster .p-rate { font-size: var(--t22); color: var(--accent-deep); font-weight: 700; }
   .poster .bono { color: var(--ink); }
   #a-poster-bono svg { width: 2.6em; height: 2.6em; }
 
@@ -470,11 +488,11 @@
   #atomRoot.fps15 .a-count.pow        { animation-timing-function: steps(6); }
 
   /* 圆屏内的覆盖层字号 */
-  #atomRoot .milestone-toast { font-size: 1.75em; top: 30%; max-width: 86%; white-space: normal; }
-  #atomRoot .pauseveil { font-size: 2em; }
-  #atomRoot .pauseveil span { font-size: .786em; }   /* 22px */
-  #atomRoot .pauseveil .atom-cta { font-size: .857em; }  /* 24px */
-  #atomRoot .celebrate .txt { font-size: 2.25em; }
+  #atomRoot .milestone-toast { font-size: var(--t28); top: 30%; max-width: 86%; white-space: normal; }
+  #atomRoot .pauseveil { font-size: var(--t32); }
+  #atomRoot .pauseveil span { font-size: var(--t22); }
+  #atomRoot .pauseveil .atom-cta { font-size: var(--t28); }
+  #atomRoot .celebrate .txt { font-size: var(--t36); }
 
   /* 达标庆祝覆盖层（两端共用样式） */
   .celebrate {
@@ -486,7 +504,7 @@
   }
   .celebrate.show { display: flex; }
   .celebrate .txt {
-    font-size: clamp(34px, 6vw, 64px); font-weight: 800; color: #fff;
+    font-size: var(--t36); font-weight: 800; color: #fff;
     text-shadow: 0 4px 24px rgba(0,0,0,.4);
     animation: zoomin .5s;
   }
@@ -497,10 +515,10 @@
     position: absolute; inset: 0; z-index: 18;
     display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px;
     background: rgba(16,19,17,.72); color: #fff;
-    font-size: 18px; font-weight: 700;
+    font-size: var(--t32); font-weight: 700;
   }
   .pauseveil.show { display: flex; }
-  .pauseveil span { font-size: 13px; font-weight: 400; color: var(--stage-soft); }
+  .pauseveil span { font-size: var(--t22); font-weight: 400; color: var(--stage-soft); }
 
   /* ---------------- 吉祥物 Bono ---------------- */
   .bono { position: relative; flex: none; }
@@ -537,7 +555,7 @@
 
   /* 星星飞入 */
   .fly-star {
-    position: absolute; z-index: 25; font-size: 22px; pointer-events: none;
+    position: absolute; z-index: 25; font-size: var(--t22); pointer-events: none;
     transition: transform 1s cubic-bezier(.4,-0.2,.6,1), opacity 1s;
   }
 
