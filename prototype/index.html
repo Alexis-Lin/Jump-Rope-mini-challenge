@@ -2101,6 +2101,11 @@ render();
 $('a-history-btn').innerHTML = ico('list') + ' 记录';
 $('a-settings-btn').innerHTML = ico('gear');
 setFps(15);   /* 默认 15fps（真机波动时可切 13/10 检查动效） */
+/* 手机小屏：自动缩放贴合（桌面仍默认 466 物理 1:1，可用 1×/2×/3× 切换） */
+if (Math.min(window.innerWidth, window.innerHeight) < 520) {
+  $('atomRoot').style.setProperty('--asz', '92vmin');
+  document.querySelector('.atom-caption').textContent = 'Atom · 466×466 圆屏 · 手机适配';
+}
 /* 只做 Atom 设备端（手机端 DOM 仅作内部脚手架保留，demo 不暴露） */
 enter('atom');
 </script>
