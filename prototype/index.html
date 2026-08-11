@@ -195,14 +195,14 @@
   .page-cta:active { transform: translateX(-50%) scale(.95); background: #12281B; }
   .pb-line {
     display: flex; align-items: center; gap: .7em;
-    font-size: var(--t28); font-weight: 700; font-variant-numeric: tabular-nums;
+    font-size: var(--t32); font-weight: 700; font-variant-numeric: tabular-nums;
   }
   .pb-badge {
     background: #FFB020; color: #141614;
     font-size: var(--t18); font-weight: 800;
     border-radius: .3em; padding: .04em .3em;
   }
-  .total-line { font-size: var(--t24); color: var(--stage-soft); font-variant-numeric: tabular-nums; }
+  .total-line { font-size: var(--t28); color: var(--stage-soft); font-variant-numeric: tabular-nums; }
   .total-line .st { color: var(--accent); font-weight: 700; }
   .board-foot-q { font-size: var(--t24); color: var(--accent); font-weight: 700; }
   /* Home 数据区块 = 可点击入口 */
@@ -263,21 +263,30 @@
     font-size: var(--t24); color: var(--stage-ink);
   }
   .srow .a-goal-chip.sm { font-size: var(--t24); min-width: 4.2em; }
+  .srow .bval { font-size: var(--t32); font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 
   /* 模式选择页 */
   #a-mode { gap: .55em; z-index: 2; }
   .mode-title { font-size: var(--t32); font-weight: 700; }
   .mode-opt {
-    width: 68%;
+    width: 80%;
     background: #1B201D;
     border: 2px solid #2B332E;
     border-radius: 1em;
-    padding: .55em .8em;
-    display: flex; flex-direction: column; align-items: center; gap: .15em;
-    color: var(--stage-ink);
+    padding: .5em .9em;
+    display: flex; align-items: center; gap: .7em;
+    color: var(--stage-ink); text-align: left;
   }
+  .mode-ico {
+    flex: none; font-size: var(--t32);
+    width: 2em; height: 2em; border-radius: 50%;
+    background: #12281B; color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .mode-ico .ico { width: 1.15em; height: 1.15em; }
+  .mode-txt { display: flex; flex-direction: column; gap: .1em; min-width: 0; text-align: left; }
   .mode-opt b { font-size: var(--t32); }
-  .mode-opt span { font-size: var(--t24); color: var(--stage-soft); line-height: 1.4; }
+  .mode-txt > span { font-size: var(--t22); color: var(--stage-soft); white-space: nowrap; }
   .mode-opt:active { transform: scale(.96); border-color: var(--accent); filter: brightness(1.15); }
   .a-goal-chip {
     background: #1B201D; color: var(--accent);
@@ -391,7 +400,7 @@
   #a-result .lab { font-size: var(--t32); font-weight: 700; }
   #a-result .earn { color: var(--gold); font-size: var(--t28); font-weight: 700; }
   #a-result .streak { color: var(--mint); font-size: var(--t24); }
-  #a-result .unlock { color: #7FE3A8; font-size: var(--t24); font-weight: 600; }
+  #a-result .unlock { color: #7FE3A8; font-size: var(--t24); font-weight: 600; max-width: 76%; }
   #a-result .unlock:empty, #a-result .streak:empty { display: none; }
   .flip-hint { color: var(--stage-soft); font-size: var(--t22); margin-top: .2em; }
   #a-r-page2 canvas { width: 6.5em; height: 6.5em; background: #fff; border-radius: .5em; padding: .3em; }
@@ -582,9 +591,9 @@
       <!-- Atom 系统层的应用入口卡（不属于 APP 卡组，点按进入 APP） -->
       <div class="ascreen" id="a-launch">
         <div id="a-bono-idle"></div>
-        <div class="card-mid">每日跳绳</div>
+        <div class="card-mid" data-i18n="appTitle">每日跳绳</div>
         <div class="sub-tip" id="a-launch-streak"></div>
-        <div class="flip-hint">点按进入</div>
+        <div class="flip-hint" data-i18n="tapEnter">点按进入</div>
       </div>
 
       <!-- APP 首页：三张卡片横滑
@@ -596,7 +605,7 @@
             <div class="qcard" id="qc-home">
               <button class="home-block" id="a-go-rec">
                 <div class="card-big" id="a-card-streak">0</div>
-                <div class="sub-tip">天连胜</div>
+                <div class="sub-tip" data-i18n="streakUnit">天连胜</div>
               </button>
               <button class="home-block card-mid" id="a-card-today">今日 0 下</button>
               <button class="home-block pb-line" id="a-card-pb"></button>
@@ -608,24 +617,24 @@
             </div>
             <!-- Page 2 · 打卡记录 -->
             <div class="qcard page" id="qc-rec">
-              <div class="page-title">打卡记录</div>
+              <div class="page-title" data-i18n="recTitle">打卡记录</div>
               <div class="a-week" id="a-week"></div>
               <div class="h-list" id="a-qrec"></div>
-              <button class="page-cta" id="qc-rec-go">查看全部</button>
+              <button class="page-cta" id="qc-rec-go" data-i18n="viewAll">查看全部</button>
             </div>
             <!-- Page 3 · 全球排行 -->
             <div class="qcard page" id="qc-board">
-              <div class="page-title">全球排行</div>
+              <div class="page-title" data-i18n="boardTitle">全球排行</div>
               <div class="h-list" id="a-qboard"></div>
               <div class="board-foot-q" id="a-qboard-foot"></div>
-              <button class="page-cta" id="qc-board-go">完整榜单</button>
+              <button class="page-cta" id="qc-board-go" data-i18n="fullBoard">完整榜单</button>
             </div>
             <!-- Page 4 · 我的成就 -->
             <div class="qcard page" id="qc-achv">
-              <div class="page-title">我的成就</div>
+              <div class="page-title" data-i18n="achvTitle">我的成就</div>
               <div class="medal-row" id="qc3-medals"></div>
               <div class="sub-tip" id="qc3-star"></div>
-              <button class="page-cta" id="qc-achv-go">全部勋章</button>
+              <button class="page-cta" id="qc-achv-go" data-i18n="allMedals">全部勋章</button>
             </div>
           </div>
         </div>
@@ -634,31 +643,33 @@
         <button class="pg-hint right" id="a-hint-r">›</button>
       </div>
 
-      <!-- 模式选择（点"开始"后的中间页）：只有两个选择框 -->
+      <!-- 模式选择（点"开始"后的中间页）：图标 + 标题 + 单行个人化副文案 -->
       <div class="ascreen" id="a-mode">
-        <div class="mode-title">选择模式</div>
+        <div class="mode-title" data-i18n="modeTitle">选择模式</div>
         <button class="mode-opt" id="a-opt-timed">
-          <b>限时跳</b><span id="a-opt-timed-sub">1 分钟倒计时 · 测出你的极限</span>
+          <span class="mode-ico" data-ico="clock"></span>
+          <span class="mode-txt"><b data-i18n="modeTimed">限时跳</b><span id="a-opt-timed-sub"></span></span>
         </button>
         <button class="mode-opt" id="a-opt-free">
-          <b>不限时</b><span id="a-opt-free-sub">跳多少算多少 · 每日任务 100 下</span>
+          <span class="mode-ico" data-ico="inf"></span>
+          <span class="mode-txt"><b data-i18n="modeFree">不限时</b><span id="a-opt-free-sub"></span></span>
         </button>
-        <button class="a-goal-chip ghost-chip sm" id="a-mode-back">返回</button>
+        <button class="a-goal-chip ghost-chip sm" id="a-mode-back" data-i18n="back">返回</button>
       </div>
 
       <!-- 勋章二级页 -->
       <div class="a-history" id="a-medal">
-        <div class="h-title">勋章</div>
+        <div class="h-title" data-i18n="medalsTitle">勋章</div>
         <div class="medal-grid" id="a-medal-grid"></div>
-        <div class="flip-hint">点按空白处返回</div>
+        <div class="flip-hint" data-i18n="tapBackBlank">点按空白处返回</div>
       </div>
 
       <!-- 排行榜二级页 -->
       <div class="a-history" id="a-board">
-        <div class="h-title">今日排行榜</div>
+        <div class="h-title" data-i18n="boardTodayTitle">今日排行榜</div>
         <div class="a-chip-row">
-          <button class="a-goal-chip sm" id="ab-global">全球</button>
-          <button class="a-goal-chip sm" id="ab-local">同城</button>
+          <button class="a-goal-chip sm" id="ab-global" data-i18n="scopeGlobal">全球</button>
+          <button class="a-goal-chip sm" id="ab-local" data-i18n="scopeLocal">同城</button>
         </div>
         <div class="h-list" id="a-board-list"></div>
         <div class="sub-tip" id="a-board-foot" style="color:var(--accent);font-weight:700;"></div>
@@ -667,23 +678,30 @@
 
       <!-- 设置（首页 ⚙ 进入）：目标 / 限时时长 / 语音 -->
       <div class="a-history" id="a-set">
-        <div class="h-title">设置</div>
+        <div class="h-title" data-i18n="setTitle">设置</div>
         <div class="set-rows">
-          <div class="srow"><span>每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
-          <div class="srow"><span>限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
-          <div class="srow"><span>年龄段</span><button class="a-goal-chip sm" id="as-age">9-11</button></div>
-          <div class="srow"><span>体重</span><button class="a-goal-chip sm" id="as-weight">40 kg</button></div>
-          <div class="srow"><span>每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
-          <div class="srow"><span>教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
+          <div class="srow"><span data-i18n="setGoal">每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
+          <div class="srow"><span data-i18n="setLen">限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
+          <div class="srow"><span data-i18n="setAge">年龄段</span><button class="a-goal-chip sm" id="as-age">9-11</button></div>
+          <div class="srow"><span data-i18n="setWeight">体重</span><button class="a-goal-chip sm" id="as-weight">40 kg</button></div>
+          <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
+          <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
         </div>
-        <div class="flip-hint">点按空白处返回</div>
+        <div class="flip-hint" data-i18n="tapBackBlank">点按空白处返回</div>
+      </div>
+
+      <!-- 最佳战绩二级页（首页 PB 区块点击进入） -->
+      <div class="a-history" id="a-best">
+        <div class="h-title" data-i18n="bestTitle">最佳战绩</div>
+        <div class="set-rows" id="a-best-rows" style="width:64%;"></div>
+        <div class="flip-hint" data-i18n="tapBack">点按返回</div>
       </div>
 
       <!-- 准备：无取景器，边缘光 + 语音代替（屏幕太小，砍掉相机预览） -->
       <div class="ascreen" id="a-ready">
-        <div class="status" id="a-ready-tip">请站进画面<br>边缘变绿即可</div>
+        <div class="status" id="a-ready-tip" data-i18n-html="readyTip">请站进画面<br>边缘变绿即可</div>
         <div class="countdown-big hidden" id="a-cd"></div>
-        <div class="hint">离开画面会自动暂停</div>
+        <div class="hint" data-i18n="readyHint">离开画面会自动暂停</div>
       </div>
 
       <!-- 跳绳中：上半屏数字，下半屏大火柴人；达标不打断，继续往上数 -->
@@ -705,9 +723,9 @@
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
         <div class="milestone-toast" id="a-toast"></div>
         <div class="pauseveil" id="a-pause">
-          已暂停<span>回到画面继续 · 5 秒后自动结算</span>
-          <button class="atom-cta" data-act="resume">继续</button>
-          <button class="atom-cta" data-act="end" style="background:#2B332E;box-shadow:none;">立即结算</button>
+          <b data-i18n="paused">已暂停</b><span data-i18n="pausedSub">回到画面继续 · 5 秒后自动结算</span>
+          <button class="atom-cta" data-act="resume" data-i18n="resume">继续</button>
+          <button class="atom-cta" data-act="end" data-i18n="finishNow" style="background:#2B332E;box-shadow:none;">立即结算</button>
         </div>
       </div>
 
@@ -723,10 +741,10 @@
           <div class="streak" id="a-r-rank" style="color: var(--stage-soft);"></div>
           <div class="unlock" id="a-r-unlock"></div>
           <div class="a-chip-row">
-            <button class="a-goal-chip ghost-chip sm" data-act="home">完成</button>
-            <button class="atom-cta" data-act="again">再跳一轮</button>
+            <button class="a-goal-chip ghost-chip sm" data-act="home" data-i18n="done">完成</button>
+            <button class="atom-cta" data-act="again" data-i18n="again">再跳一轮</button>
           </div>
-          <div class="flip-hint">点按翻面看二维码</div>
+          <div class="flip-hint" data-i18n="flipQR">点按翻面看二维码</div>
         </div>
         <!-- 分享页：迷你成绩海报 + 二维码（手机扫码保存/转发完整海报） -->
         <div class="r-page hidden" id="a-r-page2">
@@ -737,15 +755,15 @@
             <div class="p-rate" id="a-poster-rate"></div>
           </div>
           <canvas id="a-qr" width="120" height="120"></canvas>
-          <div class="flip-hint">手机扫码保存 · 分享海报 · 点按返回</div>
+          <div class="flip-hint" data-i18n="flipBack">手机扫码保存 · 分享海报 · 点按返回</div>
         </div>
       </div>
 
       <!-- 历史打卡记录（覆盖层，点按任意处返回） -->
       <div class="a-history" id="a-history">
-        <div class="h-title">打卡记录</div>
+        <div class="h-title" data-i18n="recTitle">打卡记录</div>
         <div class="h-list" id="a-history-list"></div>
-        <div class="flip-hint">点按返回</div>
+        <div class="flip-hint" data-i18n="tapBack">点按返回</div>
       </div>
 
       <div class="celebrate" id="a-celebrate"><div class="txt">达成！</div></div>
@@ -758,10 +776,14 @@
 
 <!-- ==================== 原型控制条 ==================== -->
 <div id="protobar" class="hidden">
-  <span class="tag">原型</span>
+  <span class="tag">PROTO</span>
   <span class="sep"></span>
-  <button id="pb-auto">▶ 自动演示</button>
-  <button id="pb-voice" class="on">🔊 教练语音</button>
+  <button id="pb-auto">▶ Demo</button>
+  <button id="pb-voice" class="on">🔊 Voice</button>
+  <span class="sep"></span>
+  <button id="pb-en">EN</button>
+  <button id="pb-zh">中文</button>
+  <span class="sep"></span>
   <button id="pb-f10">10fps</button>
   <button id="pb-f13">13fps</button>
   <button id="pb-f15" class="on">15fps</button>
@@ -788,6 +810,153 @@ const todayKey = () => new Date().toISOString().slice(0, 10);
 const dayKeyOffset = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
 const myId = Math.random().toString(36).slice(2, 9);
 
+/* ============================================================
+   双语文案（EN 为讨论主版本；控制条 EN/中文 切换，?lang=zh 直达中文）
+   ============================================================ */
+const LANG_KEY = 'bp_jump_lang';
+let LANG = 'en';
+try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.getItem(LANG_KEY) || 'en'; } catch (e) {}
+if (LANG !== 'zh') LANG = 'en';
+const I18N = {
+zh: {
+  appTitle: '每日跳绳', tapEnter: '点按进入',
+  launchStreak: n => `已连续打卡 ${n} 天`, streakUnit: '天连胜',
+  today: n => `今日 ${n} 下`, total: '累计',
+  recTitle: '打卡记录', boardTitle: '全球排行', achvTitle: '我的成就',
+  viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
+  bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', best2: '2 分钟最佳', bestDay: '单日最高',
+  modeTitle: '选择模式', modeTimed: '限时跳', modeFree: '不限时', back: '返回',
+  timedSub: (m, pb) => `${m} 分钟倒计时${pb ? ` · 最佳 ${pb}` : ''}`,
+  freeSub: (g, t) => (g === 0 ? '自由模式' : `每日任务 ${g} 下`) + ` · 今日 ${t}`,
+  medalsTitle: '勋章', boardTodayTitle: '今日排行榜', scopeGlobal: '全球', scopeLocal: '同城',
+  setTitle: '设置', setGoal: '每日目标', setLen: '限时时长', setAge: '年龄段',
+  setWeight: '体重', setRemind: '每日提醒', setVoice: '教练语音',
+  goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
+  off: '关', on: '开', adult: '成人',
+  readyTip: '请站进画面<br>边缘变绿即可', readyHint: '离开画面会自动暂停',
+  paused: '已暂停', pausedSub: '回到画面继续 · 5 秒后自动结算', resume: '继续', finishNow: '立即结算',
+  done: '完成', again: '再跳一轮', flipQR: '点按翻面看二维码',
+  flipBack: '手机扫码保存 · 分享海报 · 点按返回', tapBack: '点按返回', tapBackBlank: '点按空白处返回',
+  noRecQ: '还没有记录，跳一轮就有啦', noRecH: '还没有记录<br>跳完第一轮就有啦',
+  you: '你', first: '你是今日第一！',
+  passFoot: (d, n) => `再跳 ${d} 下超过 ${n}`,
+  boardSub: (pct, sc) => `超过 ${pct}% 的${sc}用户 · 每天 0 点重置 · 示意数据`,
+  scopeUserG: '全球', scopeUserL: '同城',
+  achvLine: (g, a, i, s) => `已获 ${g}/${a} 枚 · ${i} 积分 ${s}`,
+  cnt: c => `${c} 下`,
+  goalReached: '目标达成！', roundOver: '本轮结束', newRec: '新纪录！', timeUp: '时间到！', celeGoal: '达成！',
+  rateLine: (r, a) => `体测评级：${r}（${a} 岁段 · 示意标准）`,
+  ratings: ['继续加油', '及格', '良好', '优秀', '满分'], kcal: '千卡',
+  streakLine: n => `连续 ${n} 天打卡`, globalRank: r => `全球第 ${r} 名`,
+  minBest: (m, b) => ` · ${m}' 最佳 ${b}`,
+  minTest: m => `${m} 分钟测试`, freeJump: '自由跳', goalOf: g => `目标 ${g}`,
+  rated: r => `评级 ${r}`, dailyMet: '每日任务达成',
+  unlockLine: ns => `解锁 ${ns.join('、')}！`,
+  sceneTag: n => `新场景「${n}」`, outfitTag: n => `新装扮「${n}」`,
+  cheers: ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'],
+  greets: ['今天也一起跳吧！', '新的一天，从 50 下开始', '跳一跳，烦恼都抖掉',
+           'Bono 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'],
+  openings: ['准备好了吗？今天也来一组！', '热身完毕，我们开始吧！',
+             '深呼吸，找到自己的节奏', '昨天的纪录，今天来打破它'],
+  tenToast: (n, ch) => `${n} 下 · ${ch}`, starsToast: (n, g) => `${n} 下 · 星星 +${g}`,
+  doubleToast: g => `彩蛋！双倍星星 +${g}`, lapToast: k => `★ 点亮第 ${k} 颗星！`,
+  goalToast: g => `${g} 下达成！继续冲！`, passToast: (n, rk) => `超过 ${n}！全球第 ${rk} 名`,
+  luckyToast: n => `踩中今日隐藏数字 ${n}！星星 +5`,
+  spMode: '选择模式：限时跳，或者不限时',
+  spTest: m => `${m} 分钟限时测试，全力以赴！请站到镜头前`,
+  spStart: o => `${o}。请站到镜头前`,
+  cd: ['三', '二', '一', '跳！'], sp30: '还有三十秒', sp10: '最后十秒，冲刺！',
+  spLap: (n, k) => `${n} 下，点亮第 ${k} 颗星！`, spTen: (n, ch) => `${n} 下，${ch}`,
+  spLucky: n => `哇，踩中今天的隐藏数字${n}，奖励五颗星！`,
+  spGoal: '目标达成！继续保持！', spTop3: '进入全球前三！', spTop1: '全球第一！保持住！',
+  spTestBest: (c, r) => `${c} 下，新纪录${r ? `，体测评级${r}` : ''}！`,
+  spTestEnd: (m, c, r) => `${m} 分钟 ${c} 下${r ? `，体测评级${r}` : ''}，辛苦啦`,
+  spEndGood: c => `一共 ${c} 下，太棒了！`, spEnd: '本轮结束，辛苦啦',
+  spUnlock: ns => `恭喜解锁${ns.join('，')}`, spPause: '已暂停',
+  spRemindOff: '提醒已关闭', spRemindAt: t => `每天 ${t} 提醒你来跳绳`,
+},
+en: {
+  appTitle: 'Daily Jump', tapEnter: 'Tap to start',
+  launchStreak: n => `${n}-day streak`, streakUnit: 'day streak',
+  today: n => `Today ${n}`, total: 'Total',
+  recTitle: 'Check-in Log', boardTitle: 'Global Ranking', achvTitle: 'My Achievements',
+  viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
+  bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", best2: "Best 2' test", bestDay: 'Best day',
+  modeTitle: 'Choose Mode', modeTimed: 'Timed', modeFree: 'Free Jump', back: 'Back',
+  timedSub: (m, pb) => `${m} min countdown${pb ? ` · PB ${pb}` : ''}`,
+  freeSub: (g, t) => (g === 0 ? 'Free mode' : `Daily goal ${g}`) + ` · today ${t}`,
+  medalsTitle: 'Medals', boardTodayTitle: "Today's Ranking", scopeGlobal: 'Global', scopeLocal: 'Local',
+  setTitle: 'Settings', setGoal: 'Daily goal', setLen: 'Timed length', setAge: 'Age',
+  setWeight: 'Weight', setRemind: 'Reminder', setVoice: 'Coach voice',
+  goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
+  off: 'Off', on: 'On', adult: 'Adult',
+  readyTip: 'Step into view<br>until the edge glows green', readyHint: 'Auto-pauses when you step out',
+  paused: 'Paused', pausedSub: 'Step back in to resume · auto-finish in 5 s', resume: 'Resume', finishNow: 'Finish now',
+  done: 'Done', again: 'One more', flipQR: 'Tap for QR card',
+  flipBack: 'Scan to share · tap back', tapBack: 'Tap to go back', tapBackBlank: 'Tap anywhere to go back',
+  noRecQ: 'No records yet — jump a round!', noRecH: 'No records yet<br>your first round starts it',
+  you: 'You', first: "You're #1 today!",
+  passFoot: (d, n) => `${d} more to pass ${n}`,
+  boardSub: (pct, sc) => `Ahead of ${pct}% ${sc} · resets daily · sample data`,
+  scopeUserG: 'worldwide', scopeUserL: 'in your city',
+  achvLine: (g, a, i, s) => `${g}/${a} earned · ${i} ${s} pts`,
+  cnt: c => `${c}`,
+  goalReached: 'Goal reached!', roundOver: 'Round over', newRec: 'New record!', timeUp: "Time's up!", celeGoal: 'Goal!',
+  rateLine: (r, a) => `Fitness rating: ${r} (age ${a} · sample standard)`,
+  ratings: ['Keep going', 'Pass', 'Good', 'Excellent', 'Perfect'], kcal: 'kcal',
+  streakLine: n => `${n}-day check-in streak`, globalRank: r => `Global #${r}`,
+  minBest: (m, b) => ` · ${m}' best ${b}`,
+  minTest: m => `${m}-min test`, freeJump: 'Free jump', goalOf: g => `Goal ${g}`,
+  rated: r => `Rating: ${r}`, dailyMet: 'Daily goal met',
+  unlockLine: ns => `Unlocked ${ns.join(', ')}!`,
+  sceneTag: n => `new scene “${n}”`, outfitTag: n => `new outfit “${n}”`,
+  cheers: ['Steady rhythm!', "Bono can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!'],
+  greets: ["Let's jump today!", 'New day — start with 50', 'Shake those worries off',
+           'Bono is all warmed up!', 'Lighter than yesterday', 'Even the moon is watching'],
+  openings: ["Ready? Let's do a round!", 'Warm-up done — here we go!',
+             'Deep breath, find your rhythm', "Yesterday's record is waiting"],
+  tenToast: (n, ch) => `${n} · ${ch}`, starsToast: (n, g) => `${n} · +${g} stars`,
+  doubleToast: g => `Bonus! Double stars +${g}`, lapToast: k => `★ Star ${k} lit!`,
+  goalToast: g => `${g} done — keep going!`, passToast: (n, rk) => `Passed ${n}! Global #${rk}`,
+  luckyToast: n => `Lucky number ${n}! +5 stars`,
+  spMode: 'Choose a mode: timed, or free jump.',
+  spTest: m => `${m}-minute timed test. Give it your all! Step in front of the camera`,
+  spStart: o => `${o} Step in front of the camera`,
+  cd: ['Three', 'Two', 'One', 'Go!'], sp30: 'Thirty seconds left', sp10: 'Final ten seconds. Sprint!',
+  spLap: (n, k) => `${n}! Star ${k} lit!`, spTen: (n, ch) => `${n}! ${ch}`,
+  spLucky: n => `Wow, you hit today's lucky number ${n}. Five bonus stars!`,
+  spGoal: 'Goal reached! Keep it up!', spTop3: 'Top three worldwide!', spTop1: 'World number one! Hold it!',
+  spTestBest: (c, r) => `${c} — new record${r ? `, rated ${r}` : ''}!`,
+  spTestEnd: (m, c, r) => `${c} in ${m} ${m > 1 ? 'minutes' : 'minute'}${r ? `, rated ${r}` : ''}. Nice work!`,
+  spEndGood: c => `${c} total. Amazing!`, spEnd: 'Round over. Nice work!',
+  spUnlock: ns => `Unlocked ${ns.join(', ')}`, spPause: 'Paused',
+  spRemindOff: 'Reminder off', spRemindAt: t => `Daily reminder at ${t}`,
+},
+};
+let L = I18N[LANG];
+function applyStatic() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = L[el.dataset.i18n];
+    if (typeof v === 'string') el.textContent = v;
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const v = L[el.dataset.i18nHtml];
+    if (typeof v === 'string') el.innerHTML = v;
+  });
+}
+function setLang(l) {
+  LANG = l === 'zh' ? 'zh' : 'en';
+  L = I18N[LANG];
+  try { localStorage.setItem(LANG_KEY, LANG); } catch (e) {}
+  $('pb-en').classList.toggle('on', LANG === 'en');
+  $('pb-zh').classList.toggle('on', LANG === 'zh');
+  document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : 'en';
+  pickVoice();
+  applyStatic();
+  renderSettings();
+  bump();
+}
+
 /* 单色 SVG 图标（Atom 端替代 emoji，跟随品牌色） */
 const ICONS = {
   flame: '<path d="M12 2c3 4.5 5 6.8 5 10.3a5.3 5.3 0 0 1-5 5.3 5.3 5.3 0 0 1-5-5.3C7 8.8 9 6.5 12 2Z"/>',
@@ -796,6 +965,7 @@ const ICONS = {
   clock: '<circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M12 7.5V12l3.2 2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>',
   gift: '<rect x="5" y="10.5" width="14" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M4 6.8h16v3.2H4Z"/><path d="M12 6.8v12.7" stroke="currentColor" stroke-width="2.2"/>',
   list: '<path d="M5 5.5h14M5 12h14M5 18.5h9" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>',
+  inf: '<circle cx="8" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2.4"/><circle cx="16" cy="12" r="4.2" fill="none" stroke="currentColor" stroke-width="2.4"/>',
   gear: '<path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="9.5" cy="7" r="2.4"/><circle cx="15" cy="12" r="2.4"/><circle cx="10.5" cy="17" r="2.4"/>',
   medal: '<circle cx="12" cy="9" r="5.6"/><path d="M8.6 13.5 7 22l5-3 5 3-1.6-8.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/>',
 };
@@ -847,25 +1017,28 @@ const S = {
    ------------------------------------------------------------ */
 /* 品牌色约束（黑白灰绿）：六个场景用 灰度深浅 × 绿意浓淡 区分 */
 const SCENES = [
-  { name: '清晨公园', atom: 'radial-gradient(120% 100% at 50% 100%, #1C3324 0%, #121514 70%)', phone: 'linear-gradient(180deg, #ECF6EE 0%, #D8EFDE 100%)' },
-  { name: '雨后森林', atom: 'radial-gradient(120% 100% at 50% 100%, #14402A 0%, #101312 70%)', phone: 'linear-gradient(180deg, #DFF2E5 0%, #C4E8D1 100%)' },
-  { name: '黄昏都市', atom: 'radial-gradient(120% 100% at 50% 100%, #2A2D2B 0%, #121514 70%)', phone: 'linear-gradient(180deg, #F1F1F0 0%, #DFDFDD 100%)' },
-  { name: '苔藓小径', atom: 'radial-gradient(120% 100% at 50% 100%, #26331F 0%, #121514 70%)', phone: 'linear-gradient(180deg, #EEF3E7 0%, #DEE9D2 100%)' },
-  { name: '星空营地', atom: 'radial-gradient(120% 100% at 30% 110%, #0E2A1C 0%, #0B0E0C 65%)', phone: 'linear-gradient(180deg, #E5EBE7 0%, #CBD6CF 100%)' },
-  { name: '月球表面', atom: 'radial-gradient(120% 100% at 50% 100%, #232624 0%, #0E100F 70%)', phone: 'linear-gradient(180deg, #F4F4F4 0%, #E4E6E4 100%)' },
+  { name: '清晨公园', en: 'Morning Park', atom: 'radial-gradient(120% 100% at 50% 100%, #1C3324 0%, #121514 70%)', phone: 'linear-gradient(180deg, #ECF6EE 0%, #D8EFDE 100%)' },
+  { name: '雨后森林', en: 'Rainforest', atom: 'radial-gradient(120% 100% at 50% 100%, #14402A 0%, #101312 70%)', phone: 'linear-gradient(180deg, #DFF2E5 0%, #C4E8D1 100%)' },
+  { name: '黄昏都市', en: 'Dusk City', atom: 'radial-gradient(120% 100% at 50% 100%, #2A2D2B 0%, #121514 70%)', phone: 'linear-gradient(180deg, #F1F1F0 0%, #DFDFDD 100%)' },
+  { name: '苔藓小径', en: 'Mossy Trail', atom: 'radial-gradient(120% 100% at 50% 100%, #26331F 0%, #121514 70%)', phone: 'linear-gradient(180deg, #EEF3E7 0%, #DEE9D2 100%)' },
+  { name: '星空营地', en: 'Starry Camp', atom: 'radial-gradient(120% 100% at 30% 110%, #0E2A1C 0%, #0B0E0C 65%)', phone: 'linear-gradient(180deg, #E5EBE7 0%, #CBD6CF 100%)' },
+  { name: '月球表面', en: 'Moon Surface', atom: 'radial-gradient(120% 100% at 50% 100%, #232624 0%, #0E100F 70%)', phone: 'linear-gradient(180deg, #F4F4F4 0%, #E4E6E4 100%)' },
 ];
 
 /* ------------------------------------------------------------
    Bono 换装（借鉴 JRC：累计跳数解锁装扮，首页左右切换）
    ------------------------------------------------------------ */
 const OUTFITS = [
-  { at: 0,    name: '经典'     },
-  { at: 100,  name: '元气发带' },
-  { at: 300,  name: '酷酷墨镜' },
-  { at: 500,  name: '小绿围巾' },
-  { at: 1000, name: '银色皇冠' },
-  { at: 2000, name: '宇航头盔' },
+  { at: 0,    name: '经典',     en: 'Classic' },
+  { at: 100,  name: '元气发带', en: 'Sport Headband' },
+  { at: 300,  name: '酷酷墨镜', en: 'Cool Shades' },
+  { at: 500,  name: '小绿围巾', en: 'Green Scarf' },
+  { at: 1000, name: '银色皇冠', en: 'Silver Crown' },
+  { at: 2000, name: '宇航头盔', en: 'Space Helmet' },
 ];
+const sName = s => LANG === 'zh' ? s.name : s.en;
+const oName = o => LANG === 'zh' ? o.name : o.en;
+const mName = m => LANG === 'zh' ? m.name : m.en;
 const unlockedOutfits = () => OUTFITS.filter(o => profile.total >= o.at);
 
 /* ------------------------------------------------------------
@@ -921,16 +1094,13 @@ function moonPhase() {
   return ['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.floor(days / synodic * 8 + 0.5) % 8];
 }
 const AMBIENCE = ['晴', '多云', '舒适', '小雨', '微风'];
-const GREETS = ['今天也一起跳吧！', '新的一天，从 50 下开始', '跳一跳，烦恼都抖掉',
-                'Bono 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'];
-const OPENINGS = ['准备好了吗？今天也来一组！', '热身完毕，我们开始吧！',
-                  '深呼吸，找到自己的节奏', '昨天的纪录，今天来打破它'];
+/* 问候/开场白正文在 I18N（L.greets / L.openings），这里只抽当日索引 */
 const dailySeed = mulberry32(seedFrom('daily' + todayKey()));
 const daily = {
   moon: moonPhase(),
   amb: AMBIENCE[(dailySeed() * AMBIENCE.length) | 0],
-  greet: GREETS[(dailySeed() * GREETS.length) | 0],
-  opening: OPENINGS[(dailySeed() * OPENINGS.length) | 0],
+  greetI: (dailySeed() * 6) | 0,
+  openingI: (dailySeed() * 4) | 0,
   lucky: 55 + ((dailySeed() * 45) | 0),          /* 每日隐藏数字 55–99，踩中有惊喜 */
   sceneOffset: seedFrom(todayKey()) % SCENES.length, /* 今日主打场景轮换 */
 };
@@ -970,13 +1140,16 @@ const sndFanfare = () => { [523,659,784,1047].forEach((f,i)=>tone(f,0.3,'triangl
 
 /* AI 教练语音（原型用系统 TTS；真实版接 TTS 服务定制音色，方案见设计文档） */
 let voiceOn = true;
-let zhVoice = null;
+let voiceSel = null;
 function pickVoice() {
   try {
     const vs = speechSynthesis.getVoices();
-    /* 优先挑明亮的中文女声（各系统命名不同，按常见名模糊匹配），兜底任意中文音色 */
-    zhVoice = vs.find(v => /^zh/i.test(v.lang) && /Xiaoxiao|Yunxi|Ting|Mei|Sin-ji|Hui|Yao|Google/i.test(v.name))
-           || vs.find(v => /^zh/i.test(v.lang)) || null;
+    /* 优先挑明亮的女声（各系统命名不同，按常见名模糊匹配），兜底该语言任意音色 */
+    voiceSel = LANG === 'zh'
+      ? (vs.find(v => /^zh/i.test(v.lang) && /Xiaoxiao|Yunxi|Ting|Mei|Sin-ji|Hui|Yao|Google/i.test(v.name))
+         || vs.find(v => /^zh/i.test(v.lang)) || null)
+      : (vs.find(v => /^en/i.test(v.lang) && /Aria|Jenny|Samantha|Zira|Google US English/i.test(v.name))
+         || vs.find(v => /^en/i.test(v.lang)) || null);
   } catch (e) {}
 }
 try { speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); } catch (e) {}
@@ -985,8 +1158,8 @@ function speak(text) {
   try {
     if (!window.speechSynthesis) return;
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'zh-CN'; u.rate = 1.08; u.pitch = 1.08;
-    if (zhVoice) u.voice = zhVoice;
+    u.lang = LANG === 'zh' ? 'zh-CN' : 'en-US'; u.rate = 1.08; u.pitch = 1.08;
+    if (voiceSel) u.voice = voiceSel;
     speechSynthesis.cancel();
     speechSynthesis.speak(u);
   } catch (e) {}
@@ -1086,9 +1259,8 @@ function render() {
 
   /* 首页 / 待机 */
   /* 模式选择页：两个选择框的副标随设置更新 */
-  $('a-opt-timed-sub').textContent = `${S.testMin} 分钟倒计时 · 测出你的极限`;
-  $('a-opt-free-sub').textContent = profile.goalNum === 0
-    ? '跳多少算多少 · 自由模式' : `跳多少算多少 · 每日任务 ${profile.goalNum} 下`;
+  $('a-opt-timed-sub').textContent = L.timedSub(S.testMin, profile.bests[S.testMin] || 0);
+  $('a-opt-free-sub').textContent = L.freeSub(profile.goalNum, todayCount());
 
   /* 跳绳中（达标后数字转暖色，继续往上数；副标行改为计时） */
   $('a-count').textContent = S.count;
@@ -1149,32 +1321,31 @@ function render() {
   /* 结算页（全部从状态推导，双窗口联动时跟随端同样正确） */
   if (S.screen === 'result') {
     const goalMet = S.goal > 0 && S.count >= S.goal;
-    const rec = profile.history[todayKey()];
+    const ageDisp = profile.age === '成人' ? L.adult : profile.age;
     $('a-r-num').textContent = S.count;
     if (S.goal === TEST) {
-      const bt = profile.bests[S.testMin] || 0;
-        $('a-r-lab').textContent = S.newBest ? '新纪录！' : '时间到！';
+        $('a-r-lab').textContent = S.newBest ? L.newRec : L.timeUp;
     } else {
-        $('a-r-lab').textContent = (goalMet ? '目标达成！' : '本轮结束') + ' · ' + fmtTime(S.elapsedMs);
+        $('a-r-lab').textContent = (goalMet ? L.goalReached : L.roundOver) + ' · ' + fmtTime(S.elapsedMs);
     }
     /* 体测评级（仅 1 分钟测试） + 卡路里 */
     $('a-r-rate').textContent = (S.goal === TEST && S.testMin === 1)
-      ? `体测评级：${rateTest(S.count)}（${profile.age} 岁段 · 示意标准）` : '';
+      ? L.rateLine(rateTest(S.count), ageDisp) : '';
     const kcal = sessionKcal();
     $('a-r-earn').innerHTML =
       `${ico('star', '#1FA85B')} +${S.earned} · ${ico('clock')} ${fmtTime(S.elapsedMs)}` +
-      (kcal > 0 ? ` · ${kcal.toFixed(1)} 千卡` : '');
+      (kcal > 0 ? ` · ${kcal.toFixed(1)} ${L.kcal}` : '');
     /* 分享页迷你海报 */
     $('a-poster-num').textContent = S.count;
     $('a-poster-sub').textContent = `${todayKey().slice(5).replace('-', '.')} · ` +
-      (S.goal === TEST ? `${S.testMin} 分钟测试` : S.goal === 0 ? '自由跳' : `目标 ${S.goal}`);
+      (S.goal === TEST ? L.minTest(S.testMin) : S.goal === 0 ? L.freeJump : L.goalOf(S.goal));
     $('a-poster-rate').textContent = S.goal === TEST && S.testMin === 1
-      ? `评级 ${rateTest(S.count)}` : (goalMet ? '每日任务达成' : '');
-    $('a-r-streak').innerHTML = `${ico('flame', '#FFB020')} 连续 ${profile.streak} 天打卡`;
+      ? L.rated(rateTest(S.count)) : (goalMet ? L.dailyMet : '');
+    $('a-r-streak').innerHTML = `${ico('flame', '#FFB020')} ${L.streakLine(profile.streak)}`;
     $('a-r-unlock').innerHTML = S.unlock ? `${ico('gift', '#7FE3A8')} ${S.unlock}` : '';
-    const rg = myRank('global'), rl = myRank('local');
-    $('a-r-rank').innerHTML = `${ico('trophy')} 全球第 ${rg.rank} 名` +
-      (S.goal === TEST ? ` · ${S.testMin}' 最佳 ${profile.bests[S.testMin] || 0}` : '');
+    const rg = myRank('global');
+    $('a-r-rank').innerHTML = `${ico('trophy')} ${L.globalRank(rg.rank)}` +
+      (S.goal === TEST ? L.minBest(S.testMin, profile.bests[S.testMin] || 0) : '');
     drawQR($('a-qr'));
   }
 
@@ -1234,7 +1405,7 @@ function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 function openMode() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
   S.screen = 'mode';
-  speak('选择模式：限时跳，或者不限时');
+  speak(L.spMode);
   bump();
 }
 function startSession(g) {
@@ -1245,23 +1416,23 @@ function startSession(g) {
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
   testMark30 = false; testMark10 = false;
   liveRank = 1 + GB.filter(u => u.count > todayCount()).length;   /* 记录起跳时的名次 */
-  speak(S.goal === TEST ? `${S.testMin} 分钟限时测试，全力以赴！请站到镜头前` : daily.opening + '。请站到镜头前');
+  speak(S.goal === TEST ? L.spTest(S.testMin) : L.spStart(L.openings[daily.openingI]));
   bump();
 }
 
 function standLocked() {              /* 站进框稳定 → 开始倒计时 */
   if (S.screen !== 'ready' || S.countdown > 0) return;
   S.countdown = 3; bump();
-  sndBeep(); speak('三');
+  sndBeep(); speak(L.cd[0]);
   clearInterval(cdTimer);
   cdTimer = setInterval(() => {
     S.countdown--;
-    if (S.countdown > 0) { sndBeep(); speak(S.countdown === 2 ? '二' : '一'); }
+    if (S.countdown > 0) { sndBeep(); speak(S.countdown === 2 ? L.cd[1] : L.cd[2]); }
     else {
       clearInterval(cdTimer);
       S.screen = 'jump';
       S.elapsedMs = 0; S.runSince = Date.now();
-      sndGo(); speak('跳！');
+      sndGo(); speak(L.cd[3]);
     }
     bump();
   }, 900);
@@ -1287,14 +1458,14 @@ setInterval(() => {
     $('a-timer').textContent = fmtTime(rem);
     $('a-timer').classList.toggle('urgent', rem <= 10000);
     $('a-ring-arc').style.strokeDashoffset = 1420.0 * (sessionElapsed() / testMs());
-    if (rem <= 30000 && !testMark30) { testMark30 = true; speak('还有三十秒'); }
-    if (rem <= 10000 && !testMark10) { testMark10 = true; speak('最后十秒，冲刺！'); }
+    if (rem <= 30000 && !testMark30) { testMark30 = true; speak(L.sp30); }
+    if (rem <= 10000 && !testMark10) { testMark10 = true; speak(L.sp10); }
   } else {
     $('a-timer').textContent = fmtTime(sessionElapsed());
   }
 }, 250);
 
-const CHEERS = ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'];
+/* 加油语在 I18N：L.cheers（随语言切换） */
 
 /* ------------------------------------------------------------
    青少年体测评级（1 分钟测试）：按年龄段分档
@@ -1310,8 +1481,8 @@ const RATING = {                     /* [及格, 良好, 优秀, 满分] */
 };
 function rateTest(count) {
   const t = RATING[profile.age] || RATING['9-11'];
-  return count >= t[3] ? '满分' : count >= t[2] ? '优秀'
-       : count >= t[1] ? '良好' : count >= t[0] ? '及格' : '继续加油';
+  const i = count >= t[3] ? 4 : count >= t[2] ? 3 : count >= t[1] ? 2 : count >= t[0] ? 1 : 0;
+  return L.ratings[i];
 }
 
 /* ------------------------------------------------------------
@@ -1337,9 +1508,9 @@ function checkOvertake() {
   if (rk < liveRank) {
     if (rk <= 15 && liveRank !== Infinity) {
       const below = GB.find(u => u.count <= tNow);
-      if (below) toast(`超过 ${below.name}！全球第 ${rk} 名`, 1300);
-      if (rk === 3) speak('进入全球前三！');
-      if (rk === 1) speak('全球第一！保持住！');
+      if (below) toast(L.passToast(below.name, rk), 1300);
+      if (rk === 3) speak(L.spTop3);
+      if (rk === 1) speak(L.spTop1);
     }
     liveRank = rk;
   }
@@ -1357,24 +1528,25 @@ function registerJump() {
   if (S.count % 10 === 0) {
     S.bgStep++;
     sndMilestone();
-    let msg = `${S.count} 下 · ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`;
+    const cheer = () => L.cheers[Math.floor(Math.random() * L.cheers.length)];
+    let msg = L.tenToast(S.count, cheer());
     if (S.count % 20 === 0) {
       let gain = 2;
-      if (Math.random() < 0.15) { gain = 4; msg = `彩蛋！双倍星星 +${gain}`; confetti($('atomRoot'), 24); }
-      else msg = `${S.count} 下 · 星星 +${gain}`;
+      if (Math.random() < 0.15) { gain = 4; msg = L.doubleToast(gain); confetti($('atomRoot'), 24); }
+      else msg = L.starsToast(S.count, gain);
       S.earned += gain;
       sndStar(); flyStar($('atomRoot'));
     }
     const unit = S.goal > 0 ? S.goal : 50;
     if (S.count % unit === 0) {
-      msg = `★ 点亮第 ${S.count / unit} 颗星！`;
+      msg = L.lapToast(S.count / unit);
       sndStar();
     }
     toast(msg);
     /* 教练语音分层：满一个目标倍数报"点亮一颗星"，整 30 带一句鼓励，其余整 10 只报数 */
     if (!(S.goal > 0 && S.count === S.goal)) {
-      if (S.count % unit === 0) speak(`${S.count} 下，点亮第 ${S.count / unit} 颗星！`);
-      else if (S.count % 30 === 0) speak(`${S.count} 下，${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`);
+      if (S.count % unit === 0) speak(L.spLap(S.count, S.count / unit));
+      else if (S.count % 30 === 0) speak(L.spTen(S.count, cheer()));
       else speak(String(S.count));
     }
   }
@@ -1387,8 +1559,8 @@ function registerJump() {
     profile.luckyHits = (profile.luckyHits || 0) + 1;
     sndStar();
     confetti($('atomRoot'), 30);
-    toast(`踩中今日隐藏数字 ${daily.lucky}！星星 +5`, 1800);
-    speak(`哇，踩中今天的隐藏数字${daily.lucky}，奖励五颗星！`);
+    toast(L.luckyToast(daily.lucky), 1800);
+    speak(L.spLucky(daily.lucky));
   }
 
   /* 达标：不打断、不切界面，庆祝完继续往上数（51、52……用户不停就一直跳） */
@@ -1397,8 +1569,8 @@ function registerJump() {
     S.earned += 10;
     sndFanfare();
     confetti($('atomRoot'), 50);
-    toast(`${S.goal} 下达成！继续冲！`, 1800);
-    speak(`目标达成！继续保持！`);
+    toast(L.goalToast(S.goal), 1800);
+    speak(L.spGoal);
   }
   bump();
 }
@@ -1421,17 +1593,17 @@ function endSession() {
   const celebrated = goalMet || (S.goal === TEST && S.newBest);
   if (celebrated) {
     $('a-celebrate').querySelector('.txt').textContent =
-      S.goal === TEST && S.newBest ? '新纪录！' : '达成！';
+      S.goal === TEST && S.newBest ? L.newRec : L.celeGoal;
     S.screen = 'celebrate';
     bump();
     sndFanfare();
     confetti($('atomRoot'), 70);
   }
   if (S.goal === TEST) {
-    const rateTxt = S.testMin === 1 ? `，体测评级${rateTest(S.count)}` : '';
-    speak(S.newBest ? `${S.count} 下，新纪录${rateTxt}！` : `${S.testMin} 分钟 ${S.count} 下${rateTxt}，辛苦啦`);
+    const rateTxt = S.testMin === 1 ? rateTest(S.count) : '';
+    speak(S.newBest ? L.spTestBest(S.count, rateTxt) : L.spTestEnd(S.testMin, S.count, rateTxt));
   } else {
-    speak(goalMet ? `一共 ${S.count} 下，太棒了！` : '本轮结束，辛苦啦');
+    speak(goalMet ? L.spEndGood(S.count) : L.spEnd);
   }
 
   /* 打卡与档案结算 */
@@ -1454,14 +1626,14 @@ function endSession() {
   const unlocks = [];
   if (goalMet && profile.scenes < SCENES.length) {
     profile.scenes++;
-    unlocks.push(`新场景「${SCENES[profile.scenes - 1].name}」`);
+    unlocks.push(L.sceneTag(sName(SCENES[profile.scenes - 1])));
   }
   OUTFITS.forEach(o => {
     if (o.at > 0 && o.at > S.totalAtStart && o.at <= profile.total)
-      unlocks.push(`新装扮「${o.name}」`);
+      unlocks.push(L.outfitTag(oName(o)));
   });
-  S.unlock = unlocks.length ? '解锁 ' + unlocks.join('、') + '！' : '';
-  if (unlocks.length) speak('恭喜解锁' + unlocks.join('，'));
+  S.unlock = unlocks.length ? L.unlockLine(unlocks) : '';
+  if (unlocks.length) speak(L.spUnlock(unlocks));
   saveProfile();
 
   if (celebrated) setTimeout(() => { S.screen = 'result'; bump(); }, 1900);
@@ -1477,7 +1649,7 @@ function pauseSession(v) {
   if (v && S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
   if (!v && !S.runSince) S.runSince = Date.now();
   if (v) {
-    speak('已暂停');
+    speak(L.spPause);
     /* 停下 5 秒视为"这轮跳完了"，自动进结算 */
     pauseEndTimer = setTimeout(() => { if (S.paused && S.screen === 'jump') endSession(); }, 5000);
   }
@@ -1778,12 +1950,12 @@ $('a-mode-back').addEventListener('click', () => { audio(); goHome(); });
 
 /* 设置页（首页 ⚙ 进入）：目标 / 限时时长 / 语音 */
 function renderSettings() {
-  $('as-goal').textContent = profile.goalNum === 0 ? '自由跳' : profile.goalNum + ' 下';
-  $('as-len').textContent = S.testMin + ' 分钟';
-  $('as-age').textContent = profile.age;
+  $('as-goal').textContent = L.goalVal(profile.goalNum);
+  $('as-len').textContent = L.lenVal(S.testMin);
+  $('as-age').textContent = profile.age === '成人' ? L.adult : profile.age;
   $('as-weight').textContent = profile.weight + ' kg';
-  $('as-remind').textContent = profile.remind;
-  $('as-voice').textContent = voiceOn ? '开' : '关';
+  $('as-remind').textContent = profile.remind === '关' ? L.off : profile.remind;
+  $('as-voice').textContent = voiceOn ? L.on : L.off;
 }
 const WEIGHTS = [25, 30, 35, 40, 45, 50, 60, 70, 80, 90];
 const REMINDS = ['关', '19:00', '20:00', '21:00'];
@@ -1801,7 +1973,7 @@ $('as-remind').addEventListener('click', (e) => {
   e.stopPropagation(); audio();
   profile.remind = REMINDS[(REMINDS.indexOf(profile.remind) + 1) % REMINDS.length];
   saveProfile(); renderSettings();
-  speak(profile.remind === '关' ? '提醒已关闭' : `每天 ${profile.remind} 提醒你来跳绳`);
+  speak(profile.remind === '关' ? L.spRemindOff : L.spRemindAt(profile.remind));
 });
 $('a-settings-btn').addEventListener('click', (e) => {
   e.stopPropagation(); audio(); renderSettings(); $('a-set').classList.add('show');
@@ -1839,7 +2011,7 @@ function renderABoard() {
   const list = fakeBoard(aBoardScope);
   const me = myRank(aBoardScope);
   const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
-  merged.push({ name: '你', count: me.count, me: true });
+  merged.push({ name: L.you, count: me.count, me: true });
   merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
   const meIdx = merged.findIndex(u => u.me);
 
@@ -1857,11 +2029,11 @@ function renderABoard() {
   $('a-board-list').innerHTML = rows.join('');
 
   const above = meIdx > 0 ? merged[meIdx - 1] : null;
-  $('a-board-foot').textContent = !above ? '你是今日第一！'
-    : `再跳 ${above.count - me.count + 1} 下超过 ${above.name}`;
+  $('a-board-foot').textContent = !above ? L.first
+    : L.passFoot(above.count - me.count + 1, above.name);
   const pct = Math.round((1 - meIdx / merged.length) * 100);
   $('a-board-sub').textContent =
-    `超过 ${pct}% 的${aBoardScope === 'global' ? '全球' : '同城'}用户 · 每天 0 点重置 · 示意数据`;
+    L.boardSub(pct, aBoardScope === 'global' ? L.scopeUserG : L.scopeUserL);
   $('ab-global').classList.toggle('dim', aBoardScope !== 'global');
   $('ab-local').classList.toggle('dim', aBoardScope !== 'local');
 }
@@ -1901,27 +2073,27 @@ function nudge() {
 /* 勋章体系：全部由现有数据计算得出 */
 const maxDaily = () => Math.max(0, ...Object.values(profile.history).map(r => r.count || 0));
 const MEDALS = [
-  { name: '连胜 7 天',   cond: () => profile.streak >= 7 },
-  { name: '连胜 21 天',  cond: () => profile.streak >= 21 },
-  { name: '累计 1000',   cond: () => profile.total >= 1000 },
-  { name: '累计 10000',  cond: () => profile.total >= 10000 },
-  { name: "1 分钟 120",  cond: () => (profile.bests[1] || 0) >= 120 },
-  { name: '单轮 200',    cond: () => (profile.bestSession || 0) >= 200 },
-  { name: '单日 300',    cond: () => maxDaily() >= 300 },
-  { name: '猎中隐藏数字', cond: () => (profile.luckyHits || 0) > 0 },
+  { name: '连胜 7 天',   en: '7-day streak',     cond: () => profile.streak >= 7 },
+  { name: '连胜 21 天',  en: '21-day streak',    cond: () => profile.streak >= 21 },
+  { name: '累计 1000',   en: 'Total 1,000',      cond: () => profile.total >= 1000 },
+  { name: '累计 10000',  en: 'Total 10,000',     cond: () => profile.total >= 10000 },
+  { name: "1 分钟 120",  en: "120 in 1'",        cond: () => (profile.bests[1] || 0) >= 120 },
+  { name: '单轮 200',    en: '200 in a round',   cond: () => (profile.bestSession || 0) >= 200 },
+  { name: '单日 300',    en: '300 in a day',     cond: () => maxDaily() >= 300 },
+  { name: '猎中隐藏数字', en: 'Lucky number hit', cond: () => (profile.luckyHits || 0) > 0 },
 ];
 
 function renderQuickCards() {
   /* 系统入口卡 */
-  $('a-launch-streak').textContent = `已连续打卡 ${profile.streak} 天`;
+  $('a-launch-streak').textContent = L.launchStreak(profile.streak);
   /* Page 1 · Home */
   $('a-card-streak').textContent = profile.streak;
-  $('a-card-today').innerHTML = `今日 ${todayCount()} 下<span class="chev-s">›</span>`;
+  $('a-card-today').innerHTML = `${L.today(todayCount())}<span class="chev-s">›</span>`;
   $('a-card-pb').innerHTML =
     `<span class="pb-badge">PB</span> ${profile.bestSession || '—'}` +
-    `<span>${profile.bests[1] || '—'} / 1'</span><span class="chev-s">›</span>`;
+    `<span>· ${profile.bests[1] || '—'} / 1'</span><span class="chev-s">›</span>`;
   $('a-card-total').innerHTML =
-    `累计 ${profile.total} <span class="st">★${profile.stars}</span><span class="chev-s">›</span>`;
+    `${L.total} ${profile.total} <span class="st">★${profile.stars}</span><span class="chev-s">›</span>`;
   /* Page 2 · 打卡记录：周点 + 最近 3 天 */
   const wk = $('a-week'); wk.innerHTML = '';
   for (let i = -6; i <= 0; i++) {
@@ -1936,15 +2108,15 @@ function renderQuickCards() {
     ? keys.slice(-3).reverse().map(k => {
         const r = profile.history[k];
         return `<div class="hrow"><span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
-          `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${r.count} 下</span>` +
+          `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${L.cnt(r.count)}</span>` +
           `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span></div>`;
       }).join('')
-    : '<div class="h-empty">还没有记录，跳一轮就有啦</div>';
+    : `<div class="h-empty">${L.noRecQ}</div>`;
   /* Page 3 · 全球排行：Top3 + 你 */
   const list = fakeBoard('global');
   const me = myRank('global');
   const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
-  merged.push({ name: '你', count: me.count, me: true });
+  merged.push({ name: L.you, count: me.count, me: true });
   merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
   const meIdx = merged.findIndex(u => u.me);
   const row = (i, u) =>
@@ -1955,18 +2127,23 @@ function renderQuickCards() {
   $('a-qboard').innerHTML = rows.join('');
   const above = meIdx > 0 ? merged[meIdx - 1] : null;
   $('a-qboard-foot').textContent = above
-    ? `再跳 ${above.count - me.count + 1} 下超过 ${above.name}` : '你是今日第一！';
+    ? L.passFoot(above.count - me.count + 1, above.name) : L.first;
   /* Page 4 · 我的成就 */
   const got = MEDALS.filter(m => m.cond());
   $('qc3-medals').innerHTML = MEDALS.slice(0, 6)
     .map(m => `<span style="color:${m.cond() ? 'var(--accent)' : 'rgba(255,255,255,.18)'}">${ico('medal')}</span>`)
     .join('');
-  $('qc3-star').innerHTML =
-    `已获 ${got.length}/${MEDALS.length} 枚 · ${ico('star', '#1FA85B')} 积分 ${profile.stars}`;
+  $('qc3-star').innerHTML = L.achvLine(got.length, MEDALS.length, ico('star', '#1FA85B'), profile.stars);
+}
+function renderBest() {
+  const rows = [[L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
+                [L.best2, profile.bests[2]], [L.bestDay, maxDaily()]];
+  $('a-best-rows').innerHTML = rows.map(([lab, v]) =>
+    `<div class="srow"><span>${lab}</span><b class="bval">${v || '—'}</b></div>`).join('');
 }
 function renderMedals() {
   $('a-medal-grid').innerHTML = MEDALS.map(m =>
-    `<div class="medal-item${m.cond() ? ' got' : ''}">${ico('medal')}<span>${m.name}</span></div>`
+    `<div class="medal-item${m.cond() ? ' got' : ''}">${ico('medal')}<span>${mName(m)}</span></div>`
   ).join('');
 }
 
@@ -1985,7 +2162,7 @@ $('a-cards-vp').addEventListener('pointerup', (e) => {
 });
 /* 系统入口卡 → 进入 APP */
 $('a-launch').addEventListener('click', () => {
-  audio(); S.screen = 'idle'; bump(); speak(daily.greet);
+  audio(); S.screen = 'idle'; bump(); speak(L.greets[daily.greetI]);
   setTimeout(nudge, 900);
   setTimeout(nudge, 10000);
 });
@@ -1997,8 +2174,9 @@ $('a-card-today').addEventListener('click', () => {
   if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
 });
 $('a-card-pb').addEventListener('click', () => {
-  if (swiped) return; audio(); renderMedals(); $('a-medal').classList.add('show');
+  if (swiped) return; audio(); renderBest(); $('a-best').classList.add('show');
 });
+$('a-best').addEventListener('click', () => $('a-best').classList.remove('show'));
 $('a-card-total').addEventListener('click', () => {
   if (swiped) return; audio(); renderMedals(); $('a-medal').classList.add('show');
 });
@@ -2032,7 +2210,7 @@ function renderHistory() {
   keys.forEach((k, i) => { dayNo[k] = i + 1; });
   const list = $('a-history-list');
   if (!keys.length) {
-    list.innerHTML = '<div class="h-empty">还没有记录<br>跳完第一轮就有啦</div>';
+    list.innerHTML = `<div class="h-empty">${L.noRecH}</div>`;
     return;
   }
   list.innerHTML = keys.slice(-6).reverse().map(k => {
@@ -2040,7 +2218,7 @@ function renderHistory() {
     return `<div class="hrow">` +
       `<span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
       `<span class="hday">Day ${dayNo[k]}</span>` +
-      `<span class="hc">${r.count} 下</span>` +
+      `<span class="hc">${L.cnt(r.count)}</span>` +
       `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span>` +
       `</div>`;
   }).join('');
@@ -2118,6 +2296,10 @@ skel.ctx = $('a-skel').getContext('2d');
 render();
 $('a-history-btn').innerHTML = ico('list') + ' 记录';
 $('a-settings-btn').innerHTML = ico('gear');
+document.querySelectorAll('.mode-ico').forEach(el => { el.innerHTML = ico(el.dataset.ico); });
+$('pb-en').addEventListener('click', () => setLang('en'));
+$('pb-zh').addEventListener('click', () => setLang('zh'));
+setLang(LANG);   /* 应用语言（默认 EN；?lang=zh 或控制条切换） */
 setFps(15);   /* 默认 15fps（真机波动时可切 13/10 检查动效） */
 /* 手机小屏：自动缩放贴合（桌面仍默认 466 物理 1:1，可用 1×/2×/3× 切换） */
 if (Math.min(window.innerWidth, window.innerHeight) < 520) {
