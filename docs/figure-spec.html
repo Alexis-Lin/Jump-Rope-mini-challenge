@@ -1,0 +1,147 @@
+<meta charset="utf-8">
+<title>火柴人设计定义 · Figure Spec</title>
+<style>
+  body { margin: 0; background: #121514; color: #F2F4F2; font-family: "PingFang SC","Noto Sans SC",system-ui,sans-serif; }
+  .sheet { width: 1340px; margin: 0 auto; padding: 40px 40px 48px; }
+  h1 { font-size: 30px; margin: 0 0 6px; } h1 small { color: #8D9591; font-weight: 400; font-size: 16px; margin-left: 12px; }
+  .kw { color: #23C766; font-size: 15px; letter-spacing: .12em; margin-bottom: 26px; }
+  .cols { display: flex; gap: 36px; align-items: flex-start; }
+  .panel { background: #171B19; border: 1px solid #242C27; border-radius: 16px; padding: 24px; }
+  table { border-collapse: collapse; font-size: 14px; width: 100%; }
+  td, th { padding: 7px 12px; border-bottom: 1px solid #242C27; text-align: left; white-space: nowrap; }
+  th { color: #8D9591; font-weight: 600; }
+  td b { color: #23C766; font-variant-numeric: tabular-nums; }
+  .cap { color: #8D9591; font-size: 13px; margin-top: 10px; line-height: 1.7; }
+  .ddt { display: flex; gap: 26px; margin-top: 30px; }
+  .ddt .item { text-align: center; font-size: 14px; }
+  .ddt .tag { margin-top: 6px; font-weight: 700; }
+  .no  .tag { color: #E5604C; } .yes .tag { color: #23C766; }
+  .ann { font-size: 13px; fill: #8D9591; font-variant-numeric: tabular-nums; }
+  .annG { fill: #23C766; font-weight: 700; }
+  .dim { stroke: #4A554F; stroke-width: 1; }
+</style>
+<div class="sheet">
+  <h1>跳绳小挑战 · 火柴人设计定义 <small>Realtime Figure Spec · v1.0 · 适用于实时骨骼渲染与吉祥物姿态稿</small></h1>
+  <div class="kw">科技极简 · 圆润 · 等宽直柱 · 无面部 · 无关节凸起 —— 比奥林匹克 pictogram 更极简</div>
+
+  <div class="cols">
+    <!-- 标注主图 -->
+    <div class="panel">
+      <svg width="560" height="560" viewBox="0 0 560 560">
+        <g transform="translate(150,30)">
+          <!-- 辅助尺寸线 -->
+          <line class="dim" x1="134" y1="10"  x2="215" y2="10"/>
+          <text class="ann" x="228" y="14">头 r26 · 纯白</text>
+          <line class="dim" x1="187" y1="66"  x2="252" y2="66"/>
+          <text class="ann" x="258" y="70">头-肩间隙 ≈11（不相连）</text>
+          <line class="dim" x1="187" y1="95"  x2="268" y2="95"/>
+          <text class="ann" x="274" y="99">颈点 = 双肩中点</text>
+          <line class="dim" x1="188" y1="170" x2="280" y2="170"/>
+          <text class="ann" x="286" y="174">躯干等宽直柱 <tspan class="annG">宽 26</tspan></text>
+          <line class="dim" x1="178" y1="228" x2="292" y2="228"/>
+          <text class="ann" x="298" y="224">髋锚点 ±3</text>
+          <text class="ann annG" x="298" y="242">髋部总宽 = 躯干宽 26</text>
+          <line class="dim" x1="112" y1="128" x2="52" y2="128"/>
+          <text class="ann" x="-96" y="132">臂宽 18</text>
+          <line class="dim" x1="140" y1="300" x2="66" y2="300"/>
+          <text class="ann" x="-96" y="304">腿宽 20</text>
+          <line class="dim" x1="102" y1="218" x2="42" y2="218"/>
+          <text class="ann" x="-96" y="222">手圆头 r13</text>
+          <line class="dim" x1="128" y1="382" x2="60" y2="382"/>
+          <text class="ann" x="-96" y="386">脚圆头 r14</text>
+
+          <!-- 定稿形（基准 ws=1；圆端帽） -->
+          <g stroke="#EDF2EF" stroke-linecap="round" fill="none">
+            <line x1="160" y1="121" x2="160" y2="230" stroke-width="26"/>          <!-- 躯干 -->
+            <path d="M160 121 L118 165 L104 207" stroke-width="18"/>               <!-- 左臂 -->
+            <path d="M160 121 L202 165 L216 207" stroke-width="18"/>               <!-- 右臂 -->
+            <path d="M157 230 L146 297 L140 371" stroke-width="20"/>               <!-- 左腿 -->
+            <path d="M163 230 L174 297 L180 371" stroke-width="20"/>               <!-- 右腿 -->
+          </g>
+          <g fill="#FFFFFF">
+            <circle cx="160" cy="66"  r="26"/>                                     <!-- 头 -->
+            <circle cx="104" cy="207" r="13"/><circle cx="216" cy="207" r="13"/>   <!-- 手 -->
+            <circle cx="140" cy="371" r="14"/><circle cx="180" cy="371" r="14"/>   <!-- 脚 -->
+          </g>
+        </g>
+      </svg>
+      <!-- Do / Don't -->
+      <div class="ddt">
+        <div class="item no">
+          <svg width="96" height="120" viewBox="0 0 96 120">
+            <g stroke="#8D9591" stroke-linecap="round" fill="none">
+              <polygon points="30,30 66,30 56,80 40,80" fill="#8D9591" stroke="none"/>
+              <path d="M42 80 L36 108 M54 80 L60 108" stroke-width="8"/>
+            </g>
+            <circle cx="48" cy="14" r="11" fill="#8D9591"/>
+          </svg>
+          <div class="tag">✕ 宽肩梯形</div>
+        </div>
+        <div class="item no">
+          <svg width="96" height="120" viewBox="0 0 96 120">
+            <g stroke="#8D9591" stroke-linecap="round" fill="none">
+              <line x1="48" y1="32" x2="48" y2="76" stroke-width="13"/>
+              <path d="M38 76 L34 108 M58 76 L62 108" stroke-width="9"/>
+            </g>
+            <circle cx="48" cy="14" r="11" fill="#8D9591"/>
+            <circle cx="38" cy="76" r="7" fill="#8D9591"/>
+            <circle cx="58" cy="76" r="7" fill="#8D9591"/>
+          </svg>
+          <div class="tag">✕ 髋部外凸</div>
+        </div>
+        <div class="item no">
+          <svg width="96" height="120" viewBox="0 0 96 120">
+            <g stroke="#8D9591" stroke-linecap="round" fill="none">
+              <line x1="48" y1="32" x2="48" y2="76" stroke-width="13"/>
+              <path d="M48 40 L28 56 M48 40 L68 56" stroke-width="7"/>
+              <path d="M45 76 L38 108 M51 76 L58 108" stroke-width="9"/>
+            </g>
+            <circle cx="48" cy="14" r="11" fill="#8D9591"/>
+            <circle cx="28" cy="56" r="6" fill="#8D9591"/>
+            <circle cx="68" cy="56" r="6" fill="#8D9591"/>
+            <circle cx="48" cy="40" r="6" fill="#8D9591"/>
+          </svg>
+          <div class="tag">✕ 关节圆点外露</div>
+        </div>
+        <div class="item yes">
+          <svg width="96" height="120" viewBox="0 0 96 120">
+            <g stroke="#EDF2EF" stroke-linecap="round" fill="none">
+              <line x1="48" y1="34" x2="48" y2="78" stroke-width="13"/>
+              <path d="M48 34 L30 52 L24 68" stroke-width="8"/>
+              <path d="M48 34 L66 52 L72 68" stroke-width="8"/>
+              <path d="M46.5 78 L42 108 M49.5 78 L54 108" stroke-width="9"/>
+            </g>
+            <circle cx="48" cy="13" r="11" fill="#fff"/>
+            <circle cx="24" cy="68" r="5.5" fill="#fff"/><circle cx="72" cy="68" r="5.5" fill="#fff"/>
+            <circle cx="42" cy="108" r="6" fill="#fff"/><circle cx="54" cy="108" r="6" fill="#fff"/>
+          </svg>
+          <div class="tag">✓ 定稿</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 参数表 -->
+    <div class="panel" style="flex:1;">
+      <table>
+        <tr><th>部件</th><th>定义</th><th>基准值（ws=1）</th></tr>
+        <tr><td>头</td><td>纯白实心圆，圆心 = 双耳中点上移 17；与躯干<b>留空不相连</b></td><td>r <b>26</b></td></tr>
+        <tr><td>躯干</td><td>等宽直柱：颈点（双肩中点）→ 髋中点，一条线，圆端帽</td><td>宽 <b>26</b></td></tr>
+        <tr><td>手臂</td><td>从<b>颈点</b>发源（不画肩线）→ 肘 → 腕</td><td>宽 <b>18</b></td></tr>
+        <tr><td>腿</td><td>从<b>髋锚点</b>发源 → 膝 → 踝；髋锚点 = 髋中点 x ±3、y 同髋中点</td><td>宽 <b>20</b></td></tr>
+        <tr><td>髋部</td><td><b>总宽恒等于躯干宽</b>（3×2 + 20 = 26），腿外缘与躯干侧边齐平</td><td>= <b>26</b></td></tr>
+        <tr><td>手 / 脚</td><td>末端纯白小圆头（唯一允许的"凸"，是端点不是关节）</td><td>r <b>13 / 14</b></td></tr>
+        <tr><td>颜色</td><td>肢体/躯干 <b>#EDF2EF</b>（浅白）；头/手/脚 <b>#FFFFFF</b>；深色舞台上使用</td><td>—</td></tr>
+        <tr><td>缩放</td><td>全部尺寸 × ws；ws = clamp(肩宽px ÷ 40, 0.55, 1.5)（近大远小）</td><td>0.55–1.5</td></tr>
+        <tr><td>关节</td><td>肘/膝 = 同宽线段圆帽相接，平滑过渡；<b>肩/髋/肘/膝一律不画圆点、不加宽</b></td><td>—</td></tr>
+      </table>
+      <div class="cap">
+        <b style="color:#F2F4F2">铁律</b>：① 髋部总宽 = 躯干宽，侧边一条直线下来，无外凸；② 无宽肩、无梯形（上下等宽）；
+        ③ 关节零装饰——圆润感全部来自"等宽线 + 圆端帽"，不靠加圆点；④ 无面部、无描边、无渐变；
+        ⑤ 头与躯干之间保留 pictogram 式空隙。<br><br>
+        <b style="color:#F2F4F2">映射（AI 33 点）</b>：颈点=11/12 中点 · 髋中点=23/24 中点 · 头圆心=7/8 中点上移 17ws ·
+        肘 13/14 · 腕 15/16 · 膝 25/26 · 踝 27/28。真实髋点只参与<b>计算髋中点</b>，不直接作为画腿起点。<br><br>
+        <b style="color:#F2F4F2">实现基准</b>：prototype/index.html · skelFrame()（同规格需同步 firmware/src/atom_app.c）。
+      </div>
+    </div>
+  </div>
+</div>

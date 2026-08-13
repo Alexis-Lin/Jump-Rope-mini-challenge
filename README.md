@@ -14,6 +14,7 @@
 | 📋 **PRD** | [`docs/PRD.md`](docs/PRD.md) | 需求明细 + 验收标准 + 状态策略 + 接口 + 里程碑,**开发以此为准** |
 | 📄 产品设计文档 | [`docs/product-design.md`](docs/product-design.md) | 设计理据、JRC 对标调研、排行榜/语音/新鲜感方案、商业与增长 |
 | 🖼 **UI 界面图(全套 20 屏 × 双语)** | [`docs/ui/`](docs/ui/README.md) | 真实渲染截图,`en/` 讨论主版本、`zh/` 中文版,含空态/极限态 |
+| 🧍 **火柴人设计定义** | [`docs/figure-spec.html`](docs/figure-spec.html) | 独立规格卡(标注图+参数表+Do/Don't):等宽直柱、髋宽=躯干宽、无关节凸起;PNG 版在 [`docs/ui/figure-spec.png`](docs/ui/figure-spec.png) |
 | 🦘 **可交互原型** | [`prototype/index.html`](prototype/index.html) | 浏览器直接打开(手机也可);默认英文,`?lang=zh` 或控制条切中文;底部控制条:自动演示 / 语音 / 10·13·15fps / 1×2×3× |
 | 📟 纯 C 固件参考 | [`firmware/`](firmware/) | C11 + 软件光栅化完整参考实现(HAL 5 接口 + AI 事件接口),`make demo` 出 BMP 帧;移植指引见其 README |
 | 🌐 WebView 嵌入版 | [`embedded/`](embedded/) | 设备 WebView 单文件方案 + AI 桥接接口文档。⚠ 基于 v0.5,**界面落后于原型**,接口契约仍有效;定版后需重新生成 |

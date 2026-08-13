@@ -1907,7 +1907,9 @@ function skelFrame() {
     c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
     c.stroke();
   }
-  /* 手臂：从颈点分出（火柴人式）；腿：从真实髋点下来（髋点在柱体宽度内，侧边仍直） */
+  /* 手臂：从颈点分出（火柴人式）；
+     腿：从躯干柱内侧锚点分出（髋锚点 = 髋中点 ±3ws）——髋部总宽恒等于躯干宽 26ws，
+     腿外缘与躯干侧边齐平，无任何关节外凸（圆润 pictogram 定义，见 docs/figure-spec.md） */
   const armSeg = (elbow, wrist) => {
     if (!neck || !pts[elbow]) return;
     c.lineWidth = 18 * ws;
@@ -1915,7 +1917,15 @@ function skelFrame() {
     seg(elbow, wrist, 18);
   };
   armSeg(13, 15); armSeg(14, 16);
-  seg(23, 25, 20); seg(25, 27, 20); seg(24, 26, 20); seg(26, 28, 20);
+  const legSeg = (hip, knee, ankle) => {
+    if (!pts[hip] || !pts[knee] || !pts[23] || !pts[24]) return;
+    const hmx = (X(pts[23]) + X(pts[24])) / 2, hmy = (Y(pts[23]) + Y(pts[24])) / 2;
+    const ax = hmx + (X(pts[hip]) < hmx ? -3 : 3) * ws;
+    c.lineWidth = 20 * ws;
+    c.beginPath(); c.moveTo(ax, hmy); c.lineTo(X(pts[knee]), Y(pts[knee])); c.stroke();
+    seg(knee, ankle, 20);
+  };
+  legSeg(23, 25, 27); legSeg(24, 26, 28);
   /* 手部 / 脚部小圆头（纯白，略亮于肢体） */
   c.fillStyle = '#FFFFFF';
   const knob = (i, r) => {

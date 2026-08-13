@@ -5,7 +5,7 @@
 | 版本 | v1.0（对应原型 proto-v0.17） |
 | 日期 | 2026-08-13 |
 | 状态 | 待评审 |
-| 相关文档 | [产品设计文档](product-design.md)（设计理据与调研）· [UI 界面图](ui/)（EN/中文全套）· [可交互原型](../prototype/index.html) · [C 固件参考](../firmware/) |
+| 相关文档 | [产品设计文档](product-design.md)（设计理据与调研）· [火柴人设计定义](figure-spec.html) · [UI 界面图](ui/)（EN/中文全套）· [可交互原型](../prototype/index.html) · [C 固件参考](../firmware/) |
 
 ---
 
