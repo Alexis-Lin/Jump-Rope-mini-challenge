@@ -183,7 +183,7 @@
   }
   .card-big { font-size: var(--n56); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
   .qcard { position: relative; }
-  .qcard.page { justify-content: flex-start; padding-top: 9.5%; gap: .7em; }
+  .qcard.page { justify-content: flex-start; padding-top: 2.6em; gap: .7em; }
   .page-title { font-size: var(--t28); font-weight: 700; }
   .page-cta {
     position: absolute; bottom: 8%; left: 50%; transform: translateX(-50%);
@@ -209,7 +209,7 @@
     font-size: var(--t18); font-weight: 800;
     border-radius: .3em; padding: .1em .32em; margin-right: .25em;
   }
-  .board-foot-q { font-size: var(--t24); color: var(--accent); font-weight: 700; }
+  .board-foot-q { font-size: var(--t22); color: var(--accent); font-weight: 700; max-width: 82%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   /* Home 数据区块 = 可点击入口 */
   .home-block {
     background: none; border: none; color: inherit; font: inherit;
@@ -232,6 +232,7 @@
   @keyframes hintpulse { 50% { opacity: .3; } }
   .card-mid { font-size: var(--t32); font-weight: 700; }
   .qcard .h-list { gap: .35em; }
+  #a-board .h-list { gap: .28em; }
   .card-dots {
     position: absolute; bottom: 3.5%; left: 0; right: 0; z-index: 4;
     display: flex; justify-content: center; gap: .5em;
@@ -245,7 +246,7 @@
     display: grid; grid-template-columns: repeat(2, auto);
     gap: .7em 1.6em; font-size: var(--t24);
   }
-  .medal-item { display: flex; align-items: center; gap: .4em; color: var(--stage-soft); }
+  .medal-item { display: flex; align-items: center; gap: .4em; color: var(--stage-soft); white-space: nowrap; }
   .medal-item.got { color: var(--accent); }
   .medal-item .ico { width: 1.2em; height: 1.2em; }
   .atom-cta.big { font-size: var(--t28); padding: .55em 1.7em; }
@@ -262,12 +263,13 @@
   .round-btn .ico { width: 1.15em; height: 1.15em; }
 
   /* 设置行 */
-  .set-rows { display: flex; flex-direction: column; gap: .7em; width: 58%; }
+  .set-rows { display: flex; flex-direction: column; gap: .42em; width: 66%; }
   .srow {
     display: flex; align-items: center; justify-content: space-between;
     font-size: var(--t24); color: var(--stage-ink);
   }
-  .srow .a-goal-chip.sm { font-size: var(--t24); min-width: 4.2em; }
+  .srow > span { white-space: nowrap; }
+  .srow .a-goal-chip.sm { font-size: var(--t24); min-width: 4.2em; padding: .26em .8em; }
   .srow .bval { font-size: var(--t32); font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 
   /* 模式选择页 */
@@ -305,10 +307,21 @@
   .ghost-chip { border-color: rgba(255,255,255,.25); color: var(--stage-soft); background: transparent; }
   .a-history {
     position: absolute; inset: 0; z-index: 8;
-    background: rgba(16,19,17,.97);
+    background: #0F1211;
     display: none;
-    flex-direction: column; align-items: center; justify-content: center;
-    gap: .8em; text-align: center;
+    flex-direction: column; align-items: center;
+    padding: 2.7em 0 3.6em; gap: .5em; text-align: center;
+  }
+  .a-history .hbody {
+    flex: 1; min-height: 0; width: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: .55em;
+  }
+  .a-history .flip-hint { position: absolute; bottom: 7.5%; left: 0; right: 0; margin-top: 0; }
+  #a-board .flip-hint { font-size: var(--t18); }
+  .board-foot {
+    color: var(--accent); font-weight: 700; font-size: var(--t22);
+    max-width: 82%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .a-history.show { display: flex; }
   .a-history .h-title { font-size: var(--t32); font-weight: 700; }
@@ -371,6 +384,7 @@
     font-variant-numeric: tabular-nums;
     transition: transform .12s, color .3s;
   }
+  .a-count.k4 { font-size: calc(var(--asz) / 466 * 68); }   /* 千位以上防溢出降档 */
   .a-count.pop { animation: cpunch .26s linear; }
   .a-count.pow { animation: cpow .4s linear; }
   .a-count.over { color: #FFB020; }   /* 达标后计数转暖色，与火焰呼应 */
@@ -664,40 +678,42 @@
       <!-- 勋章二级页 -->
       <div class="a-history" id="a-medal">
         <div class="h-title" data-i18n="medalsTitle">勋章</div>
-        <div class="medal-grid" id="a-medal-grid"></div>
+        <div class="hbody"><div class="medal-grid" id="a-medal-grid"></div></div>
         <div class="flip-hint" data-i18n="tapBackBlank">点按空白处返回</div>
       </div>
 
       <!-- 排行榜二级页 -->
       <div class="a-history" id="a-board">
         <div class="h-title" data-i18n="boardTodayTitle">今日排行榜</div>
-        <div class="a-chip-row">
-          <button class="a-goal-chip sm" id="ab-global" data-i18n="scopeGlobal">全球</button>
-          <button class="a-goal-chip sm" id="ab-local" data-i18n="scopeLocal">同城</button>
+        <div class="hbody">
+          <div class="a-chip-row">
+            <button class="a-goal-chip sm" id="ab-global" data-i18n="scopeGlobal">全球</button>
+            <button class="a-goal-chip sm" id="ab-local" data-i18n="scopeLocal">同城</button>
+          </div>
+          <div class="h-list" id="a-board-list"></div>
+          <div class="board-foot" id="a-board-foot"></div>
         </div>
-        <div class="h-list" id="a-board-list"></div>
-        <div class="sub-tip" id="a-board-foot" style="color:var(--accent);font-weight:700;"></div>
         <div class="flip-hint" id="a-board-sub"></div>
       </div>
 
       <!-- 设置（首页 ⚙ 进入）：目标 / 限时时长 / 语音 -->
       <div class="a-history" id="a-set">
         <div class="h-title" data-i18n="setTitle">设置</div>
-        <div class="set-rows">
+        <div class="hbody"><div class="set-rows">
           <div class="srow"><span data-i18n="setGoal">每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
           <div class="srow"><span data-i18n="setLen">限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
           <div class="srow"><span data-i18n="setAge">年龄段</span><button class="a-goal-chip sm" id="as-age">9-11</button></div>
           <div class="srow"><span data-i18n="setWeight">体重</span><button class="a-goal-chip sm" id="as-weight">40 kg</button></div>
           <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
-        </div>
+        </div></div>
         <div class="flip-hint" data-i18n="tapBackBlank">点按空白处返回</div>
       </div>
 
       <!-- 最佳战绩二级页（首页 PB 区块点击进入） -->
       <div class="a-history" id="a-best">
         <div class="h-title" data-i18n="bestTitle">最佳战绩</div>
-        <div class="set-rows" id="a-best-rows" style="width:64%;"></div>
+        <div class="hbody"><div class="set-rows" id="a-best-rows" style="width:64%;"></div></div>
         <div class="flip-hint" data-i18n="tapBack">点按返回</div>
       </div>
 
@@ -739,6 +755,7 @@
           <div id="a-bono-result"></div>
           <div class="num" id="a-r-num">50</div>
           <div class="lab" id="a-r-lab">目标达成！</div>
+          <div class="streak" id="a-r-today" style="color: var(--stage-soft);"></div>
           <div class="streak" id="a-r-rate" style="color:#7FE3A8;"></div>
           <div class="earn" id="a-r-earn">⭐ +10</div>
           <div class="streak" id="a-r-streak">🔥 连续 1 天打卡</div>
@@ -766,7 +783,7 @@
       <!-- 历史打卡记录（覆盖层，点按任意处返回） -->
       <div class="a-history" id="a-history">
         <div class="h-title" data-i18n="recTitle">打卡记录</div>
-        <div class="h-list" id="a-history-list"></div>
+        <div class="hbody"><div class="h-list" id="a-history-list"></div></div>
         <div class="flip-hint" data-i18n="tapBack">点按返回</div>
       </div>
 
@@ -845,7 +862,7 @@ zh: {
   noRecQ: '还没有记录，跳一轮就有啦', noRecH: '还没有记录<br>跳完第一轮就有啦',
   you: '你', first: '你是今日第一！',
   passFoot: (d, n) => `再跳 ${d} 下超过 ${n}`,
-  boardSub: (pct, sc) => `超过 ${pct}% 的${sc}用户 · 每天 0 点重置 · 示意数据`,
+  boardSub: (pct, sc) => `超过 ${pct}% 的${sc}用户 · 0 点重置`,
   scopeUserG: '全球', scopeUserL: '同城',
   achvLine: (g, a, i, s) => `已获 ${g}/${a} 枚 · ${i} 积分 ${s}`,
   cnt: c => `${c} 下`,
@@ -879,6 +896,8 @@ zh: {
   spEndGood: c => `一共 ${c} 下，太棒了！`, spEnd: '本轮结束，辛苦啦',
   spUnlock: ns => `恭喜解锁${ns.join('，')}`, spPause: '已暂停',
   spRemindOff: '提醒已关闭', spRemindAt: t => `每天 ${t} 提醒你来跳绳`,
+  rest30: '已跳 30 分钟，注意休息哦', spRest30: '已经跳了三十分钟啦，记得补水休息',
+  cap60: '连续 60 分钟，自动结算啦', todayTotal: n => `今日累计 ${n} 下`,
 },
 en: {
   appTitle: 'Daily Jump', tapEnter: 'Tap to start',
@@ -891,7 +910,7 @@ en: {
   modeTitle: 'Choose Mode', modeTimed: 'Timed', modeFree: 'Free Jump', back: 'Back',
   timedSub: (m, pb) => `${m} min countdown${pb ? ` · PB ${pb}` : ''}`,
   freeSub: (g, t) => (g === 0 ? 'Free mode' : `Daily goal ${g}`) + ` · today ${t}`,
-  medalsTitle: 'Medals', boardTodayTitle: "Today's Ranking", scopeGlobal: 'Global', scopeLocal: 'Local',
+  medalsTitle: 'Medals', boardTodayTitle: 'Ranking', scopeGlobal: 'Global', scopeLocal: 'Local',
   setTitle: 'Settings', setGoal: 'Daily goal', setLen: 'Timed length', setAge: 'Age',
   setWeight: 'Weight', setRemind: 'Reminder', setVoice: 'Coach voice',
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
@@ -902,8 +921,8 @@ en: {
   flipBack: 'Scan to share · tap back', tapBack: 'Tap to go back', tapBackBlank: 'Tap anywhere to go back',
   noRecQ: 'No records yet — jump a round!', noRecH: 'No records yet<br>your first round starts it',
   you: 'You', first: "You're #1 today!",
-  passFoot: (d, n) => `${d} more to pass ${n}`,
-  boardSub: (pct, sc) => `Ahead of ${pct}% ${sc} · resets daily · sample data`,
+  passFoot: (d, n) => `${d} to pass ${n}`,
+  boardSub: (pct, sc) => `Ahead of ${pct}% · resets daily`,
   scopeUserG: 'worldwide', scopeUserL: 'in your city',
   achvLine: (g, a, i, s) => `${g}/${a} earned · ${i} ${s} pts`,
   cnt: c => `${c}`,
@@ -937,6 +956,8 @@ en: {
   spEndGood: c => `${c} total. Amazing!`, spEnd: 'Round over. Nice work!',
   spUnlock: ns => `Unlocked ${ns.join(', ')}`, spPause: 'Paused',
   spRemindOff: 'Reminder off', spRemindAt: t => `Daily reminder at ${t}`,
+  rest30: '30 min in — pace yourself!', spRest30: 'Thirty minutes in. Remember to hydrate and rest.',
+  cap60: '60 min reached — auto-finishing', todayTotal: n => `Today total ${n}`,
 },
 };
 let L = I18N[LANG];
@@ -1271,6 +1292,7 @@ function render() {
   /* 跳绳中（达标后数字转暖色，继续往上数；副标行改为计时） */
   $('a-count').textContent = S.count;
   $('a-count').classList.toggle('over', S.goalHit);
+  $('a-count').classList.toggle('k4', S.count > 999);
 
   const inJump = S.screen === 'jump' || S.screen === 'celebrate';
 
@@ -1334,6 +1356,9 @@ function render() {
     } else {
         $('a-r-lab').textContent = (goalMet ? L.goalReached : L.roundOver) + ' · ' + fmtTime(S.elapsedMs);
     }
+    /* 今日累计（同日多轮时显示，说明"单轮从 0 数、今日在累积"） */
+    const trec = profile.history[todayKey()];
+    $('a-r-today').textContent = trec && trec.count > S.count ? L.todayTotal(trec.count) : '';
     /* 体测评级（仅 1 分钟测试） + 卡路里 */
     $('a-r-rate').textContent = (S.goal === TEST && S.testMin === 1)
       ? L.rateLine(rateTest(S.count), ageDisp) : '';
@@ -1404,7 +1429,7 @@ function flyStar(rootEl) {
 /* ============================================================
    核心动作（所有 mutation 都走这里，便于同步）
    ============================================================ */
-let cdTimer = null;
+let cdTimer = null, readyTimer = null, resultTimer = null;
 
 function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 
@@ -1420,14 +1445,18 @@ function startSession(g) {
   S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
-  testMark30 = false; testMark10 = false;
+  testMark30 = false; testMark10 = false; restMark30 = false;
   liveRank = 1 + GB.filter(u => u.count > todayCount()).length;   /* 记录起跳时的名次 */
+  clearTimeout(resultTimer);
+  clearTimeout(readyTimer);   /* 准备页超时：60s 未站定自动回首页 */
+  readyTimer = setTimeout(() => { if (S.screen === 'ready' && S.countdown === 0) goHome(); }, 60000);
   speak(S.goal === TEST ? L.spTest(S.testMin) : L.spStart(L.openings[daily.openingI]));
   bump();
 }
 
 function standLocked() {              /* 站进框稳定 → 开始倒计时 */
   if (S.screen !== 'ready' || S.countdown > 0) return;
+  clearTimeout(readyTimer);
   S.countdown = 3; bump();
   sndBeep(); speak(L.cd[0]);
   clearInterval(cdTimer);
@@ -1454,7 +1483,7 @@ const fmtTime = (ms) => {
 };
 const sessionElapsed = () => S.elapsedMs + (S.runSince ? Date.now() - S.runSince : 0);
 const testMs = () => (S.testMin || 1) * 60000;
-let testMark30 = false, testMark10 = false;
+let testMark30 = false, testMark10 = false, restMark30 = false;
 setInterval(() => {
   if (S.screen !== 'jump' || S.paused || !S.runSince) return;
   if (S.goal === TEST) {
@@ -1468,6 +1497,11 @@ setInterval(() => {
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak(L.sp10); }
   } else {
     $('a-timer').textContent = fmtTime(sessionElapsed());
+    /* 单轮时长保护（儿童过练保护）：30 分钟语音提醒，60 分钟强制结算 */
+    if (sessionElapsed() >= 3600000) { toast(L.cap60, 2200); endSession(); return; }
+    if (sessionElapsed() >= 1800000 && !restMark30) {
+      restMark30 = true; toast(L.rest30, 2200); speak(L.spRest30);
+    }
   }
 }, 250);
 
@@ -1644,6 +1678,8 @@ function endSession() {
 
   if (celebrated) setTimeout(() => { S.screen = 'result'; bump(); }, 1900);
   else { S.screen = 'result'; bump(); }
+  clearTimeout(resultTimer);   /* 结算页超时：45s 无操作回首页（数据已落档） */
+  resultTimer = setTimeout(() => { if (S.screen === 'result') goHome(); }, 45000);
 }
 
 let pauseEndTimer = null;
@@ -1661,7 +1697,7 @@ function pauseSession(v) {
   }
   bump();
 }
-function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); S.countdown = 0; bump(); }
+function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); clearTimeout(readyTimer); clearTimeout(resultTimer); S.countdown = 0; bump(); }
 
 /* 伪二维码占位（示意图形，非真实二维码） */
 function drawQR(cv) {
@@ -2029,7 +2065,7 @@ function renderABoard() {
   const rows = [];
   merged.slice(0, 3).forEach((u, i) => rows.push(row(i, u)));
   if (meIdx > 4) rows.push('<div class="bgap2">···</div>');
-  for (let i = Math.max(3, meIdx - 1); i <= Math.min(merged.length - 1, meIdx + 1); i++) {
+  for (let i = Math.max(3, meIdx - 1); i <= Math.min(merged.length - 1, meIdx); i++) {
     rows.push(row(i, merged[i]));
   }
   $('a-board-list').innerHTML = rows.join('');
@@ -2086,7 +2122,7 @@ const MEDALS = [
   { name: "1 分钟 120",  en: "120 in 1'",        cond: () => (profile.bests[1] || 0) >= 120 },
   { name: '单轮 200',    en: '200 in a round',   cond: () => (profile.bestSession || 0) >= 200 },
   { name: '单日 300',    en: '300 in a day',     cond: () => maxDaily() >= 300 },
-  { name: '猎中隐藏数字', en: 'Lucky number hit', cond: () => (profile.luckyHits || 0) > 0 },
+  { name: '猎中隐藏数字', en: 'Lucky hit',       cond: () => (profile.luckyHits || 0) > 0 },
 ];
 
 function renderQuickCards() {
