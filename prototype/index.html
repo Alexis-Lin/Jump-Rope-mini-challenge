@@ -356,6 +356,7 @@
   #a-ready { gap: .6em; z-index: 2; }
   #a-ready .status { font-size: var(--t32); font-weight: 700; max-width: 76%; line-height: 1.45; }
   #a-ready .hint { font-size: var(--t22); color: var(--stage-soft); }
+  .countdown-big.brand { font-size: var(--n56); color: var(--accent); letter-spacing: .02em; }
   .countdown-big {
     font-size: var(--n136); font-weight: 800; line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -636,6 +637,7 @@
               <div class="page-title" data-i18n="recTitle">打卡记录</div>
               <div class="a-week" id="a-week"></div>
               <div class="h-list" id="a-qrec"></div>
+              <div class="board-foot-q" id="a-qrec-sum"></div>
               <button class="page-cta" id="qc-rec-go" data-i18n="viewAll">查看全部</button>
             </div>
             <!-- Page 3 · 全球排行 -->
@@ -703,9 +705,7 @@
 
       <!-- 准备：无取景器，边缘光 + 语音代替（屏幕太小，砍掉相机预览） -->
       <div class="ascreen" id="a-ready">
-        <div class="status" id="a-ready-tip" data-i18n-html="readyTip">请站进画面<br>边缘变绿即可</div>
         <div class="countdown-big hidden" id="a-cd"></div>
-        <div class="hint" data-i18n="readyHint">离开画面会自动暂停</div>
       </div>
 
       <!-- 跳绳中：上半屏数字，下半屏大火柴人；达标不打断，继续往上数 -->
@@ -846,6 +846,7 @@ zh: {
   noRecQ: '还没有记录，跳一轮就有啦', noRecH: '还没有记录<br>跳完第一轮就有啦',
   you: '你', first: '你是今日第一！',
   passFoot: (d, n) => `再跳 ${d} 下超过 ${n}`,
+  weekSum: (d, c) => `${d}/7 天 · 共 ${c} 下`,
   boardSub: (pct, sc) => `超过 ${pct}% 的${sc}用户 · 0 点重置`,
   scopeUserG: '全球', scopeUserL: '同城',
   achvLine: (g, a, i, s) => `已获 ${g}/${a} 枚 · ${i} 积分 ${s}`,
@@ -871,7 +872,7 @@ zh: {
   spMode: '选择模式：限时跳，或者不限时',
   spTest: m => `${m} 分钟限时测试，全力以赴！请站到镜头前`,
   spStart: o => `${o}。请站到镜头前`,
-  cd: ['三', '二', '一', '跳！'], sp30: '还有三十秒', sp10: '最后十秒，冲刺！',
+  cd: ['三', '二', '一', 'Body Park！'], sp30: '还有三十秒', sp10: '最后十秒，冲刺！',
   spLap: (n, k) => `${n} 下，点亮第 ${k} 颗星！`, spTen: (n, ch) => `${n} 下，${ch}`,
   spLucky: n => `哇，踩中今天的隐藏数字${n}，奖励五颗星！`,
   spGoal: '目标达成！继续保持！', spTop3: '进入全球前三！', spTop1: '全球第一！保持住！',
@@ -906,6 +907,7 @@ en: {
   noRecQ: 'No records yet — jump a round!', noRecH: 'No records yet<br>your first round starts it',
   you: 'You', first: "You're #1 today!",
   passFoot: (d, n) => `${d} to pass ${n}`,
+  weekSum: (d, c) => `${d}/7 days · ${c} jumps`,
   boardSub: (pct, sc) => `Ahead of ${pct}% · resets daily`,
   scopeUserG: 'worldwide', scopeUserL: 'in your city',
   achvLine: (g, a, i, s) => `${g}/${a} earned · ${i} ${s} pts`,
@@ -931,7 +933,7 @@ en: {
   spMode: 'Choose a mode: timed, or free jump.',
   spTest: m => `${m}-minute timed test. Give it your all! Step in front of the camera`,
   spStart: o => `${o} Step in front of the camera`,
-  cd: ['Three', 'Two', 'One', 'Go!'], sp30: 'Thirty seconds left', sp10: 'Final ten seconds. Sprint!',
+  cd: ['Three', 'Two', 'One', 'Body Park!'], sp30: 'Thirty seconds left', sp10: 'Final ten seconds. Sprint!',
   spLap: (n, k) => `${n}! Star ${k} lit!`, spTen: (n, ch) => `${n}! ${ch}`,
   spLucky: n => `Wow, you hit today's lucky number ${n}. Five bonus stars!`,
   spGoal: 'Goal reached! Keep it up!', spTop3: 'Top three worldwide!', spTop1: 'World number one! Hold it!',
@@ -1313,14 +1315,13 @@ function render() {
   $('atomBg').style.background = inJump ? '#0A0C0B' : scene.atom;
 
   /* 边缘光状态灯：准备中白灰呼吸，锁定/跳绳中绿色 */
-  $('atomRoot').classList.toggle('waiting', S.screen === 'ready' && S.countdown === 0);
   $('atomRoot').classList.toggle('presence', S.countdown > 0 || (S.screen === 'jump' && !S.paused));
 
-  /* 倒计时 */
-  const cdOn = S.countdown > 0;
+  /* 倒计时 + BodyPark 发令帧 */
+  const cdOn = S.countdown > 0 || S.brandFlash;
   $('a-cd').classList.toggle('hidden', !cdOn);
-  if (cdOn) $('a-cd').textContent = S.countdown;
-  $('a-ready-tip').classList.toggle('hidden', cdOn);
+  $('a-cd').classList.toggle('brand', !!S.brandFlash);
+  if (cdOn) $('a-cd').textContent = S.brandFlash ? 'BodyPark' : S.countdown;
 
   /* 刚进入结算页 → Atom 翻页复位到成绩页 */
   if (S.screen === 'result' && lastRenderedScreen !== 'result') {
@@ -1412,7 +1413,7 @@ function flyStar(rootEl) {
 /* ============================================================
    核心动作（所有 mutation 都走这里，便于同步）
    ============================================================ */
-let cdTimer = null, readyTimer = null, resultTimer = null;
+let cdTimer = null, resultTimer = null;
 
 function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 
@@ -1431,16 +1432,13 @@ function startSession(g) {
   testMark30 = false; testMark10 = false; restMark30 = false;
   liveRank = 1 + GB.filter(u => u.count > todayCount()).length;   /* 记录起跳时的名次 */
   clearTimeout(resultTimer);
-  clearTimeout(readyTimer);   /* 准备页超时：60s 未站定自动回首页 */
-  readyTimer = setTimeout(() => { if (S.screen === 'ready' && S.countdown === 0) goHome(); }, 60000);
-  speak(S.goal === TEST ? L.spTest(S.testMin) : L.spStart(L.openings[daily.openingI]));
   bump();
+  standLocked();   /* 不做站位校验：选完模式直接 3·2·1·BodyPark 开跳 */
 }
 
-function standLocked() {              /* 站进框稳定 → 开始倒计时 */
+function standLocked() {              /* 3·2·1 倒计时 → BodyPark 发令 → 开跳 */
   if (S.screen !== 'ready' || S.countdown > 0) return;
-  clearTimeout(readyTimer);
-  S.countdown = 3; bump();
+  S.countdown = 3; S.brandFlash = false; bump();
   sndBeep(); speak(L.cd[0]);
   clearInterval(cdTimer);
   cdTimer = setInterval(() => {
@@ -1448,9 +1446,15 @@ function standLocked() {              /* 站进框稳定 → 开始倒计时 */
     if (S.countdown > 0) { sndBeep(); speak(S.countdown === 2 ? L.cd[1] : L.cd[2]); }
     else {
       clearInterval(cdTimer);
-      S.screen = 'jump';
-      S.elapsedMs = 0; S.runSince = Date.now();
+      S.brandFlash = true;               /* 发令帧：品牌口号 BodyPark */
       sndGo(); speak(L.cd[3]);
+      setTimeout(() => {
+        S.brandFlash = false;
+        if (S.screen !== 'ready') return;
+        S.screen = 'jump';
+        S.elapsedMs = 0; S.runSince = Date.now();
+        bump();
+      }, 750);
     }
     bump();
   }, 900);
@@ -1680,7 +1684,7 @@ function pauseSession(v) {
   }
   bump();
 }
-function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); clearTimeout(readyTimer); clearTimeout(resultTimer); S.countdown = 0; bump(); }
+function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); clearTimeout(resultTimer); S.countdown = 0; S.brandFlash = false; bump(); }
 
 /* 伪二维码占位（示意图形，非真实二维码） */
 function drawQR(cv) {
@@ -1713,7 +1717,6 @@ function setAuto(on) {
     if (S.screen === 'launch') { S.screen = 'idle'; bump(); }
     else if (S.screen === 'idle') openMode();
     else if (S.screen === 'mode') startSession(profile.goalNum);
-    else if (S.screen === 'ready' && S.countdown === 0) standLocked();
     else if (S.screen === 'jump' && !S.paused) {
       /* 演示跳到 105 下再停（测试模式例外：跳满 1 分钟由计时器收尾） */
       if (S.goal !== TEST && S.count >= 105) endSession();
@@ -2122,13 +2125,19 @@ function renderQuickCards() {
   const keys = Object.keys(profile.history).filter(k => profile.history[k].count > 0).sort();
   const dayNo = {}; keys.forEach((k, i) => { dayNo[k] = i + 1; });
   $('a-qrec').innerHTML = keys.length
-    ? keys.slice(-3).reverse().map(k => {
+    ? keys.slice(-5).reverse().map(k => {
         const r = profile.history[k];
         return `<div class="hrow"><span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
           `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${L.cnt(r.count)}</span>` +
           `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span></div>`;
       }).join('')
     : `<div class="h-empty">${L.noRecQ}</div>`;
+  let wkDays = 0, wkCnt = 0;
+  for (let i = -6; i <= 0; i++) {
+    const r = profile.history[dayKeyOffset(i)];
+    if (r && r.count > 0) { wkDays++; wkCnt += r.count; }
+  }
+  $('a-qrec-sum').textContent = wkDays ? L.weekSum(wkDays, wkCnt) : '';
   /* Page 3 · 全球排行：Top3 + 你 */
   const list = fakeBoard('global');
   const me = myRank('global');
