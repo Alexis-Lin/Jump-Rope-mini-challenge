@@ -1213,8 +1213,6 @@ function bonoSVG(size) {
       <path d="M60 57 L77 71"/>
       <path d="M60 83 L48 105"/>
       <path d="M60 83 L72 105"/>
-      <circle cx="43" cy="71" r="5.5" fill="currentColor" stroke="none"/>
-      <circle cx="77" cy="71" r="5.5" fill="currentColor" stroke="none"/>
       <circle cx="48" cy="105" r="6" fill="currentColor" stroke="none"/>
       <circle cx="72" cy="105" r="6" fill="currentColor" stroke="none"/>
       ${outfitLayer(profile.outfit)}
@@ -1926,13 +1924,12 @@ function skelFrame() {
     seg(knee, ankle, 20);
   };
   legSeg(23, 25, 27); legSeg(24, 26, 28);
-  /* 手部 / 脚部小圆头（纯白，略亮于肢体） */
+  /* 脚部小圆头（纯白，落地视觉锚点）；手部无圆球——臂线圆端帽直接收尾 */
   c.fillStyle = '#FFFFFF';
   const knob = (i, r) => {
     if (!pts[i]) return;
     c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), r * ws, 0, Math.PI * 2); c.fill();
   };
-  knob(15, 13); knob(16, 13);
   knob(27, 14); knob(28, 14);
   /* 头：纯白实心圆，与肩部留出 pictogram 式间隙 */
   if (pts[7] && pts[8]) {
