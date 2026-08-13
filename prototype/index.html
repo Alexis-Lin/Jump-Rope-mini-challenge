@@ -1208,7 +1208,7 @@ function bonoSVG(size) {
     <g class="body-g" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
       <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
       <circle cx="60" cy="29" r="15.5" fill="currentColor" stroke="none"/>
-      <path d="M60 51 L60 83" stroke-width="13"/>
+      <path d="M60 53 L60 83" stroke-width="18"/>
       <path d="M60 57 L43 71"/>
       <path d="M60 57 L77 71"/>
       <path d="M60 83 L48 105"/>
@@ -1778,7 +1778,7 @@ function ropeGhosts(pts, ws, dt) {
   const wym = (Y(L) + Y(R)) / 2;
   const footY = Math.max(pts[27] ? Y(pts[27]) : wym + 120, pts[28] ? Y(pts[28]) : wym + 120);
   const headTop = pts[7] && pts[8]
-    ? (Y(pts[7]) + Y(pts[8])) / 2 - 43 * ws : wym - 120;
+    ? (Y(pts[7]) + Y(pts[8])) / 2 - 46 * ws : wym - 120;
   const Rlow = (footY + 34 * ws) - wym;      /* 谷底：过脚下大弧度（宽松感） */
   const Rhigh = wym - (headTop - 30 * ws);   /* 顶点：过头顶大弧度 */
   /* 活跃度：只在"正在跳"时显示 —— 距上次计数 1.2s 内全显，之后 0.7s 内淡出 */
@@ -1894,19 +1894,20 @@ function skelFrame() {
     c.lineWidth = w * ws;
     c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
   };
-  /* 躯干：等宽直柱（颈点→髋中点），经典火柴人式直上直下，无宽肩无梯形 */
+  /* 躯干：等宽直柱（颈点→髋中点），宽 40 = 2×腿宽；顶端下移 12ws 补偿圆帽半径，
+     保持头-躯干 pictogram 间隙。直上直下，无宽肩无梯形 */
   c.fillStyle = '#EDF2EF';
   let neck = null;
   if (pts[11] && pts[12] && pts[23] && pts[24]) {
     neck = { x: (X(pts[11]) + X(pts[12])) / 2, y: (Y(pts[11]) + Y(pts[12])) / 2 };
-    c.lineWidth = 26 * ws;
+    c.lineWidth = 40 * ws;
     c.beginPath();
-    c.moveTo(neck.x, neck.y);
+    c.moveTo(neck.x, neck.y + 12 * ws);
     c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
     c.stroke();
   }
   /* 手臂：从颈点分出（火柴人式）；
-     腿：从躯干柱内侧锚点分出（髋锚点 = 髋中点 ±3ws）——髋部总宽恒等于躯干宽 26ws，
+     腿：从躯干柱内侧锚点分出（髋锚点 = 髋中点 ±10ws）——髋部总宽恒等于躯干宽 40ws，
      腿外缘与躯干侧边齐平，无任何关节外凸（圆润 pictogram 定义，见 docs/figure-spec.md） */
   const armSeg = (elbow, wrist) => {
     if (!neck || !pts[elbow]) return;
@@ -1918,7 +1919,7 @@ function skelFrame() {
   const legSeg = (hip, knee, ankle) => {
     if (!pts[hip] || !pts[knee] || !pts[23] || !pts[24]) return;
     const hmx = (X(pts[23]) + X(pts[24])) / 2, hmy = (Y(pts[23]) + Y(pts[24])) / 2;
-    const ax = hmx + (X(pts[hip]) < hmx ? -3 : 3) * ws;
+    const ax = hmx + (X(pts[hip]) < hmx ? -10 : 10) * ws;
     c.lineWidth = 20 * ws;
     c.beginPath(); c.moveTo(ax, hmy); c.lineTo(X(pts[knee]), Y(pts[knee])); c.stroke();
     seg(knee, ankle, 20);
@@ -1935,7 +1936,7 @@ function skelFrame() {
   if (pts[7] && pts[8]) {
     c.fillStyle = '#FFFFFF';
     c.beginPath();
-    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 17 * ws, 26 * ws, 0, Math.PI * 2);
+    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 20 * ws, 26 * ws, 0, Math.PI * 2);
     c.fill();
   }
 
