@@ -193,17 +193,22 @@
     font-size: var(--t24); font-weight: 700;
   }
   .page-cta:active { transform: translateX(-50%) scale(.95); background: #12281B; }
-  .pb-line {
-    display: flex; align-items: center; gap: .7em;
+  /* Home 数据行（按产品手绘稿）：连续 N 天一行式 → 今日居中 → 分隔线 + 左右对齐行 */
+  .home-block.hb-streak { display: flex; flex-direction: row; align-items: baseline; gap: .35em; }
+  .hb-lab { font-size: var(--t28); font-weight: 600; }
+  .hb-big { font-size: var(--n56); font-weight: 800; line-height: .95; font-variant-numeric: tabular-nums; }
+  .home-block.hb-row {
+    width: 76%; display: flex; flex-direction: row; align-items: center; justify-content: space-between;
     font-size: var(--t32); font-weight: 700; font-variant-numeric: tabular-nums;
+    padding: .26em 0;
   }
+  .home-block.hb-today { justify-content: center; }
+  .home-block.hb-line { border-top: 1.5px solid rgba(255,255,255,.16); border-radius: 0; }
   .pb-badge {
     background: #FFB020; color: #141614;
     font-size: var(--t18); font-weight: 800;
-    border-radius: .3em; padding: .04em .3em;
+    border-radius: .3em; padding: .1em .32em; margin-right: .25em;
   }
-  .total-line { font-size: var(--t28); color: var(--stage-soft); font-variant-numeric: tabular-nums; }
-  .total-line .st { color: var(--accent); font-weight: 700; }
   .board-foot-q { font-size: var(--t24); color: var(--accent); font-weight: 700; }
   /* Home 数据区块 = 可点击入口 */
   .home-block {
@@ -603,13 +608,12 @@
           <div id="a-cards">
             <!-- Page 1 · Home：每个数据区块都是入口，点击直达对应二级页 -->
             <div class="qcard" id="qc-home">
-              <button class="home-block" id="a-go-rec">
-                <div class="card-big" id="a-card-streak">0</div>
-                <div class="sub-tip" data-i18n="streakUnit">天连胜</div>
+              <button class="home-block hb-streak" id="a-go-rec">
+                <span class="hb-lab" data-i18n="streakPre">连续</span><span class="hb-big" id="a-card-streak">0</span><span class="hb-lab" data-i18n="streakPost">天</span>
               </button>
-              <button class="home-block card-mid" id="a-card-today">今日 0 下</button>
-              <button class="home-block pb-line" id="a-card-pb"></button>
-              <button class="home-block total-line" id="a-card-total"></button>
+              <button class="home-block hb-row hb-today" id="a-card-today"></button>
+              <button class="home-block hb-row hb-line" id="a-card-pb"></button>
+              <button class="home-block hb-row hb-line" id="a-card-total"></button>
               <div class="a-chip-row bottom-row">
                 <button class="atom-cta big" id="a-start">Start</button>
                 <button class="round-btn" id="a-settings-btn"></button>
@@ -820,7 +824,8 @@ if (LANG !== 'zh') LANG = 'en';
 const I18N = {
 zh: {
   appTitle: '每日跳绳', tapEnter: '点按进入',
-  launchStreak: n => `已连续打卡 ${n} 天`, streakUnit: '天连胜',
+  launchStreak: n => `已连续打卡 ${n} 天`, streakPre: '连续', streakPost: '天',
+  totalDays: n => `累计 ${n} 天`,
   today: n => `今日 ${n} 下`, total: '累计',
   recTitle: '打卡记录', boardTitle: '全球排行', achvTitle: '我的成就',
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
@@ -877,7 +882,8 @@ zh: {
 },
 en: {
   appTitle: 'Daily Jump', tapEnter: 'Tap to start',
-  launchStreak: n => `${n}-day streak`, streakUnit: 'day streak',
+  launchStreak: n => `${n}-day streak`, streakPre: 'Streak', streakPost: 'days',
+  totalDays: n => `Total ${n} days`,
   today: n => `Today ${n}`, total: 'Total',
   recTitle: 'Check-in Log', boardTitle: 'Global Ranking', achvTitle: 'My Achievements',
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
@@ -2088,12 +2094,13 @@ function renderQuickCards() {
   $('a-launch-streak').textContent = L.launchStreak(profile.streak);
   /* Page 1 · Home */
   $('a-card-streak').textContent = profile.streak;
-  $('a-card-today').innerHTML = `${L.today(todayCount())}<span class="chev-s">›</span>`;
+  $('a-card-today').innerHTML = L.today(todayCount());
   $('a-card-pb').innerHTML =
-    `<span class="pb-badge">PB</span> ${profile.bestSession || '—'}` +
-    `<span>· ${profile.bests[1] || '—'} / 1'</span><span class="chev-s">›</span>`;
+    `<span><span class="pb-badge">PB</span> ${profile.bestSession || '—'}</span>` +
+    `<span>${profile.bests[1] || '—'} / 1'</span>`;
+  const trainDays = Object.keys(profile.history).filter(k => profile.history[k].count > 0).length;
   $('a-card-total').innerHTML =
-    `${L.total} ${profile.total} <span class="st">★${profile.stars}</span><span class="chev-s">›</span>`;
+    `<span>${L.totalDays(trainDays)}</span><span>★${profile.stars}</span>`;
   /* Page 2 · 打卡记录：周点 + 最近 3 天 */
   const wk = $('a-week'); wk.innerHTML = '';
   for (let i = -6; i <= 0; i++) {
