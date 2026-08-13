@@ -1,5 +1,9 @@
 # Atom 嵌入式版本（proto-v0.5-embed）
 
+> ⚠ **此版本基于 proto-v0.5,界面已落后于最新原型(v0.17:双语/新首页/BodyPark 即时开跳/勋章暂缓等)。**
+> 本文档的 **AI 桥接接口契约仍然有效**(注意:`setPresence` 现仅用于训练中暂停/恢复,不再作为开跳门槛,见 PRD §8.1)。
+> 设计定版后基于最新 `prototype/index.html` 重新生成本目录。
+
 单文件 `index.html`，在设备的嵌入式 WebView（Chromium 内核 ≥ 90，需支持 Canvas 2D；WebAudio/SpeechSynthesis 可选）中全屏加载即可运行。UI 按 466×466 圆屏 @15fps 设计，自动铺满 `100vmin`。
 
 **真机模式下计数/骨骼/站位完全由后端 AI 驱动**，页面内不做任何判定；原型的模拟输入（点按跳/空格/自动演示/控制条）默认封死，URL 追加 `?debug` 可恢复（桌面调试用）。
