@@ -861,6 +861,8 @@ zh: {
   unlockLine: ns => `解锁 ${ns.join('、')}！`,
   sceneTag: n => `新场景「${n}」`, outfitTag: n => `新装扮「${n}」`,
   cheers: ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'],
+  tips: ['膝盖微弯，轻轻落地', '前脚掌落地更省力', '手腕发力，手臂放松', '目视前方，背挺直', '呼吸跟上节奏'],
+  spSlow: '别停，跟上 Bono 的节奏！',
   greets: ['今天也一起跳吧！', '新的一天，从 50 下开始', '跳一跳，烦恼都抖掉',
            'Bono 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'],
   openings: ['准备好了吗？今天也来一组！', '热身完毕，我们开始吧！',
@@ -922,6 +924,8 @@ en: {
   unlockLine: ns => `Unlocked ${ns.join(', ')}!`,
   sceneTag: n => `new scene “${n}”`, outfitTag: n => `new outfit “${n}”`,
   cheers: ['Steady rhythm!', "Bono can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!'],
+  tips: ['Soft knees, land light', 'Land on the balls of your feet', 'Flick the wrists, relax the arms', 'Eyes forward, back straight', 'Breathe with the rhythm'],
+  spSlow: "Don't stop — keep up with Bono!",
   greets: ["Let's jump today!", 'New day — start with 50', 'Shake those worries off',
            'Bono is all warmed up!', 'Lighter than yesterday', 'Even the moon is watching'],
   openings: ["Ready? Let's do a round!", 'Warm-up done — here we go!',
@@ -1427,6 +1431,7 @@ function startSession(g) {
   S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
+  S.minIvl = 0; S.slowWarned = false;
   testMark30 = false; testMark10 = false; restMark30 = false;
   liveRank = 1 + GB.filter(u => u.count > todayCount()).length;   /* 记录起跳时的名次 */
   clearTimeout(resultTimer);
@@ -1549,30 +1554,39 @@ function registerJump() {
   bonoHopOnce();
   spawnRipple();
 
-  /* 惊喜机制 */
+  /* 惊喜机制（常规节点全语音化，不弹 toast 打扰画面；toast 只留稀有事件） */
   if (S.count % 10 === 0) {
     S.bgStep++;
     sndMilestone();
-    const cheer = () => L.cheers[Math.floor(Math.random() * L.cheers.length)];
-    let msg = L.tenToast(S.count, cheer());
+    /* 逢十视觉：数字重击闪（popCount 已触发）+ 50% 概率飘少量庆祝小彩带 */
+    if (Math.random() < 0.5) confetti($('atomRoot'), 8);
     if (S.count % 20 === 0) {
       let gain = 2;
-      if (Math.random() < 0.15) { gain = 4; msg = L.doubleToast(gain); confetti($('atomRoot'), 24); }
-      else msg = L.starsToast(S.count, gain);
+      if (Math.random() < 0.15) {   /* 彩蛋双倍：稀有事件，保留 toast */
+        gain = 4; toast(L.doubleToast(gain), 1600); confetti($('atomRoot'), 24);
+      }
       S.earned += gain;
       sndStar(); flyStar($('atomRoot'));
     }
     const unit = S.goal > 0 ? S.goal : 50;
-    if (S.count % unit === 0) {
-      msg = L.lapToast(S.count / unit);
-      sndStar();
-    }
-    toast(msg);
-    /* 教练语音分层：满一个目标倍数报"点亮一颗星"，整 30 带一句鼓励，其余整 10 只报数 */
+    if (S.count % unit === 0) sndStar();
+    /* 教练语音分层：满圈报星，整 30 鼓励/纠错指导五五开，其余整十只报数 */
     if (!(S.goal > 0 && S.count === S.goal)) {
       if (S.count % unit === 0) speak(L.spLap(S.count, S.count / unit));
-      else if (S.count % 30 === 0) speak(L.spTen(S.count, cheer()));
+      else if (S.count % 30 === 0) {
+        const pool = Math.random() < 0.5 ? L.cheers : L.tips;
+        speak(L.spTen(S.count, pool[Math.floor(Math.random() * pool.length)]));
+      }
       else speak(String(S.count));
+    }
+  }
+
+  /* 节奏轻推：跳频比本轮最快慢 60% 以上（且已进入状态）→ 每轮最多提醒一次 */
+  if (skel.jumpIvl) {
+    if (!S.minIvl || skel.jumpIvl < S.minIvl) S.minIvl = skel.jumpIvl;
+    if (!S.slowWarned && S.count > 20 && skel.jumpIvl > S.minIvl * 1.6) {
+      S.slowWarned = true;
+      speak(L.spSlow);
     }
   }
 
