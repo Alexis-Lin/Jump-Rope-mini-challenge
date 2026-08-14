@@ -1627,7 +1627,8 @@ function registerJump() {
   if (S.count % 10 === 0) {
     S.bgStep++;
     sndMilestone();
-    /* 逢十视觉：数字重击闪（popCount 已触发）+ 50% 概率飘少量庆祝小彩带 */
+    /* 逢十视觉：数字重击闪（popCount 已触发）+ 火柴人全身金光闪烁 + 50% 概率小彩带 */
+    skel.glowT0 = performance.now();
     if (Math.random() < 0.5) confetti($('atomRoot'), 8);
     if (S.count % 20 === 0) {
       let gain = 2;
@@ -1970,9 +1971,17 @@ function skelFrame() {
   skel.ws = ws;
   const rope = ropeGhosts(pts, ws, dt);
   drawRopeSet(c, rope, false);            /* 上半周：绳在身后 */
+  /* 逢十发光：0.5s 金色辉光衰减 + 身体微增亮（与数字重击/涟漪同一套打击语法）。
+     嵌入式无 shadowBlur 时用"底层加粗半透明光晕描边"等效实现 */
+  const glow = skel.glowT0 ? Math.max(0, 1 - (now - skel.glowT0) / 500) : 0;
+  if (glow > 0.02) {
+    c.shadowColor = `rgba(255,219,128,${0.9 * glow})`;
+    c.shadowBlur = 26 * glow * ws;
+  }
+  const bodyCol = glow > 0.02 ? '#FFFFFF' : '#EDF2EF';
   /* 粗壮 pictogram 风格：浅白身体 + 纯白头/手/脚，远距离可读 */
   c.lineCap = 'round'; c.lineJoin = 'round';
-  c.strokeStyle = '#EDF2EF';
+  c.strokeStyle = bodyCol;
   const seg = (a, b, w) => {
     if (!pts[a] || !pts[b]) return;
     c.lineWidth = w * ws;
@@ -1980,7 +1989,7 @@ function skelFrame() {
   };
   /* 躯干：等宽直柱（颈点→髋中点），宽 40 = 2×腿宽；顶端下移 12ws 补偿圆帽半径，
      保持头-躯干 pictogram 间隙。直上直下，无宽肩无梯形 */
-  c.fillStyle = '#EDF2EF';
+  c.fillStyle = bodyCol;
   let neck = null;
   if (pts[11] && pts[12] && pts[23] && pts[24]) {
     neck = { x: (X(pts[11]) + X(pts[12])) / 2, y: (Y(pts[11]) + Y(pts[12])) / 2 };
@@ -2027,6 +2036,7 @@ function skelFrame() {
     c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 17 * ws, 26 * ws, 0, Math.PI * 2);
     c.fill();
   }
+  c.shadowBlur = 0; c.shadowColor = 'transparent';   /* 辉光只作用于身体 */
 
   drawRopeSet(c, rope, true);             /* 下半周：绳在身前（过脚下） */
 
