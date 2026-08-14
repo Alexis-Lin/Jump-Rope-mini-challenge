@@ -33,7 +33,7 @@
           <line class="dim" x1="134" y1="10"  x2="215" y2="10"/>
           <text class="ann" x="228" y="14">头 r26 · 纯白</text>
           <line class="dim" x1="187" y1="66"  x2="252" y2="66"/>
-          <text class="ann" x="258" y="70">头-肩间隙 ≈11（不相连）</text>
+          <text class="ann" x="258" y="70">头-躯干留窄隙 ≈5（不相连）</text>
           <line class="dim" x1="187" y1="95"  x2="268" y2="95"/>
           <text class="ann" x="274" y="99">肩锚点 = 颈点 ±11 · y 取真实肩点</text>
           <line class="dim" x1="188" y1="170" x2="280" y2="170"/>
@@ -46,7 +46,7 @@
           <line class="dim" x1="140" y1="300" x2="66" y2="300"/>
           <text class="ann" x="-96" y="304">腿宽 20</text>
           <line class="dim" x1="102" y1="218" x2="42" y2="218"/>
-          <text class="ann" x="-96" y="222">手 = 臂宽圆帽收尾</text>
+          <text class="ann" x="-96" y="222">手白圆头 r9 = 臂宽/2</text>
           <line class="dim" x1="128" y1="382" x2="60" y2="382"/>
           <text class="ann" x="-96" y="386">脚圆头 r14</text>
 
@@ -59,7 +59,8 @@
             <path d="M170 230 L176 297 L180 371" stroke-width="20"/>               <!-- 右腿 -->
           </g>
           <g fill="#FFFFFF">
-            <circle cx="160" cy="66"  r="26"/>                                     <!-- 头 -->
+            <circle cx="160" cy="72"  r="26"/>                                     <!-- 头 -->
+            <circle cx="104" cy="207" r="9"/><circle cx="216" cy="207" r="9"/>     <!-- 手 r9 = 臂宽/2 -->
             <circle cx="140" cy="371" r="14"/><circle cx="180" cy="371" r="14"/>   <!-- 脚 -->
           </g>
         </g>
@@ -110,7 +111,8 @@
               <path d="M53 36 L66 52 L72 68" stroke-width="8"/>
               <path d="M43.5 78 L40 108 M52.5 78 L56 108" stroke-width="9"/>
             </g>
-            <circle cx="48" cy="13" r="11" fill="#fff"/>
+            <circle cx="48" cy="15" r="11" fill="#fff"/>
+            <circle cx="24" cy="68" r="4" fill="#fff"/><circle cx="72" cy="68" r="4" fill="#fff"/>
             <circle cx="42" cy="108" r="6" fill="#fff"/><circle cx="54" cy="108" r="6" fill="#fff"/>
           </svg>
           <div class="tag">✓ 定稿</div>
@@ -122,14 +124,14 @@
     <div class="panel" style="flex:1;">
       <table>
         <tr><th>部件</th><th>定义</th><th>基准值（ws=1）</th></tr>
-        <tr><td>头</td><td>纯白实心圆，圆心 = 双耳中点上移 20；与躯干<b>留空不相连</b></td><td>r <b>26</b></td></tr>
+        <tr><td>头</td><td>纯白实心圆，圆心 = 双耳中点上移 17；与躯干<b>留窄隙不相连</b>（≈5）</td><td>r <b>26</b></td></tr>
         <tr><td>躯干</td><td>等宽直柱：颈点（双肩中点）→ 髋中点，一条线，圆端帽；顶端下移 12 补偿圆帽，保持头-躯干间隙</td><td>宽 <b>40 = 2×腿宽</b></td></tr>
         <tr><td>手臂</td><td>从<b>肩锚点</b>发源 → 肘 → 腕；肩锚点 = 颈点 x ±11、<b>y 取各自真实肩点</b>（肩部起伏跟随真人）；肩部总宽 = 躯干宽（11×2+18=40）</td><td>宽 <b>18</b></td></tr>
         <tr><td>腿</td><td>从<b>髋锚点</b>发源 → 膝 → 踝；髋锚点 = 髋中点 x ±10、y 同髋中点</td><td>宽 <b>20</b></td></tr>
         <tr><td>髋部</td><td><b>总宽恒等于躯干宽</b>（10×2 + 20 = 40），腿外缘与躯干侧边齐平</td><td>= <b>40</b></td></tr>
-        <tr><td>手</td><td><b>无圆球</b>——臂线圆端帽直接收尾，粗细同臂宽</td><td>= <b>18</b></td></tr>
+        <tr><td>手</td><td>纯白小圆头，<b>直径 = 臂宽</b>（白色示意手的存在，轮廓与前臂齐平不外凸）</td><td>r <b>9</b></td></tr>
         <tr><td>脚</td><td>末端纯白小圆头（端点非关节，落地视觉锚点，全身唯一的"凸"）</td><td>r <b>14</b></td></tr>
-        <tr><td>颜色</td><td>肢体/躯干 <b>#EDF2EF</b>（浅白）；头/脚 <b>#FFFFFF</b>；深色舞台上使用</td><td>—</td></tr>
+        <tr><td>颜色</td><td>肢体/躯干 <b>#EDF2EF</b>（浅白）；头/手/脚 <b>#FFFFFF</b>；深色舞台上使用</td><td>—</td></tr>
         <tr><td>缩放</td><td>全部尺寸 × ws；ws = clamp(肩宽px ÷ 40, 0.55, 1.5)（近大远小）</td><td>0.55–1.5</td></tr>
         <tr><td>关节</td><td>肘/膝 = 同宽线段圆帽相接，平滑过渡；<b>肩/髋/肘/膝一律不画圆点、不加宽</b></td><td>—</td></tr>
       </table>
@@ -137,7 +139,7 @@
         <b style="color:#F2F4F2">铁律</b>：① 髋部总宽 = 躯干宽，侧边一条直线下来，无外凸；② 无宽肩、无梯形（上下等宽）；
         ③ 关节零装饰——圆润感全部来自"等宽线 + 圆端帽"，不靠加圆点；④ 无面部、无描边、无渐变；
         ⑤ 头与躯干之间保留 pictogram 式空隙。<br><br>
-        <b style="color:#F2F4F2">映射（AI 33 点）</b>：颈点=11/12 中点 · 肩锚点 y=11/12 各自的 y · 髋中点=23/24 中点 · 头圆心=7/8 中点上移 20ws ·
+        <b style="color:#F2F4F2">映射（AI 33 点）</b>：颈点=11/12 中点 · 肩锚点 y=11/12 各自的 y · 髋中点=23/24 中点 · 头圆心=7/8 中点上移 17ws ·
         肘 13/14 · 腕 15/16 · 膝 25/26 · 踝 27/28。真实髋点只参与<b>计算髋中点</b>，不直接作为画腿起点。<br><br>
         <b style="color:#F2F4F2">实现基准</b>：prototype/index.html · skelFrame()（同规格需同步 firmware/src/atom_app.c）。
       </div>

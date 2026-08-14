@@ -1265,6 +1265,8 @@ function bonoSVG(size) {
       <path d="M60 57 L77 71"/>
       <path d="M60 83 L48 105"/>
       <path d="M60 83 L72 105"/>
+      <circle cx="43" cy="71" r="4.5" fill="currentColor" stroke="none"/>
+      <circle cx="77" cy="71" r="4.5" fill="currentColor" stroke="none"/>
       <circle cx="48" cy="105" r="6" fill="currentColor" stroke="none"/>
       <circle cx="72" cy="105" r="6" fill="currentColor" stroke="none"/>
       ${outfitLayer(profile.outfit)}
@@ -1841,7 +1843,7 @@ function ropeGhosts(pts, ws, dt) {
   const wym = (Y(L) + Y(R)) / 2;
   const footY = Math.max(pts[27] ? Y(pts[27]) : wym + 120, pts[28] ? Y(pts[28]) : wym + 120);
   const headTop = pts[7] && pts[8]
-    ? (Y(pts[7]) + Y(pts[8])) / 2 - 46 * ws : wym - 120;
+    ? (Y(pts[7]) + Y(pts[8])) / 2 - 43 * ws : wym - 120;
   const Rlow = (footY + 34 * ws) - wym;      /* 谷底：过脚下大弧度（宽松感） */
   const Rhigh = wym - (headTop - 30 * ws);   /* 顶点：过头顶大弧度 */
   /* 活跃度：只在"正在跳"时显示 —— 距上次计数 1.2s 内全显，之后 0.7s 内淡出 */
@@ -1990,18 +1992,20 @@ function skelFrame() {
     seg(knee, ankle, 20);
   };
   legSeg(23, 25, 27); legSeg(24, 26, 28);
-  /* 脚部小圆头（纯白，落地视觉锚点）；手部无圆球——臂线圆端帽直接收尾 */
+  /* 手/脚圆头（纯白）：手 r9 = 臂宽一半——白色指示"手"的存在但与前臂等宽不外凸；
+     脚 r14 略大于腿半宽，作落地视觉锚点 */
   c.fillStyle = '#FFFFFF';
   const knob = (i, r) => {
     if (!pts[i]) return;
     c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), r * ws, 0, Math.PI * 2); c.fill();
   };
+  knob(15, 9); knob(16, 9);
   knob(27, 14); knob(28, 14);
   /* 头：纯白实心圆，与肩部留出 pictogram 式间隙 */
   if (pts[7] && pts[8]) {
     c.fillStyle = '#FFFFFF';
     c.beginPath();
-    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 20 * ws, 26 * ws, 0, Math.PI * 2);
+    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 17 * ws, 26 * ws, 0, Math.PI * 2);
     c.fill();
   }
 
