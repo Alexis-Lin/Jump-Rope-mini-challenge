@@ -883,6 +883,16 @@ zh: {
   spEndGood: c => `一共 ${c} 下，太棒了！`, spEnd: '本轮结束，辛苦啦',
   spUnlock: ns => `恭喜解锁${ns.join('，')}`, spPause: '已暂停',
   spRemindOff: '提醒已关闭', spRemindAt: t => `每天 ${t} 提醒你来跳绳`,
+  defNick: '小跳将', opHello: '欢迎来到每日跳绳！我是 Bono。',
+  opWelcome: nk => `${nk}，欢迎回来！`, opNth: n => `这是你的第 ${n} 次跳绳。`,
+  opStreak: n => `已经连续打卡 ${n} 天啦。`, opYesterday: c => `昨天跳了 ${c} 下。`,
+  opPB: c => `你的最好纪录是单轮 ${c} 下。`, opTotal: c => `累计已经跳了 ${c} 下。`,
+  opDate: d => `今天是 ${d.getMonth() + 1} 月 ${d.getDate()} 日，`,
+  opCalls: [g => `目标 ${g} 下，我们来试一下！`, g => `今天也来一组 ${g} 下吧！`,
+            g => `向 ${g} 下出发！`, g => `把 ${g} 下拿下，开始吧！`],
+  opFree: '今天自由跳，我们来试一下！',
+  opAgain: c => `又来啦！今天已经跳了 ${c} 下，再来一轮？`,
+  opBack: call => `又见面啦！${call}`,
   rest30: '已跳 30 分钟，注意休息哦', spRest30: '已经跳了三十分钟啦，记得补水休息',
   cap60: '连续 60 分钟，自动结算啦', todayTotal: n => `今日累计 ${n} 下`,
 },
@@ -946,6 +956,16 @@ en: {
   spEndGood: c => `${c} total. Amazing!`, spEnd: 'Round over. Nice work!',
   spUnlock: ns => `Unlocked ${ns.join(', ')}`, spPause: 'Paused',
   spRemindOff: 'Reminder off', spRemindAt: t => `Daily reminder at ${t}`,
+  defNick: 'Jumper', opHello: "Welcome to Daily Jump! I'm Bono. ",
+  opWelcome: nk => `Welcome back, ${nk}! `, opNth: n => `This is jump session ${n}. `,
+  opStreak: n => `You're on a ${n}-day streak. `, opYesterday: c => `Yesterday you did ${c}. `,
+  opPB: c => `Your best round is ${c}. `, opTotal: c => `${c} jumps total so far. `,
+  opDate: d => `Today is ${['January','February','March','April','May','June','July','August','September','October','November','December'][d.getMonth()]} ${d.getDate()} — `,
+  opCalls: [g => `goal ${g}, let's give it a try!`, g => `let's do a round of ${g}!`,
+            g => `off to ${g} we go!`, g => `let's take it to ${g}!`],
+  opFree: "free jump today — let's go!",
+  opAgain: c => `Back again! ${c} jumps today already — one more round?`,
+  opBack: call => `Back again! ${call}`,
   rest30: '30 min in — pace yourself!', spRest30: 'Thirty minutes in. Remember to hydrate and rest.',
   cap60: '60 min reached — auto-finishing', todayTotal: n => `Today total ${n}`,
 },
@@ -961,6 +981,33 @@ function applyStatic() {
     if (typeof v === 'string') el.innerHTML = v;
   });
 }
+/* ------------------------------------------------------------
+   开场白（进入 APP 时播报，模块化拼装；不阻塞 3·2·1 即时开跳）
+   结构：称呼欢迎 → 第 N 次跳绳 → 历史亮点 1 条(按次数轮换) → 日期 → 目标召唤(按日轮换)
+   首次使用播新手版；同一天再次进入只播简短版，不重复完整开场白
+   ------------------------------------------------------------ */
+function buildOpening() {
+  const tk = todayKey();
+  const rec = profile.history[tk];
+  const d = new Date();
+  const call = profile.goalNum > 0
+    ? L.opCalls[daily.openingI % L.opCalls.length](profile.goalNum) : L.opFree;
+  if (profile.lastGreet === tk)
+    return rec && rec.count > 0 ? L.opAgain(rec.count) : L.opBack(call);
+  profile.lastGreet = tk; saveProfile();
+  const n = (profile.sessions || 0) + 1;
+  if (!profile.sessions && !Object.keys(profile.history).length)
+    return L.opHello + L.opDate(d) + call;          /* 新手版 */
+  const y = profile.history[dayKeyOffset(-1)];
+  const hls = [];
+  if (profile.streak > 1) hls.push(L.opStreak(profile.streak));
+  if (y && y.count > 0) hls.push(L.opYesterday(y.count));
+  if (profile.bestSession > 0) hls.push(L.opPB(profile.bestSession));
+  if (profile.total > 100) hls.push(L.opTotal(profile.total));
+  const hl = hls.length ? hls[n % hls.length] : '';
+  return L.opWelcome(profile.nick || L.defNick) + L.opNth(n) + hl + L.opDate(d) + call;
+}
+
 function setLang(l) {
   LANG = l === 'zh' ? 'zh' : 'en';
   L = I18N[LANG];
@@ -995,7 +1042,8 @@ const PROFILE_KEY = 'bodypark_jump_profile_v1';
 const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 100, history: {},
                           total: 0, scenes: 3, outfit: 0, goalNum: 100, testMin: 1,
                           bests: {}, bestSession: 0, luckyHits: 0,
-                          age: '9-11', weight: 40, remind: '关' };
+                          age: '9-11', weight: 40, remind: '关',
+                          nick: '', sessions: 0, lastGreet: '' };
 function loadProfile() {
   try { return Object.assign({}, PROFILE_DEFAULT, JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')); }
   catch (e) { return Object.assign({}, PROFILE_DEFAULT); }
@@ -1659,6 +1707,7 @@ function endSession() {
   }
   profile.history[tk] = rec;
   profile.stars += S.earned;
+  profile.sessions = (profile.sessions || 0) + 1;
   if (S.count > (profile.bestSession || 0)) profile.bestSession = S.count;   /* 单轮 PB */
 
   /* 解锁判定（借鉴 JRC：达标解锁场景，累计解锁装扮） */
@@ -2199,7 +2248,7 @@ $('a-cards-vp').addEventListener('pointerup', (e) => {
 });
 /* 系统入口卡 → 进入 APP */
 $('a-launch').addEventListener('click', () => {
-  audio(); S.screen = 'idle'; bump(); speak(L.greets[daily.greetI]);
+  audio(); S.screen = 'idle'; bump(); speak(buildOpening());
   setTimeout(nudge, 900);
   setTimeout(nudge, 10000);
 });
