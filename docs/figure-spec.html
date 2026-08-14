@@ -35,7 +35,7 @@
           <line class="dim" x1="187" y1="66"  x2="252" y2="66"/>
           <text class="ann" x="258" y="70">头-肩间隙 ≈11（不相连）</text>
           <line class="dim" x1="187" y1="95"  x2="268" y2="95"/>
-          <text class="ann" x="274" y="99">颈点 = 双肩中点</text>
+          <text class="ann" x="274" y="99">肩锚点 = 颈点 ±11 · y 取真实肩点</text>
           <line class="dim" x1="188" y1="170" x2="280" y2="170"/>
           <text class="ann" x="286" y="174">躯干等宽直柱 <tspan class="annG">宽 40 = 2×腿宽</tspan></text>
           <line class="dim" x1="178" y1="228" x2="292" y2="228"/>
@@ -53,8 +53,8 @@
           <!-- 定稿形（基准 ws=1；圆端帽） -->
           <g stroke="#EDF2EF" stroke-linecap="round" fill="none">
             <line x1="160" y1="128" x2="160" y2="230" stroke-width="40"/>          <!-- 躯干 -->
-            <path d="M160 121 L118 165 L104 207" stroke-width="18"/>               <!-- 左臂 -->
-            <path d="M160 121 L202 165 L216 207" stroke-width="18"/>               <!-- 右臂 -->
+            <path d="M149 121 L118 165 L104 207" stroke-width="18"/>               <!-- 左臂 -->
+            <path d="M171 121 L202 165 L216 207" stroke-width="18"/>               <!-- 右臂 -->
             <path d="M150 230 L144 297 L140 371" stroke-width="20"/>               <!-- 左腿 -->
             <path d="M170 230 L176 297 L180 371" stroke-width="20"/>               <!-- 右腿 -->
           </g>
@@ -106,8 +106,8 @@
           <svg width="96" height="120" viewBox="0 0 96 120">
             <g stroke="#EDF2EF" stroke-linecap="round" fill="none">
               <line x1="48" y1="37" x2="48" y2="78" stroke-width="18"/>
-              <path d="M48 34 L30 52 L24 68" stroke-width="8"/>
-              <path d="M48 34 L66 52 L72 68" stroke-width="8"/>
+              <path d="M43 36 L30 52 L24 68" stroke-width="8"/>
+              <path d="M53 36 L66 52 L72 68" stroke-width="8"/>
               <path d="M43.5 78 L40 108 M52.5 78 L56 108" stroke-width="9"/>
             </g>
             <circle cx="48" cy="13" r="11" fill="#fff"/>
@@ -124,7 +124,7 @@
         <tr><th>部件</th><th>定义</th><th>基准值（ws=1）</th></tr>
         <tr><td>头</td><td>纯白实心圆，圆心 = 双耳中点上移 20；与躯干<b>留空不相连</b></td><td>r <b>26</b></td></tr>
         <tr><td>躯干</td><td>等宽直柱：颈点（双肩中点）→ 髋中点，一条线，圆端帽；顶端下移 12 补偿圆帽，保持头-躯干间隙</td><td>宽 <b>40 = 2×腿宽</b></td></tr>
-        <tr><td>手臂</td><td>从<b>颈点</b>发源（不画肩线）→ 肘 → 腕</td><td>宽 <b>18</b></td></tr>
+        <tr><td>手臂</td><td>从<b>肩锚点</b>发源 → 肘 → 腕；肩锚点 = 颈点 x ±11、<b>y 取各自真实肩点</b>（肩部起伏跟随真人）；肩部总宽 = 躯干宽（11×2+18=40）</td><td>宽 <b>18</b></td></tr>
         <tr><td>腿</td><td>从<b>髋锚点</b>发源 → 膝 → 踝；髋锚点 = 髋中点 x ±10、y 同髋中点</td><td>宽 <b>20</b></td></tr>
         <tr><td>髋部</td><td><b>总宽恒等于躯干宽</b>（10×2 + 20 = 40），腿外缘与躯干侧边齐平</td><td>= <b>40</b></td></tr>
         <tr><td>手</td><td><b>无圆球</b>——臂线圆端帽直接收尾，粗细同臂宽</td><td>= <b>18</b></td></tr>
@@ -137,7 +137,7 @@
         <b style="color:#F2F4F2">铁律</b>：① 髋部总宽 = 躯干宽，侧边一条直线下来，无外凸；② 无宽肩、无梯形（上下等宽）；
         ③ 关节零装饰——圆润感全部来自"等宽线 + 圆端帽"，不靠加圆点；④ 无面部、无描边、无渐变；
         ⑤ 头与躯干之间保留 pictogram 式空隙。<br><br>
-        <b style="color:#F2F4F2">映射（AI 33 点）</b>：颈点=11/12 中点 · 髋中点=23/24 中点 · 头圆心=7/8 中点上移 20ws ·
+        <b style="color:#F2F4F2">映射（AI 33 点）</b>：颈点=11/12 中点 · 肩锚点 y=11/12 各自的 y · 髋中点=23/24 中点 · 头圆心=7/8 中点上移 20ws ·
         肘 13/14 · 腕 15/16 · 膝 25/26 · 踝 27/28。真实髋点只参与<b>计算髋中点</b>，不直接作为画腿起点。<br><br>
         <b style="color:#F2F4F2">实现基准</b>：prototype/index.html · skelFrame()（同规格需同步 firmware/src/atom_app.c）。
       </div>

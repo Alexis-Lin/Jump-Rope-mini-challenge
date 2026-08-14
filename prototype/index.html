@@ -1969,16 +1969,18 @@ function skelFrame() {
     c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
     c.stroke();
   }
-  /* 手臂：从颈点分出（火柴人式）；
-     腿：从躯干柱内侧锚点分出（髋锚点 = 髋中点 ±10ws）——髋部总宽恒等于躯干宽 40ws，
-     腿外缘与躯干侧边齐平，无任何关节外凸（圆润 pictogram 定义，见 docs/figure-spec.md） */
-  const armSeg = (elbow, wrist) => {
-    if (!neck || !pts[elbow]) return;
+  /* 手臂：从肩锚点分出——x = 颈点 ±11ws（11×2+18=40=躯干宽，肩不外凸），
+     y = 各自真实肩点（11/12）的 y，肩部起伏/倾斜跟随真人；
+     腿：从髋锚点分出（髋中点 ±10ws）——髋部总宽恒等于躯干宽 40ws，
+     四肢外缘与躯干侧边齐平，无任何关节外凸（圆润 pictogram 定义，见 docs/figure-spec.html） */
+  const armSeg = (sh, elbow, wrist) => {
+    if (!neck || !pts[sh] || !pts[elbow]) return;
+    const ax = neck.x + (X(pts[sh]) < neck.x ? -11 : 11) * ws;
     c.lineWidth = 18 * ws;
-    c.beginPath(); c.moveTo(neck.x, neck.y); c.lineTo(X(pts[elbow]), Y(pts[elbow])); c.stroke();
+    c.beginPath(); c.moveTo(ax, Y(pts[sh])); c.lineTo(X(pts[elbow]), Y(pts[elbow])); c.stroke();
     seg(elbow, wrist, 18);
   };
-  armSeg(13, 15); armSeg(14, 16);
+  armSeg(11, 13, 15); armSeg(12, 14, 16);
   const legSeg = (hip, knee, ankle) => {
     if (!pts[hip] || !pts[knee] || !pts[23] || !pts[24]) return;
     const hmx = (X(pts[23]) + X(pts[24])) / 2, hmy = (Y(pts[23]) + Y(pts[24])) / 2;
