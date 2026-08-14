@@ -1058,6 +1058,23 @@ function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(
    screen: idle → ready → jump → celebrate → result
    ============================================================ */
 const TEST = -1;           // goal 哨兵值：限时测试模式
+/* 虚拟绳颜色池：开轮随机抽色，每满一圈换新色（与"燃起来"升级同拍）。
+   深色舞台上均有足够对比度；默认翠绿为品牌色 */
+const ROPE_COLORS = [
+  [48, 232, 120],   /* 翠绿(默认) */
+  [64, 200, 255],   /* 天蓝 */
+  [255, 200, 64],   /* 金黄 */
+  [255, 140, 80],   /* 珊瑚橙 */
+  [190, 140, 255],  /* 紫罗兰 */
+  [255, 120, 170],  /* 樱粉 */
+  [120, 255, 200],  /* 薄荷 */
+  [230, 255, 90],   /* 柠檬 */
+];
+const pickRopeColor = (not) => {
+  let c;
+  do { c = ROPE_COLORS[(Math.random() * ROPE_COLORS.length) | 0]; } while (not && c === not);
+  return c;
+};
 const S = {
   screen: 'launch',        // launch = Atom 系统入口卡（APP 外）
   goal: profile.goal,      // >0 目标数；0 = 自由跳；-1 = 限时测试
@@ -1073,6 +1090,7 @@ const S = {
   totalAtStart: 0,         // 本轮开始时的累计数（用于判断解锁）
   unlock: '',              // 本轮解锁提示文案
   newBest: false,          // 1 分钟测试是否破纪录
+  ropeCol: ROPE_COLORS[0], // 本轮绳色（开轮随机，每满一圈换新色）
   seq: 0,                  // 同步序号
 };
 
@@ -1482,6 +1500,7 @@ function startSession(g) {
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
   S.minIvl = 0; S.slowWarned = false;
+  S.ropeCol = pickRopeColor();   /* 本轮绳色随机 */
   testMark30 = false; testMark10 = false; restMark30 = false;
   liveRank = 1 + GB.filter(u => u.count > todayCount()).length;   /* 记录起跳时的名次 */
   clearTimeout(resultTimer);
@@ -1619,7 +1638,7 @@ function registerJump() {
       sndStar(); flyStar($('atomRoot'));
     }
     const unit = S.goal > 0 ? S.goal : 50;
-    if (S.count % unit === 0) sndStar();
+    if (S.count % unit === 0) { sndStar(); S.ropeCol = pickRopeColor(S.ropeCol); }   /* 满圈:得星 + 换绳色 */
     /* 教练语音分层：满圈报星，整 30 鼓励/纠错指导五五开，其余整十只报数 */
     if (!(S.goal > 0 && S.count === S.goal)) {
       if (S.count % unit === 0) speak(L.spLap(S.count, S.count / unit));
@@ -1868,7 +1887,7 @@ function ropeGhosts(pts, ws, dt) {
 function drawRopeSet(c, set, front) {
   for (const g of set) {
     if (g.front !== front) continue;
-    c.strokeStyle = `rgba(48,232,120,${g.alpha})`;   /* 翠绿 */
+    c.strokeStyle = `rgba(${S.ropeCol[0]},${S.ropeCol[1]},${S.ropeCol[2]},${g.alpha})`;
     c.lineWidth = g.w;
     c.lineCap = 'round';
     c.beginPath();
