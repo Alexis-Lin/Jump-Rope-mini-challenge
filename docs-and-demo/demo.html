@@ -753,7 +753,7 @@
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
         <div class="milestone-toast" id="a-toast"></div>
         <div class="pauseveil" id="a-pause">
-          <b data-i18n="paused">已暂停</b><span data-i18n="pausedSub">回到画面继续 · 5 秒后自动结算</span>
+          <b data-i18n="paused">已暂停</b><span data-i18n="pausedSub">回到画面继续 · 离开 3 分钟自动结算</span>
           <button class="atom-cta" data-act="resume" data-i18n="resume">继续</button>
           <button class="atom-cta" data-act="end" data-i18n="finishNow" style="background:#2B332E;box-shadow:none;">立即结算</button>
         </div>
@@ -948,8 +948,8 @@
       <h2>状态与超时策略(空 / 边界 / 极限)</h2>
       <table>
         <tr><td>计数累积</td><td><b>单轮从 0 起算</b>;<b>今日累计跨轮累加</b>(首页/榜单/结算"今日累计"行),0 点重置;结算即落档</td></tr>
-        <tr><td>离开画面</td><td>训练中立即暂停(停表)→ 5s 未回自动结算;结算页 45s 无操作回首页</td></tr>
-        <tr><td>极限保护</td><td>30min 语音提醒休息 / 60min 强制结算;计数 ≥1000 数字降档 96→68;单日封顶 3000(服务端)</td></tr>
+        <tr><td>离开画面/切后台</td><td>训练中立即暂停(停表)→ 超 3 分钟未回自动结算(对齐课程出框策略,可配 3–5min);结算页 45s 无操作回首页</td></tr>
+        <tr><td>极限保护</td><td>自由跳单轮上限 15 分钟(最后 1 分钟语音预告,届满自动结算);计数 ≥1000 数字降档 96→68;单日封顶 3000(服务端)</td></tr>
         <tr><td>空状态</td><td>首页真实零值 + 引导文案;榜单未跳也有真实名次与"再跳 N 下超过 XX"</td></tr>
       </table>
     </div>
@@ -1080,7 +1080,7 @@ zh: {
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
   off: '关', on: '开', adult: '成人',
   readyTip: '请站进画面<br>边缘变绿即可', readyHint: '离开画面会自动暂停',
-  paused: '已暂停', pausedSub: '回到画面继续 · 5 秒后自动结算', resume: '继续', finishNow: '立即结算',
+  paused: '已暂停', pausedSub: '回到画面继续 · 离开 3 分钟自动结算', resume: '继续', finishNow: '立即结算',
   done: '完成', again: '再跳一轮', flipQR: '点按翻面看二维码',
   flipBack: '手机扫码保存 · 分享海报 · 点按返回', tapBack: '点按返回', tapBackBlank: '点按空白处返回',
   noRecQ: '还没有记录，跳一轮就有啦', noRecH: '还没有记录<br>跳完第一轮就有啦',
@@ -1133,8 +1133,8 @@ zh: {
   opFree: '今天自由跳，我们来试一下！',
   opAgain: c => `又来啦！今天已经跳了 ${c} 下，再来一轮？`,
   opBack: call => `又见面啦！${call}`,
-  rest30: '已跳 30 分钟，注意休息哦', spRest30: '已经跳了三十分钟啦，记得补水休息',
-  cap60: '连续 60 分钟，自动结算啦', todayTotal: n => `今日累计 ${n} 下`,
+  capFree: '15 分钟满啦，本轮自动结算', spCapSoon: '还有一分钟到十五分钟上限，冲刺！',
+  todayTotal: n => `今日累计 ${n} 下`,
 },
 en: {
   appTitle: 'JumpRope Star',
@@ -1157,7 +1157,7 @@ en: {
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
   off: 'Off', on: 'On', adult: 'Adult',
   readyTip: 'Step into view<br>until the edge glows green', readyHint: 'Auto-pauses when you step out',
-  paused: 'Paused', pausedSub: 'Step back in to resume · auto-finish in 5 s', resume: 'Resume', finishNow: 'Finish now',
+  paused: 'Paused', pausedSub: 'Step back in to resume · auto-finish after 3 min', resume: 'Resume', finishNow: 'Finish now',
   done: 'Done', again: 'One more', flipQR: 'Tap for QR card',
   flipBack: 'Scan to share · tap back', tapBack: 'Tap to go back', tapBackBlank: 'Tap anywhere to go back',
   noRecQ: 'No records yet — jump a round!', noRecH: 'No records yet<br>your first round starts it',
@@ -1210,8 +1210,8 @@ en: {
   opFree: "free jump today — let's go!",
   opAgain: c => `Back again! ${c} jumps today already — one more round?`,
   opBack: call => `Back again! ${call}`,
-  rest30: '30 min in — pace yourself!', spRest30: 'Thirty minutes in. Remember to hydrate and rest.',
-  cap60: '60 min reached — auto-finishing', todayTotal: n => `Today total ${n}`,
+  capFree: '15-min cap — auto-finishing', spCapSoon: 'One minute to the fifteen-minute cap. Sprint!',
+  todayTotal: n => `Today total ${n}`,
 },
 };
 let L = I18N[LANG];
@@ -1792,7 +1792,7 @@ function startSession(g) {
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
   S.minIvl = 0; S.slowWarned = false;
   S.ropeCol = pickRopeColor();   /* 本轮绳色随机 */
-  testMark30 = false; testMark10 = false; restMark30 = false;
+  testMark30 = false; testMark10 = false; capMark1 = false;
   liveRank = 1 + GB.filter(u => u.count > todayBest()).length;   /* 记录起跳时的名次(单轮口径) */
   clearTimeout(resultTimer);
   bump();
@@ -1833,7 +1833,8 @@ const fmtTime = (ms) => {
 };
 const sessionElapsed = () => S.elapsedMs + (S.runSince ? Date.now() - S.runSince : 0);
 const testMs = () => (S.testMin || 1) * 60000;
-let testMark30 = false, testMark10 = false, restMark30 = false;
+const FREE_CAP_MS = 15 * 60000;   /* 自由跳单轮上限（评审会后定稿:10–15min 取 15,可配） */
+let testMark30 = false, testMark10 = false, capMark1 = false;
 setInterval(() => {
   if (S.screen !== 'jump' || S.paused || !S.runSince) return;
   if (S.goal === TEST) {
@@ -1847,10 +1848,10 @@ setInterval(() => {
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak(L.sp10); }
   } else {
     $('a-timer').textContent = fmtTime(sessionElapsed());
-    /* 单轮时长保护（儿童过练保护）：30 分钟语音提醒，60 分钟强制结算 */
-    if (sessionElapsed() >= 3600000) { toast(L.cap60, 2200); endSession(); return; }
-    if (sessionElapsed() >= 1800000 && !restMark30) {
-      restMark30 = true; toast(L.rest30, 2200); speak(L.spRest30);
+    /* 自由跳单轮上限 15 分钟：最后 1 分钟语音预告，届满自动结算（成绩照常落档） */
+    if (sessionElapsed() >= FREE_CAP_MS) { toast(L.capFree, 2200); endSession(); return; }
+    if (sessionElapsed() >= FREE_CAP_MS - 60000 && !capMark1) {
+      capMark1 = true; speak(L.spCapSoon);
     }
   }
 }, 250);
@@ -2009,6 +2010,7 @@ function endSession() {
   const tk = todayKey();
   const rec = profile.history[tk] || { count: 0, done: false, ms: 0 };
   rec.count += S.count;
+  rec.n = (rec.n || 0) + 1;                      /* 当日轮数（记录页「×N 轮」） */
   rec.best = Math.max(rec.best || 0, S.count);   /* 今日单轮最高(榜单口径) */
   rec.ms = (rec.ms || 0) + S.elapsedMs;
   const met = goalMet || rec.count >= 50;
@@ -2053,8 +2055,8 @@ function pauseSession(v) {
   if (!v && !S.runSince) S.runSince = Date.now();
   if (v) {
     speak(L.spPause);
-    /* 停下 5 秒视为"这轮跳完了"，自动进结算 */
-    pauseEndTimer = setTimeout(() => { if (S.paused && S.screen === 'jump') endSession(); }, 5000);
+    /* 出框/切后台超 3 分钟视为离开，自动结算（对齐课程通用出框策略，可配 3–5min） */
+    pauseEndTimer = setTimeout(() => { if (S.paused && S.screen === 'jump') endSession(); }, 180000);
   }
   bump();
 }
@@ -2522,7 +2524,7 @@ function renderQuickCards() {
     ? keys.slice(-5).reverse().map(k => {
         const r = profile.history[k];
         return `<div class="hrow"><span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
-          `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${L.cnt(r.count)}</span>` +
+          `<span class="hday">×${r.n || 1}</span><span class="hc">${L.cnt(r.count)}</span>` +
           `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span></div>`;
       }).join('')
     : `<div class="h-empty">${L.noRecQ}</div>`;
@@ -2623,7 +2625,7 @@ function renderHistory() {
     const r = profile.history[k];
     return `<div class="hrow">` +
       `<span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
-      `<span class="hday">Day ${dayNo[k]}</span>` +
+      `<span class="hday">×${r.n || 1}</span>` +
       `<span class="hc">${L.cnt(r.count)}</span>` +
       `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span>` +
       `</div>`;
