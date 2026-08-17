@@ -784,7 +784,6 @@
           <div class="lab" id="a-r-lab">目标达成！</div>
           <div class="streak" id="a-r-rate" style="color:#7FE3A8;"></div>
           <div class="earn" id="a-r-earn">⭐ +10</div>
-          <div class="streak" id="a-r-rank" style="color: var(--stage-soft);"></div>
           <div class="streak" id="a-r-today" style="color: var(--stage-soft);"></div>
           <div class="unlock" id="a-r-unlock"></div>
           <div class="a-chip-row">
@@ -1116,7 +1115,9 @@ zh: {
   rated: r => `评级 ${r}`, dailyMet: '每日任务达成',
   unlockLine: ns => `解锁 ${ns.join('、')}！`,
   sceneTag: n => `新场景「${n}」`, outfitTag: n => `新装扮「${n}」`,
-  cheers: ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'],
+  cheers: ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！', '越跳越轻松了！', '这节奏，像职业选手！'],
+  spPbNear: d => `离你的最高纪录只差 ${d} 下，冲！`,
+  spPbBreak: '新纪录诞生！现在每一下都在刷新它！', pbToast: '新纪录！',
   tips: ['膝盖微弯，轻轻落地', '前脚掌落地更省力', '手腕发力，手臂放松', '目视前方，背挺直', '呼吸跟上节奏', '双脚并拢，同起同落'],
   howTitle: '动作要领',
   howRows: ['双脚并拢跳，同起同落', '交替跳 / 单脚跳不计数，会语音提醒你', '正对镜头，全身入镜', '手腕发力，前脚掌轻落地'],
@@ -1137,7 +1138,7 @@ zh: {
   spLucky: n => `哇，踩中今天的隐藏数字${n}，奖励五颗星！`,
   spGoal: '目标达成！继续保持！', spTop3: '进入全球前三！', spTop1: '全球第一！保持住！',
   spTestBest: (c, r) => `${c} 下，新纪录${r ? `，体测评级${r}` : ''}！`,
-  spTestEnd: (m, c, r) => `${m} 分钟 ${c} 下${r ? `，体测评级${r}` : ''}，辛苦啦`,
+  spTestEnd: (m, c, r) => `时间到！${m} 分钟 ${c} 下${r ? `，体测评级${r}` : ''}，辛苦啦`,
   spEndGood: c => `一共 ${c} 下，太棒了！`, spEnd: '本轮结束，辛苦啦',
   spUnlock: ns => `恭喜解锁${ns.join('，')}`, spPause: '已暂停',
   spRemindOff: '提醒已关闭', spRemindAt: t => `每天 ${t} 提醒你来跳绳`,
@@ -1194,7 +1195,9 @@ en: {
   rated: r => `Rating: ${r}`, dailyMet: 'Daily goal met',
   unlockLine: ns => `Unlocked ${ns.join(', ')}!`,
   sceneTag: n => `new scene “${n}”`, outfitTag: n => `new outfit “${n}”`,
-  cheers: ['Steady rhythm!', "Bono can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!'],
+  cheers: ['Steady rhythm!', "Bono can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!', 'Smoother every jump!', 'Pro-level rhythm!'],
+  spPbNear: d => `${d} away from your all-time best — go!`,
+  spPbBreak: 'New record! Every jump extends it now!', pbToast: 'New record!',
   tips: ['Soft knees, land light', 'Land on the balls of your feet', 'Flick the wrists, relax the arms', 'Eyes forward, back straight', 'Breathe with the rhythm', 'Feet together — no alternating'],
   howTitle: 'How to Jump',
   howRows: ['Jump with both feet together', "Alternating / single-foot hops don't count — voice reminds you", 'Face the camera, whole body in view', 'Flick the wrists, land on the balls of your feet'],
@@ -1215,7 +1218,7 @@ en: {
   spLucky: n => `Wow, you hit today's lucky number ${n}. Five bonus stars!`,
   spGoal: 'Goal reached! Keep it up!', spTop3: 'Top three worldwide!', spTop1: 'World number one! Hold it!',
   spTestBest: (c, r) => `${c} — new record${r ? `, rated ${r}` : ''}!`,
-  spTestEnd: (m, c, r) => `${c} in ${m} ${m > 1 ? 'minutes' : 'minute'}${r ? `, rated ${r}` : ''}. Nice work!`,
+  spTestEnd: (m, c, r) => `Time's up! ${c} in ${m} ${m > 1 ? 'minutes' : 'minute'}${r ? `, rated ${r}` : ''}. Nice work!`,
   spEndGood: c => `${c} total. Amazing!`, spEnd: 'Round over. Nice work!',
   spUnlock: ns => `Unlocked ${ns.join(', ')}`, spPause: 'Paused',
   spRemindOff: 'Reminder off', spRemindAt: t => `Daily reminder at ${t}`,
@@ -1719,7 +1722,7 @@ function render() {
     if (S.goal === TEST) {
         $('a-r-lab').textContent = (S.newBest ? L.newRec : L.timeUp) + ' · ' + S.testMin + "'";
     } else {
-        $('a-r-lab').textContent = (goalMet ? L.goalReached : L.roundOver) + ' · ' + fmtTime(S.elapsedMs);
+        $('a-r-lab').textContent = (S.newBest ? L.newRec : goalMet ? L.goalReached : L.roundOver) + ' · ' + fmtTime(S.elapsedMs);
     }
     /* 今日累计（同日多轮时显示，说明"单轮从 0 数、今日在累积"） */
     const trec = profile.history[todayKey()];
@@ -1727,10 +1730,10 @@ function render() {
     /* 体测评级（仅 1 分钟测试） + 卡路里 */
     $('a-r-rate').textContent = (S.goal === TEST && S.testMin === 1)
       ? L.rateLine(rateTest(S.count), ageDisp) : '';
-    const kcal = sessionKcal();
+    /* 结算页减字(会后反馈):只留 星星+全球名次 一行;连胜/千卡等数据后台有 */
+    const rg = myRank('round');
     $('a-r-earn').innerHTML =
-      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('flame', '#FFB020')} ${L.earnStreak(profile.streak)}` +
-      (kcal > 0 ? ` · ${kcal.toFixed(1)} ${L.kcal}` : '');
+      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('trophy')} ${L.globalRank(rg.rank)}`;
     /* 分享页迷你海报 */
     $('a-poster-num').textContent = S.count;
     $('a-poster-sub').textContent = `${todayKey().slice(5).replace('-', '.')} · ` +
@@ -1738,9 +1741,6 @@ function render() {
     $('a-poster-rate').textContent = S.goal === TEST && S.testMin === 1
       ? L.rated(rateTest(S.count)) : (goalMet ? L.dailyMet : '');
     $('a-r-unlock').innerHTML = S.unlock ? `${ico('gift', '#7FE3A8')} ${S.unlock}` : '';
-    const rg = myRank('round');
-    $('a-r-rank').innerHTML = `${ico('trophy')} ${L.globalRank(rg.rank)}` +
-      (S.goal === TEST ? L.minBest(S.testMin, profile.bests[S.testMin] || 0) : '');
     drawQR($('a-qr'));
   }
 
@@ -1810,6 +1810,7 @@ function startSession(g) {
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
   S.minIvl = 0; S.slowWarned = false;
+  S.pbAtStart = profile.bestSession || 0; S.pbNearSaid = false; S.pbBroken = false;
   S.ropeCol = pickRopeColor();   /* 本轮绳色随机 */
   testMark30 = false; testMark10 = false; capMark1 = false;
   liveRank = 1 + GB.filter(u => u.count > todayBest()).length;   /* 记录起跳时的名次(单轮口径) */
@@ -1970,6 +1971,20 @@ function registerJump() {
     }
   }
 
+  /* 破纪录追逐（自由跳）：只差 10 下内播报一次；一旦超越，课中即时庆祝（不打断计数） */
+  if (S.goal !== TEST && S.pbAtStart >= 30) {
+    const gap = S.pbAtStart - S.count;
+    if (!S.pbNearSaid && gap > 0 && gap <= 10) { S.pbNearSaid = true; speak(L.spPbNear(gap)); }
+    if (!S.pbBroken && S.count > S.pbAtStart) {
+      S.pbBroken = true;
+      skel.glowT0 = performance.now();          /* 全身金光 */
+      confetti($('atomRoot'), 30);
+      sndFanfare();
+      toast(L.pbToast, 1800);                   /* 破纪录=稀有事件,保留 toast */
+      speak(L.spPbBreak);
+    }
+  }
+
   checkOvertake();
 
   /* 每日隐藏数字：踩中有惊喜 */
@@ -2008,11 +2023,12 @@ function endSession() {
       if (S.testMin === 1) profile.bestMinute = S.count;
     }
   }
-  /* 庆祝页：达标或破纪录都值得一场全屏庆祝 */
-  const celebrated = goalMet || (S.goal === TEST && S.newBest);
+  else S.newBest = S.count > (profile.bestSession || 0);   /* 自由跳破单轮 PB 也算新纪录 */
+  /* 庆祝页：破纪录必庆祝；达标必庆祝；限时"时间到"也必有收官庆祝帧 */
+  const celebrated = goalMet || S.newBest || S.goal === TEST;
   if (celebrated) {
     $('a-celebrate').querySelector('.txt').textContent =
-      S.goal === TEST && S.newBest ? L.newRec : L.celeGoal;
+      S.newBest ? L.newRec : S.goal === TEST ? L.timeUp : L.celeGoal;
     S.screen = 'celebrate';
     bump();
     sndFanfare();
