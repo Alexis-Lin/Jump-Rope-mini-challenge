@@ -188,7 +188,7 @@
   .idle-streak { font-size: var(--t32); font-weight: 700; }
   /* Quick Card 卡组 */
   .cards-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
-  #a-cards { display: flex; width: 300%; height: 100%; transition: transform .25s; }
+  #a-cards { display: flex; width: 400%; height: 100%; transition: transform .25s; }
   .qcard {
     width: 33.3333%; height: 100%;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -281,6 +281,11 @@
   }
   .srow > span { white-space: nowrap; }
   #a-tips .srow { justify-content: flex-start; gap: .55em; font-size: var(--t22); }
+  #a-best .set-rows { gap: .3em; }
+  #a-best .hbody { margin-bottom: 1.3em; }
+  #a-best .srow { font-size: var(--t22); }
+  #a-set .hbody { margin-bottom: 1.7em; }
+  #a-set .set-rows { gap: .45em; }
   #a-tips .srow::before { content: '·'; color: var(--accent); font-weight: 800; }
   #a-tips .srow > span { white-space: normal; text-align: left; line-height: 1.35; }
   .srow .a-goal-chip.sm { font-size: var(--t24); min-width: 4.2em; padding: .26em .8em; }
@@ -668,6 +673,12 @@
               <div class="board-foot-q" id="a-qboard-foot"></div>
               <button class="page-cta" id="qc-board-go" data-i18n="fullBoard">完整榜单</button>
             </div>
+            <!-- Page 4 · 最佳战绩速览(完整维度在二级页) -->
+            <div class="qcard page" id="qc-best">
+              <div class="page-title" data-i18n="bestTitle">最佳战绩</div>
+              <div class="h-list" id="a-qbest"></div>
+              <button class="page-cta" id="qc-best-go" data-i18n="viewAll">查看全部</button>
+            </div>
           </div>
         </div>
         <div class="card-dots" id="a-dots"></div>
@@ -712,9 +723,11 @@
         <div class="h-title" data-i18n="setTitle">设置</div>
         <div class="hbody"><div class="set-rows">
           <div class="srow"><span data-i18n="setGoal">每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
+          <div class="srow"><span data-i18n="setLen">限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
           <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
           <div class="srow"><span data-i18n="setBgm">背景音乐</span><button class="a-goal-chip sm" id="as-bgm">开</button></div>
+          <div class="srow"><span data-i18n="howTitle">动作要领</span><button class="a-goal-chip sm" id="as-tips">›</button></div>
         </div></div>
         <div class="flip-hint" data-i18n="tapBackBlank">点按空白处返回</div>
       </div>
@@ -1060,7 +1073,8 @@ zh: {
   todayBestLab: '今日最高', totalCnt: n => `${n} 下`,
   recTitle: '打卡记录', boardTitle: '全球排行', achvTitle: '我的成就',
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
-  bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', bestDay: '单日最高',
+  bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', best2: '2 分钟最佳',
+  bestDay: '单日累计最高', bestDayRounds: '单日轮数最多', bestStreak: '最长连胜', roundUnit: n => `${n} 轮`,
   modeTitle: '选择模式', modeTimed: '限时跳', modeFree: '不限时', back: '返回',
   timedSub: (m, pb) => `${m} 分钟倒计时${pb ? ` · 最佳 ${pb}` : ''}`,
   freeSub: (g, t) => (g === 0 ? '自由模式' : `每日任务 ${g} 下`) + ` · 今日 ${t}`,
@@ -1068,7 +1082,7 @@ zh: {
   boardRound: '今日单轮', boardTimed: '1 分钟', boardStreak: '连胜',
   boardSubs: { round: '单轮最高 · 0 点重置', timed: '1 分钟历史最佳', streak: '连续打卡天数' },
   passFootDay: (d, n) => `再坚持 ${d} 天超过 ${n}`, dayUnit: n => `${n} 天`,
-  setTitle: '设置', setGoal: '每日目标',
+  setTitle: '设置', setGoal: '每日目标', setLen: '限时时长',
   setRemind: '每日提醒', setVoice: '教练语音', setBgm: '背景音乐',
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
   off: '关', on: '开', adult: '成人',
@@ -1140,7 +1154,8 @@ en: {
   todayBestLab: 'Best today', totalCnt: n => `${n}`,
   recTitle: 'Check-in Log', boardTitle: 'Global Ranking', achvTitle: 'My Achievements',
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
-  bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", bestDay: 'Best day',
+  bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", best2: "Best 2' test",
+  bestDay: 'Best day total', bestDayRounds: 'Most rounds/day', bestStreak: 'Longest streak', roundUnit: n => `×${n}`,
   modeTitle: 'Choose Mode', modeTimed: 'Timed', modeFree: 'Free Jump', back: 'Back',
   timedSub: (m, pb) => `${m} min countdown${pb ? ` · PB ${pb}` : ''}`,
   freeSub: (g, t) => (g === 0 ? 'Free mode' : `Daily goal ${g}`) + ` · today ${t}`,
@@ -1148,7 +1163,7 @@ en: {
   boardRound: 'Round', boardTimed: '1-min', boardStreak: 'Streak',
   boardSubs: { round: 'round best · daily', timed: "1' all-time", streak: 'days in a row' },
   passFootDay: (d, n) => `${d}d to pass ${n}`, dayUnit: n => `${n}d`,
-  setTitle: 'Settings', setGoal: 'Daily goal',
+  setTitle: 'Settings', setGoal: 'Daily goal', setLen: 'Timed length',
   setRemind: 'Reminder', setVoice: 'Coach voice', setBgm: 'Music',
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
   off: 'Off', on: 'On', adult: 'Adult',
@@ -1323,7 +1338,7 @@ const pickRopeColor = (not) => {
 const S = {
   screen: 'launch',        // launch = Atom 系统入口卡（APP 外）
   goal: profile.goal,      // >0 目标数；0 = 自由跳；-1 = 限时测试
-  testMin: 1,   // 限时测试固定 1 分钟（会后定稿:对齐中考/比赛口径,2 分钟移除）
+  testMin: profile.testMin || 1,   // 限时时长:1'(默认,中考口径·爆发) / 2'(耐力+爆发,维度更清晰)
   count: 0,
   earned: 0,               // 本轮星星
   countdown: 0,            // 3/2/1，0 = 未在倒计时
@@ -2043,6 +2058,7 @@ function endSession() {
     if (profile.lastDone === dayKeyOffset(-1)) profile.streak += 1;
     else if (profile.lastDone !== tk) profile.streak = 1;
     profile.lastDone = tk;
+    if (profile.streak > (profile.maxStreak || 0)) profile.maxStreak = profile.streak;   /* 最长连胜 */
   }
   profile.history[tk] = rec;
   profile.stars += S.earned;
@@ -2399,16 +2415,17 @@ let skelTimer = setInterval(skelFrame, 66);   /* 帧率随 setFps 联动 */
 $('a-opt-timed').addEventListener('click', () => { audio(); startSession(TEST); });
 $('a-opt-free').addEventListener('click', () => { audio(); startSession(profile.goalNum); });
 $('a-mode-back').addEventListener('click', () => { audio(); goHome(); });
-$('a-mode-tips').addEventListener('click', (e) => {
-  e.stopPropagation(); audio();
+function openTips() {
   $('a-tips-rows').innerHTML = L.howRows.map(t => `<div class="srow"><span>${t}</span></div>`).join('');
   $('a-tips').classList.add('show');
-});
+}
+$('a-mode-tips').addEventListener('click', (e) => { e.stopPropagation(); audio(); openTips(); });
 $('a-tips').addEventListener('click', () => $('a-tips').classList.remove('show'));
 
 /* 设置页（首页 ⚙ 进入）：目标 / 限时时长 / 语音 */
 function renderSettings() {
   $('as-goal').textContent = L.goalVal(profile.goalNum);
+  $('as-len').textContent = L.lenVal(S.testMin);
   $('as-remind').textContent = profile.remind === '关' ? L.off : profile.remind;
   $('as-voice').textContent = voiceOn ? L.on : L.off;
   $('as-bgm').textContent = bgmOn ? L.on : L.off;
@@ -2432,6 +2449,17 @@ $('as-goal').addEventListener('click', (e) => {
   profile.goalNum = next; saveProfile();
   if (S.goal !== TEST) { S.goal = next; profile.goal = next; saveProfile(); }
   renderSettings(); bump();
+});
+$('as-len').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  S.testMin = S.testMin === 1 ? 2 : 1;
+  profile.testMin = S.testMin; saveProfile();
+  renderSettings(); bump();
+});
+$('as-tips').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  $('a-set').classList.remove('show');
+  openTips();
 });
 $('as-bgm').addEventListener('click', (e) => {
   e.stopPropagation();
@@ -2492,7 +2520,7 @@ $('a-board').addEventListener('click', () => $('a-board').classList.remove('show
    首页 Quick Cards：滑动切换 [封面][主卡][排行榜][记录]
    ------------------------------------------------------------ */
 let cardIdx = 0, swiped = false, swX = null;
-const CARD_N = 3;
+const CARD_N = 4;
 function setCard(i) {
   cardIdx = Math.max(0, Math.min(CARD_N - 1, i));
   $('a-cards').style.transform = `translateX(-${cardIdx * 100 / CARD_N}%)`;
@@ -2521,6 +2549,7 @@ function nudge() {
 
 /* 勋章体系：全部由现有数据计算得出 */
 const maxDaily = () => Math.max(0, ...Object.values(profile.history).map(r => r.count || 0));
+const maxDailyRounds = () => Math.max(0, ...Object.values(profile.history).map(r => r.n || 0));
 /* 勋章体系 P1 暂缓（先聚焦打卡记录 + 排行榜），规则见设计文档 §勋章 */
 
 function renderQuickCards() {
@@ -2574,11 +2603,21 @@ function renderQuickCards() {
   const above = meIdx > 0 ? merged[meIdx - 1] : null;
   $('a-qboard-foot').textContent = above
     ? L.passFoot(above.count - me.count + 1, above.name) : L.first;
+  /* Page 4 · 最佳战绩速览:4 条核心维度,完整 7 维度在二级页 */
+  $('a-qbest').innerHTML = [
+    [L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
+    [L.best2, profile.bests[2]], [L.bestDay, maxDaily()],
+  ].map(([lab, v]) =>
+    `<div class="hrow"><span class="hday" style="min-width:6.4em;text-align:left;">${lab}</span>` +
+    `<span class="hc">${v || '—'}</span></div>`).join('');
 }
 function renderBest() {
+  const mr = maxDailyRounds(), ms2 = profile.maxStreak || profile.streak;
   const rows = [[L.todayBestLab, todayBest()],
                 [L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
-                [L.bestDay, maxDaily()]];
+                [L.best2, profile.bests[2]], [L.bestDay, maxDaily()],
+                [L.bestDayRounds, mr ? L.roundUnit(mr) : 0],
+                [L.bestStreak, ms2 ? L.dayUnit(ms2) : 0]];
   $('a-best-rows').innerHTML = rows.map(([lab, v]) =>
     `<div class="srow"><span>${lab}</span><b class="bval">${v || '—'}</b></div>`).join('');
 }
@@ -2627,6 +2666,9 @@ $('qc-rec-go').addEventListener('click', () => {
 });
 $('qc-board-go').addEventListener('click', () => {
   if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
+});
+$('qc-best-go').addEventListener('click', () => {
+  if (swiped) return; audio(); renderBest(); $('a-best').classList.add('show');
 });
 ['ab-round', 'ab-timed', 'ab-streak'].forEach(id => $(id).addEventListener('click', (e) => {
   e.stopPropagation(); audio();

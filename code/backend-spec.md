@@ -9,6 +9,7 @@
 | `nick` | string | 昵称(开场白称呼) | 手机 App/云端设置(设备端无键盘);空时端上用默认"小跳将/Jumper" |
 | `sessions` | int | 累计跳绳轮次(开场白"第 N 次") | 每次结算 +1 |
 | `streak` | int | 连续打卡天数 | 结算时:昨日已打卡 +1;断签重置为 1 |
+| `maxStreak` | int | 最长连胜(最佳战绩维度) | 结算时取 max(streak) |
 | `lastDone` | date | 最近打卡日期 | 当日首次达成打卡条件时 |
 | `history` | map<date, {count, best, n, ms, done}> | 每日聚合:累计次数 / **单轮最高 best(榜单口径)** / 轮数 n(仅数据,不上屏) / 累计净时长 ms / 是否打卡 | 每次结算累加(**单轮从 0 计,当日跨轮累加**;best 取 max);按 session 存明细、按天聚合展示;打卡条件 = 当日 ≥ 目标 或 ≥50 |
 | `total` | int | 历史累计跳数 | 每跳 +1(结算落档) |
@@ -44,7 +45,7 @@
 | 榜 | 口径 | Key(前缀含分区) | 重置 |
 |---|---|---|---|
 | 今日单轮 | 当日**单轮最高**(当日累计不上榜,防刷) | `{edition}:jump:round:{date}` | 时区滚动建 key + TTL,天然每日 0 点重置 |
-| 1 分钟 | 1' 测试**历史最佳**(限时已固定 1 分钟;如未来恢复多时长,按 `timed{min}` 分榜) | `{edition}:jump:timed1:best` | 不重置 |
+| 1 分钟 | 1' 测试**历史最佳**;限时按时长分榜(`timed1`/`timed2`),端上先展示 1' 主推 | `{edition}:jump:timed{min}:best` | 不重置 |
 | 连胜 | 连续打卡天数 | `{edition}:jump:streak` | 断签回落(每日结算任务刷新) |
 
 - **Redis Sorted Set**:写入用 `ZADD GT`(只升不降=天然取最高,替代 ZINCRBY);`ZREVRANK` 查名次、`ZREVRANGE` 取 Top3/邻近区间;
