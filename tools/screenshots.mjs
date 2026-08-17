@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PROTO = 'file://' + path.join(ROOT, 'prototype', 'index.html');
+const PROTO = 'file://' + path.join(ROOT, 'demo', 'index.html');
 const EXEC = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
 
 const browser = await chromium.launch({

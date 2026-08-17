@@ -1,41 +1,50 @@
-# Atom 嵌入式版本（proto-v0.5-embed）
+# 嵌入式实现参考（Atom 端前端）
 
-> ⚠ **此版本基于 proto-v0.5,界面已落后于最新原型(v0.17:双语/新首页/BodyPark 即时开跳/勋章暂缓等)。**
-> 本文档的 **AI 桥接接口契约仍然有效**(注意:`setPresence` 现仅用于训练中暂停/恢复,不再作为开跳门槛,见 PRD §8.1)。
-> 设计定版后基于最新 `prototype/index.html` 重新生成本目录。
+**纯 C（C11）+ 纯软件光栅，零外部依赖，无 SVG/字体库需求** —— 设备只要给一块
+466×466 ARGB8888 帧缓冲即可。桌面 `make && ./demo` 直接出关键帧 BMP 验证。
 
-单文件 `index.html`，在设备的嵌入式 WebView（Chromium 内核 ≥ 90，需支持 Canvas 2D；WebAudio/SpeechSynthesis 可选）中全屏加载即可运行。UI 按 466×466 圆屏 @15fps 设计，自动铺满 `100vmin`。
+> ⚠ 交互规格以可交互 Demo（[`../demo/index.html`](../demo/index.html)）为源——本参考实现基于 proto-v0.5 行为,
+> 后续界面演进(双语/新首页/BodyPark 即时开跳/刻度环/发光等)以 Demo 与 [PRD](../docs/PRD.md) 为准接力。
 
-**真机模式下计数/骨骼/站位完全由后端 AI 驱动**，页面内不做任何判定；原型的模拟输入（点按跳/空格/自动演示/控制条）默认封死，URL 追加 `?debug` 可恢复（桌面调试用）。
+## 目录
 
-## 接口总览
+```
+include/atom_hal.h    HAL 抽象（5 个函数指针：显示/语音/存储读写/时钟）→ 接设备 SDK
+include/atom_app.h    应用公共 API（骨骼喂点/计数/站位/触屏/档案/事件出向）
+src/atom_render.c     软光栅：粗圆头线/进度环弧/椭圆环/五角星/七段数字/5x7 标签字体（带 alpha 混合）
+src/atom_app.c        状态机 + 各屏渲染 + 训练逻辑（限时/停表/星星/卡路里/体测评级/持久化）
+src/atom_pose_sim.c   内置演示动作（无 AI 数据时自检用）
+src/main_demo.c       桌面 harness（真机不编译此文件）
+```
 
-### 入向：固件/AI 管线 → 页面（`window.AtomApp`）
+## 移植三步
 
-| 方法 | 说明 |
+1. 实现 `atom_hal_t` 五个函数（display_flush 把帧缓冲刷 LCD；speak 接 TTS/语音包；
+   storage 读写档案 blob；millis 单调毫秒）；
+2. 主循环 15Hz 调 `atom_app_tick()`；触摸按下调 `atom_app_touch(x, y)`；
+3. AI 管线接三个入口（接口契约见下节）。
+
+## AI 管线接口契约（C 与 WebView 方案通用）
+
+| 接口（C / JS） | 说明 |
 |---|---|
-| `AtomApp.feedPose(pts)` | 33 点骨骼流（MediaPipe Pose 拓扑，`[{x,y,v?}]` 归一化 0–1、原点左上、喂入前完成镜像），建议 ≥15Hz；500ms 无数据自动回落内置演示动作 |
-| `AtomApp.onJump()` | AI 判定一次有效跳跃 → 计数 +1，同步触发数字打击动画/涟漪/音效 |
-| `AtomApp.setPresence(bool)` | 站位判定（固件侧去抖后调用）：准备页 `true` 触发倒计时开跳；跳绳中 `false` 暂停、`true` 恢复 |
-| `AtomApp.setProfile(json)` | 注入用户档案（开机时用设备存储的档案恢复） |
-| `AtomApp.setBoard(scope, list)` | 注入排行榜数据，`scope: 'global'\|'local'`，`list: [{name, count}]` 降序；未注入时用内置示意数据 |
-| `AtomApp.start(mode)` | 编程式开跳：`'timed'`（限时）/ 其它（每日任务），供语音助手/物理按键调用 |
-| `AtomApp.home()` / `AtomApp.end()` | 回首页 / 立即结算 |
+| `atom_app_feed_pose(pts)` / `AtomApp.feedPose(pts)` | 33 点骨骼流（MediaPipe Pose 拓扑，`[{x,y,v?}]` 归一化 0–1、原点左上、喂入前完成镜像），建议 ≥15Hz；500ms 无数据自动回落内置演示动作。渲染细节见 [火柴人渲染说明](../docs/figure-rendering.md) |
+| `atom_app_on_jump()` / `AtomApp.onJump()` | AI 判定一次有效跳跃 → 计数 +1，同帧触发数字打击动画/涟漪/发光/音效 |
+| `atom_app_set_presence(b)` / `AtomApp.setPresence(bool)` | **仅用于训练中**：`false` 立即暂停（停表），`true` 恢复；不作为开跳门槛（开跳为 3·2·1·BodyPark 即时流程） |
+| 事件出向 `atom_callbacks_t.on_event` / `AtomBridge.onEvent` | `app_ready / session_start / jump{count} / session_end{count, ms, goal, testMin, kcal, newBest}` → 上报后端（字段说明见 [后端实现说明](../docs/backend-spec.md)） |
 
-调用方式：原生侧 `webview.evaluateJavascript("AtomApp.onJump()")`（Android）或等价机制（QtWebEngine `runJavaScript` / iOS `evaluateJavaScript`）。
+WebView 备选方案：设备 WebView（Chromium ≥90，Canvas 2D）全屏加载 `demo/index.html`
+即可运行——用 `webview.evaluateJavascript("AtomApp.onJump()")` 等注入上表 JS 接口,
+`AtomBridge.speak/saveProfile/onEvent` 由固件在页面加载前注入（缺失时页面自动回落浏览器能力）。
+桌面调试加 `?debug`。
 
-### 出向：页面 → 固件（`window.AtomBridge`，固件在页面加载前注入）
+## 已完整实现 / 工程接力清单
 
-| 方法 | 说明 | 缺失时回落 |
-|---|---|---|
-| `AtomBridge.speak(text)` | 教练语音 → 设备 TTS / 预生成语音包 | 浏览器 SpeechSynthesis |
-| `AtomBridge.saveProfile(json)` | 档案持久化到设备存储 | localStorage |
-| `AtomBridge.onEvent(evt)` | 事件流：`app_ready` / `session_start` / `jump{count}` / `session_end{count, ms, goal, testMin, kcal, newBest}` —— 用于上报后端（排行榜/打卡云同步） | 静默 |
+✅ 训练屏全套：贴边进度环、顶点计时、格斗式打击数字（逢十重击帧序）、2/3 视口骨骼
+火柴人（肩宽标尺缩放）、金闪触地涟漪（爆发扩张/压缩回弹）、限时测试（读秒/语音节点/
+自动结算）、卡路里（MET）、体测评级（示意阈值，上线换国标分表）、档案持久化、庆祝/结算屏。
 
-所有出向调用都有 try/catch 与回落，桥不完整不会影响页面运行。
-
-## 联调建议
-
-1. 桌面浏览器打开 `index.html?debug`，控制台手动 `AtomApp.feedPose(...)` / `AtomApp.onJump()` 验证坐标系与计数链路；
-2. 真机首验三项：骨骼渲染延迟与计数反馈延迟对齐（均 <100ms）、15fps 下动画无掉帧、TTS 桥语音时机正确；
-3. 排行榜/档案云同步就绪前，可先只接 `onEvent` 埋点收数。
+🔧 接力项（框架已留位）：对齐最新 Demo 的首页三卡横滑与二级页（排行榜/记录/最佳战绩/设置）、
+3·2·1·BodyPark 即时开跳、限时 60 格刻度环、逢十发光、绳色池、双语文案；连胜跨天判定
+（`atom_app_new_day()` 已留钩子）；中文字库（现用 5x7 ASCII，语音文本已是 UTF-8 中文）；
+性能优化（软光栅逐像素法在 MCU 上请换硬件 2D/脏矩形）。
