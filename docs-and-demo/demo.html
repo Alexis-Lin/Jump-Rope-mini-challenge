@@ -2010,7 +2010,7 @@ function endSession() {
   const tk = todayKey();
   const rec = profile.history[tk] || { count: 0, done: false, ms: 0 };
   rec.count += S.count;
-  rec.n = (rec.n || 0) + 1;                      /* 当日轮数（记录页「×N 轮」） */
+  rec.n = (rec.n || 0) + 1;                      /* 当日轮数（仅数据，不上屏——上报后台用） */
   rec.best = Math.max(rec.best || 0, S.count);   /* 今日单轮最高(榜单口径) */
   rec.ms = (rec.ms || 0) + S.elapsedMs;
   const met = goalMet || rec.count >= 50;
@@ -2524,7 +2524,7 @@ function renderQuickCards() {
     ? keys.slice(-5).reverse().map(k => {
         const r = profile.history[k];
         return `<div class="hrow"><span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
-          `<span class="hday">×${r.n || 1}</span><span class="hc">${L.cnt(r.count)}</span>` +
+          `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${L.cnt(r.count)}</span>` +
           `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span></div>`;
       }).join('')
     : `<div class="h-empty">${L.noRecQ}</div>`;
@@ -2625,7 +2625,7 @@ function renderHistory() {
     const r = profile.history[k];
     return `<div class="hrow">` +
       `<span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
-      `<span class="hday">×${r.n || 1}</span>` +
+      `<span class="hday">Day ${dayNo[k]}</span>` +
       `<span class="hc">${L.cnt(r.count)}</span>` +
       `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span>` +
       `</div>`;
