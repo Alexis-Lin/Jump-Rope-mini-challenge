@@ -715,6 +715,7 @@
           <circle id="a-ring-arc" cx="233" cy="233" r="226" fill="none" stroke="#23C766" stroke-width="13"
                   stroke-linecap="round" stroke-dasharray="1420.0" stroke-dashoffset="1420.0"
                   transform="rotate(-90 233 233)"></circle>
+          <g id="a-ring-ticks" style="display:none"></g>
         </svg>
         <canvas class="skel" id="a-skel" width="466" height="466"></canvas>
         <div class="a-timer" id="a-timer"></div>
@@ -1332,6 +1333,37 @@ function showScreens() {
   $('a-pause').classList.toggle('show', S.paused && S.screen === 'jump');
 }
 
+/* ------------------------------------------------------------
+   限时模式刻度环：60 格（每格 = 总时长/60，1'=1s/格、2'=2s/格），
+   逢五长刻度（表盘感）；剩余时间 = 亮格，从尾端逐格熄灭；
+   最后 10s 剩余刻度转暖橙。离散熄灭天然适配 15fps。
+   ------------------------------------------------------------ */
+(function buildTicks() {
+  const g = document.getElementById('a-ring-ticks');
+  if (!g) return;
+  let h = '';
+  for (let i = 0; i < 60; i++) {
+    const a = (i / 60) * 2 * Math.PI - Math.PI / 2;
+    const major = i % 5 === 0;
+    const r1 = major ? 218 : 222, r2 = major ? 234 : 231;
+    h += `<line x1="${(233 + r1 * Math.cos(a)).toFixed(1)}" y1="${(233 + r1 * Math.sin(a)).toFixed(1)}"` +
+         ` x2="${(233 + r2 * Math.cos(a)).toFixed(1)}" y2="${(233 + r2 * Math.sin(a)).toFixed(1)}"` +
+         ` stroke-width="${major ? 5 : 3.5}" stroke-linecap="round"/>`;
+  }
+  g.innerHTML = h;
+})();
+let lastTickState = '';
+function updateTicks(remFrac, urgent) {
+  const lit = Math.ceil(Math.max(0, Math.min(1, remFrac)) * 60);
+  const key = lit + (urgent ? 'u' : '');
+  if (key === lastTickState) return;
+  lastTickState = key;
+  const col = urgent ? '#FFB020' : '#23C766';
+  [...$('a-ring-ticks').children].forEach((el, i) => {
+    el.setAttribute('stroke', i < lit ? col : 'rgba(255,255,255,.10)');
+  });
+}
+
 let lastRenderedScreen = null;
 let lastRenderedOutfit = null;
 function render() {
@@ -1351,14 +1383,18 @@ function render() {
 
   const inJump = S.screen === 'jump' || S.screen === 'celebrate';
 
-  /* 圆环：一圈 = 一个目标（自由跳时一圈 = 50），跳满即清零、从头再画；
-     🌟 = 目标倍数，显示在大数字旁边 */
-  const unit = S.goal > 0 ? S.goal : 50;
-  const lap = Math.floor(S.count / unit), lapPct = (S.count % unit) / unit;
-  if (S.goal === TEST && inJump) {
-    /* 测试模式：环 = 剩余时间（随 ticker 持续消退） */
-    const timePct = Math.min(1, sessionElapsed() / testMs());
-    $('a-ring-arc').style.strokeDashoffset = 1420.0 * timePct;
+  /* 圆环：一圈 = 一个目标（自由跳 50），跳满清零重画；
+     ★ 与火焰固定每 50 一档（荣誉刻度全模式统一，与环解耦）；
+     限时模式：环切换为 60 格时间刻度环 */
+  const ringUnit = S.goal > 0 ? S.goal : 50;
+  const lapPct = (S.count % ringUnit) / ringUnit;
+  const lap = Math.floor(S.count / 50);
+  const testRing = S.goal === TEST && inJump;
+  $('a-ring-ticks').style.display = testRing ? '' : 'none';
+  $('a-ring-arc').style.display = testRing ? 'none' : '';
+  $('a-ring-base').style.display = testRing ? 'none' : '';
+  if (testRing) {
+    updateTicks(1 - sessionElapsed() / testMs(), testMs() - sessionElapsed() <= 10000);
   } else {
     $('a-ring-arc').style.strokeDashoffset = 1420.0 * (1 - lapPct);
   }
@@ -1551,7 +1587,7 @@ setInterval(() => {
     if (rem <= 0) { endSession(); return; }
     $('a-timer').textContent = fmtTime(rem);
     $('a-timer').classList.toggle('urgent', rem <= 10000);
-    $('a-ring-arc').style.strokeDashoffset = 1420.0 * (sessionElapsed() / testMs());
+    updateTicks(rem / testMs(), rem <= 10000);
     if (rem <= 30000 && !testMark30) { testMark30 = true; speak(L.sp30); }
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak(L.sp10); }
   } else {
@@ -1638,11 +1674,10 @@ function registerJump() {
       S.earned += gain;
       sndStar(); flyStar($('atomRoot'));
     }
-    const unit = S.goal > 0 ? S.goal : 50;
-    if (S.count % unit === 0) { sndStar(); S.ropeCol = pickRopeColor(S.ropeCol); }   /* 满圈:得星 + 换绳色 */
-    /* 教练语音分层：满圈报星，整 30 鼓励/纠错指导五五开，其余整十只报数 */
+    if (S.count % 50 === 0) { sndStar(); S.ropeCol = pickRopeColor(S.ropeCol); }   /* 每满 50：得星 + 换绳色（★ 固定 50 一颗，全模式统一） */
+    /* 教练语音分层：每满 50 报星，整 30 鼓励/纠错指导五五开，其余整十只报数 */
     if (!(S.goal > 0 && S.count === S.goal)) {
-      if (S.count % unit === 0) speak(L.spLap(S.count, S.count / unit));
+      if (S.count % 50 === 0) speak(L.spLap(S.count, S.count / 50));
       else if (S.count % 30 === 0) {
         const pool = Math.random() < 0.5 ? L.cheers : L.tips;
         speak(L.spTen(S.count, pool[Math.floor(Math.random() * pool.length)]));
