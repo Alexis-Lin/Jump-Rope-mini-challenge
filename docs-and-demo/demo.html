@@ -280,14 +280,17 @@
     font-size: var(--t24); color: var(--stage-ink);
   }
   .srow > span { white-space: nowrap; }
-  #a-tips .srow { justify-content: flex-start; gap: .55em; font-size: var(--t22); }
+  #a-tips-rows { width: 100%; align-self: stretch; }
+  .tip-slide { display: flex; flex-direction: column; align-items: center; gap: .9em; width: 100%; }
+  .tip-slide svg { width: 8.6em; height: 8.6em; }
+  .tip-slide .ttxt { font-size: var(--t28); font-weight: 700; max-width: 82%; line-height: 1.3; }
+  .tip-dots { display: flex; gap: .5em; margin-top: .2em; }
+  #a-card-pb { font-size: var(--t22); }   /* 累计行信息密,降一档防贴圆边 */
   #a-best .set-rows { gap: .3em; }
   #a-best .hbody { margin-bottom: 1.3em; }
   #a-best .srow { font-size: var(--t22); }
   #a-set .hbody { margin-bottom: 1.7em; }
   #a-set .set-rows { gap: .45em; }
-  #a-tips .srow::before { content: '·'; color: var(--accent); font-weight: 800; }
-  #a-tips .srow > span { white-space: normal; text-align: left; line-height: 1.35; }
   .srow .a-goal-chip.sm { font-size: var(--t24); min-width: 4.2em; padding: .26em .8em; }
   .srow .bval { font-size: var(--t32); font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 
@@ -739,11 +742,11 @@
         <div class="flip-hint" data-i18n="tapBack">点按返回</div>
       </div>
 
-      <!-- 动作要领（模式页进入）：识别口径说明——并脚跳 / 交替不计数 / 正对镜头（会议决议） -->
+      <!-- 动作要领（模式页/设置页进入）：幻灯片形式,每张大图标+一句话,点按翻页(会后定稿) -->
       <div class="a-history" id="a-tips">
         <div class="h-title" data-i18n="howTitle">动作要领</div>
-        <div class="hbody"><div class="set-rows" id="a-tips-rows" style="width:78%;"></div></div>
-        <div class="flip-hint" data-i18n="tapBack">点按返回</div>
+        <div class="hbody"><div id="a-tips-rows"></div></div>
+        <div class="flip-hint" id="a-tips-hint">点按继续</div>
       </div>
 
       <!-- 准备：无取景器，边缘光 + 语音代替（屏幕太小，砍掉相机预览） -->
@@ -1071,6 +1074,8 @@ zh: {
   totalDays: n => `${n} 天`,
   today: n => `今日累计 ${n} 下`, total: '累计',
   todayBestLab: '今日最高', totalCnt: n => `${n} 下`,
+  todayEmpty: '今日还没跳，来一轮！', bestLab: '最佳',
+  bestVal: (r, m) => `单轮 ${r || '—'} · 1' ${m || '—'}`,
   recTitle: '打卡记录', boardTitle: '全球排行', achvTitle: '我的成就',
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
   bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', best2: '2 分钟最佳',
@@ -1110,8 +1115,8 @@ zh: {
   spPbBreak: '新纪录诞生！现在每一下都在刷新它！', pbToast: '新纪录！',
   rBeatBest: d => `超越旧纪录 ${d} 下`, rToBest: d => `差 ${d} 下破纪录`, rFirstBest: '首个纪录达成！',
   tips: ['膝盖微弯，轻轻落地', '前脚掌落地更省力', '手腕发力，手臂放松', '目视前方，背挺直', '呼吸跟上节奏', '双脚并拢，同起同落'],
-  howTitle: '动作要领',
-  howRows: ['双脚并拢跳，同起同落', '交替跳 / 单脚跳不计数，会语音提醒你', '正对镜头，全身入镜', '手腕发力，前脚掌轻落地'],
+  howTitle: '动作要领', tipNext: '点按继续',
+  howSlides: ['双脚并拢，一起跳', '交替跳、单脚跳，不计数', '正对镜头，全身入镜', '手腕发力，轻轻落地'],
   spSlow: '别停，跟上 Bono 的节奏！',
   greets: ['今天也一起跳吧！', '新的一天，从 50 下开始', '跳一跳，烦恼都抖掉',
            'Bono 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'],
@@ -1122,7 +1127,6 @@ zh: {
   goalToast: g => `${g} 下达成！继续冲！`, passToast: (n, rk) => `超过 ${n}！全球第 ${rk} 名`,
   luckyToast: n => `踩中今日隐藏数字 ${n}！星星 +5`,
   spMode: '选择模式：限时跳，或者不限时',
-  spFirstTips: '第一次跳绳，先记住一件事：双脚并拢一起跳，交替跳和单脚跳不计数。记住了就点一下屏幕，选个模式开跳！',
   spTest: m => `${m} 分钟限时测试，全力以赴！请站到镜头前`,
   spStart: o => `${o}。请站到镜头前`,
   cd: ['三', '二', '一', 'Body Park！'], sp30: '还有三十秒', sp10: '最后十秒，冲刺！',
@@ -1153,6 +1157,8 @@ en: {
   totalDays: n => `${n}d`,
   today: n => `Today total ${n}`, total: 'Total',
   todayBestLab: 'Best today', totalCnt: n => `${n}`,
+  todayEmpty: "No jumps yet — let's go!", bestLab: 'Best',
+  bestVal: (r, m) => `round ${r || '—'} · 1' ${m || '—'}`,
   recTitle: 'Check-in Log', boardTitle: 'Global Ranking', achvTitle: 'My Achievements',
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
   bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", best2: "Best 2' test",
@@ -1192,8 +1198,8 @@ en: {
   spPbBreak: 'New record! Every jump extends it now!', pbToast: 'New record!',
   rBeatBest: d => `Beat your best by ${d}`, rToBest: d => `${d} to a new record`, rFirstBest: 'First record set!',
   tips: ['Soft knees, land light', 'Land on the balls of your feet', 'Flick the wrists, relax the arms', 'Eyes forward, back straight', 'Breathe with the rhythm', 'Feet together — no alternating'],
-  howTitle: 'How to Jump',
-  howRows: ['Jump with both feet together', "Alternating / single-foot hops don't count — voice reminds you", 'Face the camera, whole body in view', 'Flick the wrists, land on the balls of your feet'],
+  howTitle: 'How to Jump', tipNext: 'Tap to continue',
+  howSlides: ['Both feet together', "Alternating hops don't count", 'Face the camera, full body in view', 'Flick wrists, land soft'],
   spSlow: "Don't stop — keep up with Bono!",
   greets: ["Let's jump today!", 'New day — start with 50', 'Shake those worries off',
            'Bono is all warmed up!', 'Lighter than yesterday', 'Even the moon is watching'],
@@ -1204,7 +1210,6 @@ en: {
   goalToast: g => `${g} done — keep going!`, passToast: (n, rk) => `Passed ${n}! Global #${rk}`,
   luckyToast: n => `Lucky number ${n}! +5 stars`,
   spMode: 'Choose a mode: timed, or free jump.',
-  spFirstTips: "First time jumping? One thing to remember: keep both feet together — alternating hops don't count. Tap the screen and pick a mode to start!",
   spTest: m => `${m}-minute timed test. Give it your all! Step in front of the camera`,
   spStart: o => `${o} Step in front of the camera`,
   cd: ['Three', 'Two', 'One', 'Body Park!'], sp30: 'Thirty seconds left', sp10: 'Final ten seconds. Sprint!',
@@ -1304,7 +1309,7 @@ const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 100, history:
                           total: 0, scenes: 3, outfit: 0, goalNum: 100, testMin: 1,
                           bests: {}, bestSession: 0, luckyHits: 0,
                           age: '9-11', weight: 40, remind: '关',
-                          nick: '', sessions: 0, lastGreet: '', tipsSeen: false };
+                          nick: '', sessions: 0, lastGreet: '' };
 function loadProfile() {
   try { return Object.assign({}, PROFILE_DEFAULT, JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')); }
   catch (e) { return Object.assign({}, PROFILE_DEFAULT); }
@@ -1802,15 +1807,8 @@ function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 function openMode() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
   S.screen = 'mode';
+  speak(L.spMode);
   bump();
-  /* 首跳引导:第一次点 Start 自动弹一次动作要领(语音讲规则),点按关闭;之后不再自动出 */
-  if (!profile.tipsSeen) {
-    profile.tipsSeen = true; saveProfile();
-    openTips();
-    speak(L.spFirstTips);
-  } else {
-    speak(L.spMode);
-  }
 }
 function startSession(g) {
   if (S.screen !== 'idle' && S.screen !== 'result' && S.screen !== 'mode') return;
@@ -2424,12 +2422,50 @@ let skelTimer = setInterval(skelFrame, 66);   /* 帧率随 setFps 联动 */
 $('a-opt-timed').addEventListener('click', () => { audio(); startSession(TEST); });
 $('a-opt-free').addEventListener('click', () => { audio(); startSession(profile.goalNum); });
 $('a-mode-back').addEventListener('click', () => { audio(); goHome(); });
-function openTips() {
-  $('a-tips-rows').innerHTML = L.howRows.map(t => `<div class="srow"><span>${t}</span></div>`).join('');
-  $('a-tips').classList.add('show');
+/* 动作要领幻灯片:大图标 + 一句话,点按翻页,最后一张点按关闭 */
+const TIP_SVGS = [
+  /* 1 双脚并拢一起跳 */
+  `<svg viewBox="0 0 96 96" fill="none" stroke="#EDF2EF" stroke-width="6" stroke-linecap="round">
+     <path d="M43 6 v10" stroke="#23C766"/><path d="M37 11 l6 -7 6 7" stroke="#23C766"/>
+     <path d="M38 28 v30 M54 28 v30"/>
+     <circle cx="38" cy="66" r="6" fill="#FFFFFF" stroke="none"/>
+     <circle cx="54" cy="66" r="6" fill="#FFFFFF" stroke="none"/>
+     <path d="M26 84 q20 -10 44 0" stroke="#23C766"/>
+   </svg>`,
+  /* 2 交替跳/单脚跳不计数 */
+  `<svg viewBox="0 0 96 96" fill="none" stroke="#EDF2EF" stroke-width="6" stroke-linecap="round">
+     <path d="M34 22 v28 M56 38 v28"/>
+     <circle cx="34" cy="58" r="6" fill="#FFFFFF" stroke="none"/>
+     <circle cx="56" cy="74" r="6" fill="#FFFFFF" stroke="none"/>
+     <path d="M68 18 l16 16 M84 18 l-16 16" stroke="#FF8050"/>
+   </svg>`,
+  /* 3 正对镜头,全身入镜 */
+  `<svg viewBox="0 0 96 96" fill="none" stroke="#EDF2EF" stroke-width="5" stroke-linecap="round">
+     <circle cx="48" cy="48" r="41" stroke="#23C766"/>
+     <circle cx="48" cy="32" r="8" fill="#FFFFFF" stroke="none"/>
+     <path d="M48 42 v18 M48 46 l-13 8 M48 46 l13 8 M48 60 l-9 15 M48 60 l9 15"/>
+   </svg>`,
+  /* 4 手腕发力,轻轻落地 */
+  `<svg viewBox="0 0 96 96" fill="none" stroke="#EDF2EF" stroke-width="6" stroke-linecap="round">
+     <path d="M32 18 q12 30 0 56"/>
+     <circle cx="32" cy="18" r="6" fill="#FFFFFF" stroke="none"/>
+     <path d="M52 66 q15 -9 30 0" stroke="#23C766"/>
+     <path d="M57 78 q10 -6 20 0" stroke="#23C766" stroke-width="4"/>
+   </svg>`,
+];
+let tipIdx = 0;
+function renderTipSlide() {
+  $('a-tips-rows').innerHTML =
+    `<div class="tip-slide">${TIP_SVGS[tipIdx]}<div class="ttxt">${L.howSlides[tipIdx]}</div>` +
+    `<div class="tip-dots">${L.howSlides.map((_, i) => `<span class="cdot${i === tipIdx ? ' on' : ''}"></span>`).join('')}</div></div>`;
+  $('a-tips-hint').textContent = tipIdx === L.howSlides.length - 1 ? L.tapBack : L.tipNext;
 }
+function openTips() { tipIdx = 0; renderTipSlide(); $('a-tips').classList.add('show'); }
 $('a-mode-tips').addEventListener('click', (e) => { e.stopPropagation(); audio(); openTips(); });
-$('a-tips').addEventListener('click', () => $('a-tips').classList.remove('show'));
+$('a-tips').addEventListener('click', () => {
+  if (++tipIdx < L.howSlides.length) renderTipSlide();
+  else $('a-tips').classList.remove('show');
+});
 
 /* 设置页（首页 ⚙ 进入）：目标 / 限时时长 / 语音 */
 function renderSettings() {
@@ -2566,13 +2602,14 @@ function renderQuickCards() {
   $('a-launch-streak').textContent = L.launchStreak(profile.streak);
   /* Page 1 · Home */
   $('a-card-streak').textContent = profile.streak;
-  $('a-card-today').innerHTML = L.today(todayCount());
-  /* 会议决议:口径明确——今日累计/今日最高;PB 下沉最佳战绩页(此行点击进入) */
-  $('a-card-pb').innerHTML =
-    `<span>${L.todayBestLab}</span><span>${todayBest() || '—'}</span>`;
+  /* 首页四行(会后定稿):连胜 / 今日(未跳=邀请,已跳=今日累计) / 历史累计(次·天) / 最佳记录 */
+  const tc = todayCount();
+  $('a-card-today').innerHTML = tc > 0 ? L.today(tc) : L.todayEmpty;
   const trainDays = Object.keys(profile.history).filter(k => profile.history[k].count > 0).length;
+  $('a-card-pb').innerHTML =
+    `<span>${L.total}</span><span>${L.totalCnt(profile.total)} · ${L.totalDays(trainDays)} ★${profile.stars}</span>`;
   $('a-card-total').innerHTML =
-    `<span>${L.total}</span><span>${L.totalDays(trainDays)} · ${L.totalCnt(profile.total)} ★${profile.stars}</span>`;
+    `<span>${L.bestLab}</span><span>${L.bestVal(profile.bestSession, profile.bests[1])}</span>`;
   /* Page 2 · 打卡记录：周点 + 最近 3 天 */
   const wk = $('a-week'); wk.innerHTML = '';
   for (let i = -6; i <= 0; i++) {
@@ -2655,14 +2692,16 @@ $('a-go-rec').addEventListener('click', () => {
   if (swiped) return; audio(); renderHistory(); $('a-history').classList.add('show');
 });
 $('a-card-today').addEventListener('click', () => {
-  if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
+  if (swiped) return; audio();
+  if (todayCount() > 0) { renderABoard(); $('a-board').classList.add('show'); }
+  else openMode();   /* 未跳:邀请行直接进模式选择 */
 });
 $('a-card-pb').addEventListener('click', () => {
-  if (swiped) return; audio(); renderBest(); $('a-best').classList.add('show');
+  if (swiped) return; audio(); renderHistory(); $('a-history').classList.add('show');
 });
 $('a-best').addEventListener('click', () => $('a-best').classList.remove('show'));
 $('a-card-total').addEventListener('click', () => {
-  if (swiped) return; audio(); renderHistory(); $('a-history').classList.add('show');
+  if (swiped) return; audio(); renderBest(); $('a-best').classList.add('show');
 });
 /* 翻页箭头可点按 */
 $('a-hint-l').addEventListener('click', () => { audio(); swipeLearned(); setCard(cardIdx - 1); });
