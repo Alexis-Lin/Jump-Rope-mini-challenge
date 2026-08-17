@@ -285,7 +285,6 @@
   .tip-slide svg { width: 8.6em; height: 8.6em; }
   .tip-slide .ttxt { font-size: var(--t28); font-weight: 700; max-width: 82%; line-height: 1.3; }
   .tip-dots { display: flex; gap: .5em; margin-top: .2em; }
-  #a-card-pb { font-size: var(--t22); }   /* 累计行信息密,降一档防贴圆边 */
   #a-best .set-rows { gap: .3em; }
   #a-best .hbody { margin-bottom: 1.3em; }
   #a-best .srow { font-size: var(--t22); }
@@ -1074,7 +1073,7 @@ zh: {
   totalDays: n => `${n} 天`,
   today: n => `今日累计 ${n} 下`, total: '累计',
   todayBestLab: '今日最高', totalCnt: n => `${n} 下`,
-  todayEmpty: '今日还没跳，来一轮！', bestLab: '最佳',
+  todayEmpty: '今日还没跳，来一轮！', bestLab: '最佳', spZeroEnd: '这轮没有跳哦，准备好随时再来！',
   bestVal: (r, m) => `单轮 ${r || '—'} · 1' ${m || '—'}`,
   recTitle: '打卡记录', boardTitle: '全球排行', achvTitle: '我的成就',
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
@@ -1157,7 +1156,7 @@ en: {
   totalDays: n => `${n}d`,
   today: n => `Today total ${n}`, total: 'Total',
   todayBestLab: 'Best today', totalCnt: n => `${n}`,
-  todayEmpty: "No jumps yet — let's go!", bestLab: 'Best',
+  todayEmpty: "No jumps yet — let's go!", bestLab: 'Best', spZeroEnd: 'No jumps that round — come back anytime!',
   bestVal: (r, m) => `round ${r || '—'} · 1' ${m || '—'}`,
   recTitle: 'Check-in Log', boardTitle: 'Global Ranking', achvTitle: 'My Achievements',
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
@@ -2022,6 +2021,11 @@ function registerJump() {
 /* 结算只在用户"真的停下"时发生：离开画面 5 秒 / 点结束 / 自动演示收尾 */
 function endSession() {
   if (S.screen !== 'jump') return;
+  if (S.count === 0) {   /* 空轮保护(边界态):一下没跳 → 不落档、不进结算,轻语音直接回首页 */
+    speak(L.spZeroEnd);
+    goHome();
+    return;
+  }
   const goalMet = S.goalHit;
   if (S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
   S.paused = false; clearTimeout(pauseEndTimer);
@@ -2605,9 +2609,8 @@ function renderQuickCards() {
   /* 首页四行(会后定稿):连胜 / 今日(未跳=邀请,已跳=今日累计) / 历史累计(次·天) / 最佳记录 */
   const tc = todayCount();
   $('a-card-today').innerHTML = tc > 0 ? L.today(tc) : L.todayEmpty;
-  const trainDays = Object.keys(profile.history).filter(k => profile.history[k].count > 0).length;
   $('a-card-pb').innerHTML =
-    `<span>${L.total}</span><span>${L.totalCnt(profile.total)} · ${L.totalDays(trainDays)} ★${profile.stars}</span>`;
+    `<span>${L.total}</span><span>${L.totalCnt(profile.total)} ★${profile.stars}</span>`;
   $('a-card-total').innerHTML =
     `<span>${L.bestLab}</span><span>${L.bestVal(profile.bestSession, profile.bests[1])}</span>`;
   /* Page 2 · 打卡记录：周点 + 最近 3 天 */
