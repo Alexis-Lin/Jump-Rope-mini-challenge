@@ -455,18 +455,6 @@
   #a-result .unlock { color: #7FE3A8; font-size: var(--t24); font-weight: 600; max-width: 76%; }
   #a-result .unlock:empty, #a-result .streak:empty { display: none; }
   .flip-hint { color: var(--stage-soft); font-size: var(--t22); margin-top: .2em; }
-  #a-r-page2 canvas { width: 6.5em; height: 6.5em; background: #fff; border-radius: .5em; padding: .3em; }
-  /* 迷你成绩海报 */
-  .poster {
-    background: #fff; color: var(--ink);
-    border-radius: .8em; padding: .5em 1.4em .6em;
-    display: flex; flex-direction: column; align-items: center; gap: .1em;
-  }
-  .poster .p-num { font-size: var(--n40); font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
-  .poster .p-sub { font-size: var(--t18); color: var(--ink-soft); }
-  .poster .p-rate { font-size: var(--t22); color: var(--accent-deep); font-weight: 700; }
-  .poster .bono { color: var(--ink); }
-  #a-poster-bono svg { width: 2.6em; height: 2.6em; }
 
   /* 漫画放射光背景（燃起来）：前 50 纯黑；每满 50 火焰升一级，暖橙黄色系 */
   .rays {
@@ -727,6 +715,7 @@
           <div class="srow"><span data-i18n="setLen">限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
           <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
+          <div class="srow"><span data-i18n="setBgm">背景音乐</span><button class="a-goal-chip sm" id="as-bgm">开</button></div>
         </div></div>
         <div class="flip-hint" data-i18n="tapBackBlank">点按空白处返回</div>
       </div>
@@ -790,19 +779,8 @@
             <button class="a-goal-chip ghost-chip sm" data-act="home" data-i18n="done">完成</button>
             <button class="atom-cta" data-act="again" data-i18n="again">再跳一轮</button>
           </div>
-          <div class="flip-hint" data-i18n="flipQR">点按翻面看二维码</div>
         </div>
-        <!-- 分享页：迷你成绩海报 + 二维码（手机扫码保存/转发完整海报） -->
-        <div class="r-page hidden" id="a-r-page2">
-          <div class="poster">
-            <div id="a-poster-bono"></div>
-            <div class="p-num" id="a-poster-num">0</div>
-            <div class="p-sub" id="a-poster-sub"></div>
-            <div class="p-rate" id="a-poster-rate"></div>
-          </div>
-          <canvas id="a-qr" width="120" height="120"></canvas>
-          <div class="flip-hint" data-i18n="flipBack">手机扫码保存 · 分享海报 · 点按返回</div>
-        </div>
+        <!-- 分享翻面(迷你海报+二维码)暂缓:等分享模块(海报/落地页/App 记录分享)整体设计后一起上 -->
       </div>
 
       <!-- 历史打卡记录（覆盖层，点按任意处返回） -->
@@ -1092,13 +1070,12 @@ zh: {
   boardSubs: { round: '单轮最高 · 0 点重置', timed: '1 分钟历史最佳', streak: '连续打卡天数' },
   passFootDay: (d, n) => `再坚持 ${d} 天超过 ${n}`, dayUnit: n => `${n} 天`,
   setTitle: '设置', setGoal: '每日目标', setLen: '限时时长',
-  setRemind: '每日提醒', setVoice: '教练语音',
+  setRemind: '每日提醒', setVoice: '教练语音', setBgm: '背景音乐',
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
   off: '关', on: '开', adult: '成人',
   readyTip: '请站进画面<br>边缘变绿即可', readyHint: '离开画面会自动暂停',
   paused: '已暂停', pausedSub: '回到画面继续 · 离开 3 分钟自动结算', resume: '继续', finishNow: '立即结算',
-  done: '完成', again: '再跳一轮', flipQR: '点按翻面看二维码',
-  flipBack: '手机扫码保存 · 分享海报 · 点按返回', tapBack: '点按返回', tapBackBlank: '点按空白处返回',
+  done: '完成', again: '再跳一轮', tapBack: '点按返回', tapBackBlank: '点按空白处返回',
   noRecQ: '还没有记录，跳一轮就有啦', noRecH: '还没有记录<br>跳完第一轮就有啦',
   loadMore: '加载更多',
   you: '你', first: '你是今日第一！',
@@ -1173,13 +1150,12 @@ en: {
   boardSubs: { round: 'round best · daily', timed: "1' all-time", streak: 'days in a row' },
   passFootDay: (d, n) => `${d}d to pass ${n}`, dayUnit: n => `${n}d`,
   setTitle: 'Settings', setGoal: 'Daily goal', setLen: 'Timed length',
-  setRemind: 'Reminder', setVoice: 'Coach voice',
+  setRemind: 'Reminder', setVoice: 'Coach voice', setBgm: 'Music',
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
   off: 'Off', on: 'On', adult: 'Adult',
   readyTip: 'Step into view<br>until the edge glows green', readyHint: 'Auto-pauses when you step out',
   paused: 'Paused', pausedSub: 'Step back in to resume · auto-finish after 3 min', resume: 'Resume', finishNow: 'Finish now',
-  done: 'Done', again: 'One more', flipQR: 'Tap for QR card',
-  flipBack: 'Scan to share · tap back', tapBack: 'Tap to go back', tapBackBlank: 'Tap anywhere to go back',
+  done: 'Done', again: 'One more', tapBack: 'Tap to go back', tapBackBlank: 'Tap anywhere to go back',
   noRecQ: 'No records yet — jump a round!', noRecH: 'No records yet<br>your first round starts it',
   loadMore: 'Load more',
   you: 'You', first: "You're #1 today!",
@@ -1496,6 +1472,22 @@ const sndJump = (n) => {
   tone(f * 2, 0.10, 'sine', 0.045);
 };
 const sndBeep = () => tone(520, 0.12, 'sine', 0.14);
+/* 轻量 BGM:合成节奏循环(≈110BPM),音量极低垫在音效下;训练中播放,暂停静音,可在设置关 */
+let bgmOn = true, bgmSeq = null;
+function bgmStart() {
+  if (!bgmOn || bgmSeq) return;
+  const ac = audio(); if (!ac) return;
+  let step = 0;
+  bgmSeq = setInterval(() => {
+    if (S.paused || S.screen !== 'jump') return;
+    if (step % 4 === 0) tone(82, 0.18, 'sine', 0.075);            /* 低音脉冲 */
+    if (step % 2 === 1) tone(6200, 0.03, 'triangle', 0.012);      /* 轻 hat */
+    if (step === 6) tone(PENTA[0] / 2, 0.22, 'triangle', 0.028);  /* 五声低音应和 */
+    if (step === 14) tone(PENTA[3] / 4, 0.22, 'triangle', 0.028);
+    step = (step + 1) % 16;
+  }, 272);
+}
+function bgmStop() { clearInterval(bgmSeq); bgmSeq = null; }
 const sndGo   = () => tone(880, 0.25, 'sine', 0.16);
 const sndMilestone = () => { tone(523,0.12,'sine',0.12); tone(659,0.12,'sine',0.12,0.10); tone(784,0.2,'sine',0.12,0.20); };
 const sndStar = () => { tone(1047,0.1,'sine',0.1); tone(1319,0.18,'sine',0.1,0.08); };
@@ -1709,11 +1701,6 @@ function render() {
   $('a-cd').classList.toggle('brand', !!S.brandFlash);
   if (cdOn) $('a-cd').textContent = S.brandFlash ? 'BodyPark' : S.countdown;
 
-  /* 刚进入结算页 → Atom 翻页复位到成绩页 */
-  if (S.screen === 'result' && lastRenderedScreen !== 'result') {
-    $('a-r-page1').classList.remove('hidden');
-    $('a-r-page2').classList.add('hidden');
-  }
   lastRenderedScreen = S.screen;
 
   /* 结算页（全部从状态推导，双窗口联动时跟随端同样正确） */
@@ -1739,14 +1726,7 @@ function render() {
       (S.pbAtStart <= 0 ? L.rFirstBest
         : pbDiff > 0 ? L.rBeatBest(pbDiff)
         : L.rToBest(S.pbAtStart - S.count + 1));
-    /* 分享页迷你海报 */
-    $('a-poster-num').textContent = S.count;
-    $('a-poster-sub').textContent = `${todayKey().slice(5).replace('-', '.')} · ` +
-      (S.goal === TEST ? L.minTest(S.testMin) : S.goal === 0 ? L.freeJump : L.goalOf(S.goal));
-    $('a-poster-rate').textContent = S.goal === TEST && S.testMin === 1
-      ? L.rated(rateTest(S.count)) : (goalMet ? L.dailyMet : '');
     $('a-r-unlock').innerHTML = S.unlock ? `${ico('gift', '#7FE3A8')} ${S.unlock}` : '';
-    drawQR($('a-qr'));
   }
 
   /* 姿态 */
@@ -1843,6 +1823,7 @@ function standLocked() {              /* 3·2·1 倒计时 → BodyPark 发令 �
         if (S.screen !== 'ready') return;
         S.screen = 'jump';
         S.elapsedMs = 0; S.runSince = Date.now();
+        bgmStart();
         bump();
       }, 750);
     }
@@ -2022,6 +2003,7 @@ function endSession() {
   const goalMet = S.goalHit;
   if (S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
   S.paused = false; clearTimeout(pauseEndTimer);
+  bgmStop();
   /* 限时测试：按时长（1'/2'）分别记录历史最佳 */
   if (S.goal === TEST) {
     S.newBest = S.count > (profile.bests[S.testMin] || 0);
@@ -2102,7 +2084,7 @@ function pauseSession(v) {
   }
   bump();
 }
-function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); clearTimeout(resultTimer); S.countdown = 0; S.brandFlash = false; bump(); }
+function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); clearTimeout(resultTimer); bgmStop(); S.countdown = 0; S.brandFlash = false; bump(); }
 
 /* 伪二维码占位（示意图形，非真实二维码） */
 function drawQR(cv) {
@@ -2430,6 +2412,7 @@ function renderSettings() {
   $('as-len').textContent = L.lenVal(S.testMin);
   $('as-remind').textContent = profile.remind === '关' ? L.off : profile.remind;
   $('as-voice').textContent = voiceOn ? L.on : L.off;
+  $('as-bgm').textContent = bgmOn ? L.on : L.off;
 }
 const REMINDS = ['关', '19:00', '20:00', '21:00'];
 /* 年龄/体重从账号 profile 带入(identity.personal),设备端不再提供修改——会议决议 */
@@ -2456,6 +2439,13 @@ $('as-len').addEventListener('click', (e) => {
   S.testMin = S.testMin === 1 ? 2 : 1;
   profile.testMin = S.testMin; saveProfile();
   renderSettings(); bump();
+});
+$('as-bgm').addEventListener('click', (e) => {
+  e.stopPropagation();
+  bgmOn = !bgmOn;
+  if (!bgmOn) bgmStop();
+  else if (S.screen === 'jump') bgmStart();
+  renderSettings();
 });
 $('as-voice').addEventListener('click', (e) => {
   e.stopPropagation();
@@ -2690,12 +2680,6 @@ $('a-history-btn').addEventListener('click', (e) => {
 $('a-history').addEventListener('click', () => $('a-history').classList.remove('show'));
 
 
-/* Atom 结算：点按翻页 成绩 ⇄ 二维码 */
-$('a-result').addEventListener('click', (e) => {
-  if (e.target.closest('button')) return;
-  $('a-r-page1').classList.toggle('hidden');
-  $('a-r-page2').classList.toggle('hidden');
-});
 $('a-start').addEventListener('click', () => { audio(); openMode(); });
 document.querySelectorAll('[data-act="end"]').forEach(b => b.addEventListener('click', () => endSession()));
 document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('click', goHome));
@@ -2768,7 +2752,6 @@ function enter(mode) {
 mountBono('a-bono-idle', 100, 'idle');
 mountBono('a-bono-jump', 60, 'idle');
 mountBono('a-bono-result', 64, 'party');
-mountBono('a-poster-bono', 42, 'party');
 
 skel.ctx = $('a-skel').getContext('2d');
 render();
