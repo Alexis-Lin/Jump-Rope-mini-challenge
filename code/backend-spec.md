@@ -31,16 +31,27 @@
 |---|---|---|
 | `session_start` | `{mode}` | mode: timed / free |
 | `jump` | `{count}` | 每跳;弱网可 10 条聚合 |
-| `session_end` | `{count, ms, goal, testMin, kcal, newBest}` | **结算即上报**(排行榜/云档案入口);ms 为净时长(暂停不计) |
+| `session_end` | `{count, ms, goal, testMin, kcal, newBest}` | **结算即上报**(排行榜/云档案入口);ms 为净时长(暂停不计)。**数据模型(评审会定稿):一次 session = 一节单组课(对齐 oneset/workout),落一条训练记录;打卡记录按 session 存储、按天聚合展示** |
+| `form_hint` | `{kind}` | 动作纠错事件(评审会新增):alternating 交替跳 / single_foot 单脚 / low_jump 幅度不足;端上触发教练语音,上报做规则调优 |
 
 埋点扩展:`app_open, jump_10x, goal_hit, streak_day{n}, board_view, overtake{rank}, share_flip, setting_change{key}`。
 
-## 3. 排行榜服务
+## 3. 排行榜服务(2026-08-17 评审会定稿)
 
-- 结算上报 `{userId, date, count, ms, mode, city}`;
-- **Redis Sorted Set**,每个 `榜单 × 日期 × 地区` 一个 ZSET:`ZINCRBY` 记分、`ZREVRANK` 查名次、`ZRANGE` 取 Top3/邻近区间;按时区滚动建 key + TTL 过期 = 天然每日 0 点重置;
-- 榜单读接口:Top3 + 我的名次 + 上一名(供"再跳 N 下超过 XX");全球/同城两个 scope,城市用 IP/GPS 粗定位;
-- **防刷**:端上计数置信度分 + 单日封顶 3000 + 频率异常剔除(>8 跳/秒)+ 影子封禁;
+- 结算上报 `{userId, date, count, ms, mode, testMin}`;
+- **三榜**,全员默认参与、不设退出项(同城/local 取消):
+
+| 榜 | 口径 | Key(前缀含分区) | 重置 |
+|---|---|---|---|
+| 今日单轮 | 当日**单轮最高**(当日累计不上榜,防刷) | `{edition}:jump:round:{date}` | 时区滚动建 key + TTL,天然每日 0 点重置 |
+| 1 分钟 | 1' 测试**历史最佳**;限时时长各自成榜(2' 用 `timed2` 单独 key) | `{edition}:jump:timed1:best` | 不重置 |
+| 连胜 | 连续打卡天数 | `{edition}:jump:streak` | 断签回落(每日结算任务刷新) |
+
+- **Redis Sorted Set**:写入用 `ZADD GT`(只升不降=天然取最高,替代 ZINCRBY);`ZREVRANK` 查名次、`ZREVRANGE` 取 Top3/邻近区间;
+- **同分并列**:按显示名首字母升序(读侧二次排序;或 member 编码 `score|name` 归一);
+- **显示名(脱敏,评审会定稿)**:昵称 ≤10 字符截断;未填昵称 → 邮箱前 2–3 位小写 + `***`(手机号同理;不露域名/后段);未填昵称者语音不点名;
+- 榜单读接口:Top3 + 我的名次 + 上一名(供"再跳 N 下超过 XX");
+- **防刷**:单轮口径本身杜绝当日累计刷榜;另有端上计数置信度分 + 单日封顶 3000 + 频率异常剔除(>8 跳/秒;识别标称上限 ≈3 跳/秒,超出即可疑)+ 影子封禁;
 - 弱网:端上缓存上次榜单展示,结算后异步补报。
 
 ## 4. 计算公式(端上实现,后端复算校验)
@@ -66,7 +77,7 @@
 | `remind` | PREF(影响教练行为 → 归 PREFERENCE,非 SETTINGS) | 按模型"分界两问"判定 |
 | `voiceOn / 语言` | `app_settings` / `device_config` | 纯设备行为配置 |
 | `streak / history / total / stars / bests / bestSession / sessions / luckyHits / scenes / outfit` | STATUS / LOG 域(🚧 模型草案中) | **暂存本应用私有命名空间**,待 STATUS/LOG 定稿后迁移;工程资产命名遵守模型的机械前缀规则:`profile_log_jump_rope_*` |
-| 排行榜 city | `identity.personal.country_code + city` | 同城榜定位优先读档案,缺省回落 IP 粗定位 |
+| 排行榜分区 | `account_edition`(cn/intl) | ~~同城榜~~已取消(评审会决议);榜单只按分区隔离,不再用 city |
 
 **账号铁律的两条直接影响**(源自档案模型 v5.28):① 任何按邮箱查用户必须带 `account_edition` 条件(cn/intl 双区数据不互通);② 排行榜/云档案的 key 前缀含分区(如 `cn:jump:2026-08-14:global`),跨区永不合并。
 
@@ -97,19 +108,30 @@ handle_session_end(user, ev):            # ev = {count, ms, goal, testMin, kcal,
 ### 7.2 排行榜(Redis)
 
 ```
-key(scope, date, region, edition) = f"{edition}:jump:{date}:{scope}:{region}"   # 例 cn:jump:2026-08-14:city:beijing
+# 三榜 key(评审会定稿;edition 分区,跨区永不合并)
+round_key(date, edition)  = f"{edition}:jump:round:{date}"    # 今日单轮最高,TTL 48h
+timed_key(min, edition)   = f"{edition}:jump:timed{min}:best" # 限时历史最佳,永久
+streak_key(edition)       = f"{edition}:jump:streak"          # 连胜天数,结算任务维护
 
-leaderboard_incr(user, ev):
-    for scope in [global, city(user)]:
-        ZINCRBY key(scope, ev.date, ...), ev.count, user.id
-        EXPIRE  key(...), 48h                        # TTL 覆盖时区跨日,天然每日重置
+on_session_end(user, ev):
+    ZADD round_key(ev.date), GT, ev.count, user.id   # GT=只升不降 → 天然"当日单轮最高"
+    EXPIRE round_key(ev.date), 48h                   # TTL 覆盖时区跨日,天然每日重置
+    if ev.mode == timed:
+        ZADD timed_key(ev.testMin), GT, ev.count, user.id
+    ZADD streak_key(), user.streak, user.id          # 结算后连胜值直接覆盖
 
-board_view(user, scope):                             # 返回 Top3 + 邻近区间
-    rank  = ZREVRANK key, user.id
-    top3  = ZREVRANGE key, 0, 2, WITHSCORES
-    near  = ZREVRANGE key, max(0, rank-1), rank+1, WITHSCORES
+board_view(user, board):                             # 返回 Top3 + 邻近区间
+    rank  = ZREVRANK key(board), user.id
+    top3  = ZREVRANGE key(board), 0, 2, WITHSCORES
+    near  = ZREVRANGE key(board), max(0, rank-1), rank+1, WITHSCORES
     above = near[0] if rank > 0
-    return {top3, rank, me: score, chase: above.score - score + 1, chase_name: above.name}
+    # 同分并列:读侧按 display_name 首字母二次排序
+    return {top3, rank, me: score, chase: above.score - score + 1, chase_name: display_name(above)}
+
+display_name(user):                                  # 脱敏(评审会定稿)
+    if user.nickname: return user.nickname[:10]      # ≤10 字符,超出截断
+    src = user.email or user.phone                   # 至少有其一
+    return lower(src[:3]) + "***"                    # 街机三字母风;不露域名/手机后段
 ```
 
 ### 7.3 连胜提醒推送(每日定时)

@@ -29,7 +29,8 @@ src/main_demo.c       桌面 harness（真机不编译此文件）
 | 接口（C / JS） | 说明 |
 |---|---|
 | `atom_app_feed_pose(pts)` / `AtomApp.feedPose(pts)` | 33 点骨骼流（MediaPipe Pose 拓扑，`[{x,y,v?}]` 归一化 0–1、原点左上、喂入前完成镜像），建议 ≥15Hz；500ms 无数据自动回落内置演示动作。渲染细节见 [火柴人渲染说明](../docs-and-demo/figure-rendering.md) |
-| `atom_app_on_jump()` / `AtomApp.onJump()` | AI 判定一次有效跳跃 → 计数 +1，同帧触发数字打击动画/涟漪/发光/音效 |
+| `atom_app_on_jump()` / `AtomApp.onJump()` | AI 判定一次有效跳跃 → 计数 +1，同帧触发数字打击动画/涟漪/发光/音效。识别口径：并脚跳（双脚同起同落），标称 ≤3 跳/秒；正对/侧对均支持、引导正对 |
+| `atom_app_form_hint(kind)` / `AtomApp.formHint(kind)` | 动作纠错事件（2026-08-17 评审会新增）：`alternating` 交替跳 / `single_foot` 单脚 / `low_jump` 幅度不足 → 教练语音提醒（"双脚并拢跳"）；交替/单脚不计数；同类提醒 ≥20s 间隔 |
 | `atom_app_set_presence(b)` / `AtomApp.setPresence(bool)` | **仅用于训练中**：`false` 立即暂停（停表），`true` 恢复；不作为开跳门槛（开跳为 3·2·1·BodyPark 即时流程） |
 | 事件出向 `atom_callbacks_t.on_event` / `AtomBridge.onEvent` | `app_ready / session_start / jump{count} / session_end{count, ms, goal, testMin, kcal, newBest}` → 上报后端（字段说明见 [后端实现说明](backend-spec.md)） |
 

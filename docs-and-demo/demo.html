@@ -210,7 +210,7 @@
   .home-block.hb-streak { display: flex; flex-direction: row; align-items: baseline; gap: .35em; }
   .hb-lab { font-size: var(--t28); font-weight: 600; }
   .hb-big { font-size: var(--n56); font-weight: 800; line-height: .95; font-variant-numeric: tabular-nums; }
-  .home-block.hb-row {
+  .home-block.hb-row { white-space: nowrap; 
     width: 76%; display: flex; flex-direction: row; align-items: center; justify-content: space-between;
     font-size: var(--t32); font-weight: 700; font-variant-numeric: tabular-nums;
     padding: .26em 0;
@@ -280,6 +280,9 @@
     font-size: var(--t24); color: var(--stage-ink);
   }
   .srow > span { white-space: nowrap; }
+  #a-tips .srow { justify-content: flex-start; gap: .55em; font-size: var(--t22); }
+  #a-tips .srow::before { content: '·'; color: var(--accent); font-weight: 800; }
+  #a-tips .srow > span { white-space: normal; text-align: left; line-height: 1.35; }
   .srow .a-goal-chip.sm { font-size: var(--t24); min-width: 4.2em; padding: .26em .8em; }
   .srow .bval { font-size: var(--t32); font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 
@@ -329,7 +332,8 @@
     gap: .55em;
   }
   .a-history .flip-hint { position: absolute; bottom: 7.5%; left: 0; right: 0; margin-top: 0; }
-  #a-board .flip-hint { font-size: var(--t18); }
+  #a-board .flip-hint { font-size: var(--t18); bottom: 6.5%; }
+  #a-board .a-goal-chip { white-space: nowrap; }
   .board-foot {
     color: var(--accent); font-weight: 700; font-size: var(--t22);
     max-width: 82%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -678,7 +682,10 @@
           <span class="mode-ico" data-ico="inf"></span>
           <span class="mode-txt"><b data-i18n="modeFree">不限时</b><span id="a-opt-free-sub"></span></span>
         </button>
-        <button class="a-goal-chip ghost-chip sm" id="a-mode-back" data-i18n="back">返回</button>
+        <div class="a-chip-row">
+          <button class="a-goal-chip ghost-chip sm" id="a-mode-tips" data-i18n="howTitle">动作要领</button>
+          <button class="a-goal-chip ghost-chip sm" id="a-mode-back" data-i18n="back">返回</button>
+        </div>
       </div>
 
       <!-- 排行榜二级页 -->
@@ -686,8 +693,9 @@
         <div class="h-title" data-i18n="boardTodayTitle">今日排行榜</div>
         <div class="hbody">
           <div class="a-chip-row">
-            <button class="a-goal-chip sm" id="ab-global" data-i18n="scopeGlobal">全球</button>
-            <button class="a-goal-chip sm" id="ab-local" data-i18n="scopeLocal">同城</button>
+            <button class="a-goal-chip sm" id="ab-round" data-i18n="boardRound">今日单轮</button>
+            <button class="a-goal-chip sm" id="ab-timed" data-i18n="boardTimed">1 分钟</button>
+            <button class="a-goal-chip sm" id="ab-streak" data-i18n="boardStreak">连胜</button>
           </div>
           <div class="h-list" id="a-board-list"></div>
           <div class="board-foot" id="a-board-foot"></div>
@@ -701,8 +709,6 @@
         <div class="hbody"><div class="set-rows">
           <div class="srow"><span data-i18n="setGoal">每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
           <div class="srow"><span data-i18n="setLen">限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
-          <div class="srow"><span data-i18n="setAge">年龄段</span><button class="a-goal-chip sm" id="as-age">9-11</button></div>
-          <div class="srow"><span data-i18n="setWeight">体重</span><button class="a-goal-chip sm" id="as-weight">40 kg</button></div>
           <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
         </div></div>
@@ -713,6 +719,13 @@
       <div class="a-history" id="a-best">
         <div class="h-title" data-i18n="bestTitle">最佳战绩</div>
         <div class="hbody"><div class="set-rows" id="a-best-rows" style="width:64%;"></div></div>
+        <div class="flip-hint" data-i18n="tapBack">点按返回</div>
+      </div>
+
+      <!-- 动作要领（模式页进入）：识别口径说明——并脚跳 / 交替不计数 / 正对镜头（会议决议） -->
+      <div class="a-history" id="a-tips">
+        <div class="h-title" data-i18n="howTitle">动作要领</div>
+        <div class="hbody"><div class="set-rows" id="a-tips-rows" style="width:78%;"></div></div>
         <div class="flip-hint" data-i18n="tapBack">点按返回</div>
       </div>
 
@@ -753,11 +766,10 @@
           <div id="a-bono-result"></div>
           <div class="num" id="a-r-num">50</div>
           <div class="lab" id="a-r-lab">目标达成！</div>
-          <div class="streak" id="a-r-today" style="color: var(--stage-soft);"></div>
           <div class="streak" id="a-r-rate" style="color:#7FE3A8;"></div>
           <div class="earn" id="a-r-earn">⭐ +10</div>
-          <div class="streak" id="a-r-streak">🔥 连续 1 天打卡</div>
           <div class="streak" id="a-r-rank" style="color: var(--stage-soft);"></div>
+          <div class="streak" id="a-r-today" style="color: var(--stage-soft);"></div>
           <div class="unlock" id="a-r-unlock"></div>
           <div class="a-chip-row">
             <button class="a-goal-chip ghost-chip sm" data-act="home" data-i18n="done">完成</button>
@@ -902,7 +914,7 @@
         <span class="st">庆祝<br><small style="color:var(--stage-soft)">达标不打断</small></span><span class="ar">→</span>
         <span class="st">结算 ⇄ 二维码分享</span>
       </div>
-      <div class="note">二级页(点按空白处返回):打卡记录 · 排行榜(全球/同城)· 最佳战绩 · 设置;首页数据区块点按直达对应二级页。</div>
+      <div class="note">二级页(点按空白处返回):打卡记录 · 排行榜(今日单轮 / 1 分钟 / 连胜三榜)· 最佳战绩 · 动作要领 · 设置;首页数据区块点按直达对应二级页。</div>
     </div>
     <div class="card">
       <h2>训练屏节奏(课中反馈引擎)</h2>
@@ -943,8 +955,8 @@
       </table>
     </div>
     <div class="card">
-      <h2>排行榜(可爬升设计)</h2>
-      每日 0 点重置 · 只显示 Top3 + 我的邻近区间 · 脚注永远给"再跳 N 下超过 XX" · 课中超越即时播报,进前三/登顶语音。
+      <h2>排行榜(可爬升设计 · 2026-08-17 评审会定稿)</h2>
+      三榜:<b>今日单轮最高</b>(0 点重置;当日累计不上榜,防刷)· <b>1 分钟测试</b>(历史最佳;限时时长各自成榜)· <b>连胜</b>。全员默认参与,无退出项;同分按显示名首字母排;未填昵称显示邮箱/手机脱敏前缀(如 rop***),开场白语音不点名。只显示 Top3 + 我的邻近区间,脚注永远给"再跳 N 下超过 XX",课中超越即时播报,进前三/登顶语音。
       <div class="note">完整需求与验收标准见 <a href="jump-rope-mini-prd.md">jump-rope-mini-prd.md</a>(含产品设计说明附录)。</div>
     </div>
   </section>
@@ -953,7 +965,8 @@
       <h2>AI 管线接口(C / WebView 通用契约)</h2>
       <table>
         <tr><td><code>feedPose(pts[33])</code></td><td>骨骼流(详见"火柴人渲染说明"页签)</td></tr>
-        <tr><td><code>onJump()</code></td><td>有效跳跃判定 → 计数+1,同帧反馈</td></tr>
+        <tr><td><code>onJump()</code></td><td>有效跳跃判定 → 计数+1,同帧反馈。识别口径:并脚跳(双脚同起同落),≤3 跳/秒;正对/侧对均支持,引导正对</td></tr>
+        <tr><td><code>formHint(kind)</code></td><td>动作纠错事件(会议新增):<code>alternating</code> 交替跳 / <code>single_foot</code> 单脚 / <code>low_jump</code> 幅度不足 → 教练语音提醒("双脚并拢跳");交替/单脚不计数</td></tr>
         <tr><td><code>setPresence(bool)</code></td><td>仅训练中暂停/恢复</td></tr>
         <tr><td><code>on_event</code></td><td><code>session_start{mode} · jump{count} · session_end{count, ms, goal, testMin, kcal, newBest}</code>(ms=净时长,暂停不计)</td></tr>
       </table>
@@ -964,7 +977,7 @@
         <tr><td><code>streak / lastDone / history</code></td><td>连胜与每日累计(打卡 = 当日 ≥目标 或 ≥50)</td></tr>
         <tr><td><code>stars / bestSession / bests{1,2}</code></td><td>货币星 / 单轮 PB / 限时最佳</td></tr>
         <tr><td><code>nick / sessions / lastGreet</code></td><td>开场白:昵称(云端 identity.account 为源)、第 N 次、当日去重</td></tr>
-        <tr><td><code>age / weight</code></td><td>派生/缓存自 <code>identity.personal</code>(birth_date / weight)</td></tr>
+        <tr><td><code>age / weight</code></td><td>派生/缓存自 <code>identity.personal</code>(birth_date / weight);<b>设备端设置页不再提供修改</b></td></tr>
       </table>
       <div class="note">账号级字段以 <a href="https://github.com/Alexis-Lin/ATOM-UserGoalPreference-and-OnBoarding">ATOM 用户档案模型</a>为唯一事实源;完整字段表 + Redis 排行榜 + 实现伪代码见 <a href="../code/backend-spec.md">code/backend-spec.md</a>。</div>
     </div>
@@ -1048,19 +1061,23 @@ try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.ge
 if (LANG !== 'zh') LANG = 'en';
 const I18N = {
 zh: {
-  appTitle: '每日跳绳', tapEnter: '点按进入',
+  appTitle: '跳绳', tapEnter: '点按进入',
   launchStreak: n => `已连续打卡 ${n} 天`, streakPre: '连续', streakPost: '天',
-  totalDays: n => `累计 ${n} 天`,
-  today: n => `今日 ${n} 下`, total: '累计',
+  totalDays: n => `${n} 天`,
+  today: n => `今日累计 ${n} 下`, total: '累计',
+  todayBestLab: '今日最高', totalCnt: n => `${n} 下`,
   recTitle: '打卡记录', boardTitle: '全球排行', achvTitle: '我的成就',
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
   bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', best2: '2 分钟最佳', bestDay: '单日最高',
   modeTitle: '选择模式', modeTimed: '限时跳', modeFree: '不限时', back: '返回',
   timedSub: (m, pb) => `${m} 分钟倒计时${pb ? ` · 最佳 ${pb}` : ''}`,
   freeSub: (g, t) => (g === 0 ? '自由模式' : `每日任务 ${g} 下`) + ` · 今日 ${t}`,
-  medalsTitle: '勋章', boardTodayTitle: '今日排行榜', scopeGlobal: '全球', scopeLocal: '同城',
-  setTitle: '设置', setGoal: '每日目标', setLen: '限时时长', setAge: '年龄段',
-  setWeight: '体重', setRemind: '每日提醒', setVoice: '教练语音',
+  medalsTitle: '勋章', boardTodayTitle: '排行榜',
+  boardRound: '今日单轮', boardTimed: '1 分钟', boardStreak: '连胜',
+  boardSubs: { round: '单轮最高 · 0 点重置', timed: '1 分钟历史最佳', streak: '连续打卡天数' },
+  passFootDay: (d, n) => `再坚持 ${d} 天超过 ${n}`, dayUnit: n => `${n} 天`,
+  setTitle: '设置', setGoal: '每日目标', setLen: '限时时长',
+  setRemind: '每日提醒', setVoice: '教练语音',
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
   off: '关', on: '开', adult: '成人',
   readyTip: '请站进画面<br>边缘变绿即可', readyHint: '离开画面会自动暂停',
@@ -1071,21 +1088,21 @@ zh: {
   you: '你', first: '你是今日第一！',
   passFoot: (d, n) => `再跳 ${d} 下超过 ${n}`,
   weekSum: (d, c) => `${d}/7 天 · 共 ${c} 下`,
-  boardSub: (pct, sc) => `超过 ${pct}% 的${sc}用户 · 0 点重置`,
-  scopeUserG: '全球', scopeUserL: '同城',
   achvLine: (g, a, i, s) => `已获 ${g}/${a} 枚 · ${i} 积分 ${s}`,
   cnt: c => `${c} 下`,
   goalReached: '目标达成！', roundOver: '本轮结束', newRec: '新纪录！', timeUp: '时间到！', celeGoal: '达成！',
   rateLine: (r, a) => `体测评级：${r}（${a} 岁段 · 示意标准）`,
   ratings: ['继续加油', '及格', '良好', '优秀', '满分'], kcal: '千卡',
-  streakLine: n => `连续 ${n} 天打卡`, globalRank: r => `全球第 ${r} 名`,
+  streakLine: n => `连续 ${n} 天打卡`, earnStreak: n => `${n} 天`, globalRank: r => `全球第 ${r} 名`,
   minBest: (m, b) => ` · ${m}' 最佳 ${b}`,
   minTest: m => `${m} 分钟测试`, freeJump: '自由跳', goalOf: g => `目标 ${g}`,
   rated: r => `评级 ${r}`, dailyMet: '每日任务达成',
   unlockLine: ns => `解锁 ${ns.join('、')}！`,
   sceneTag: n => `新场景「${n}」`, outfitTag: n => `新装扮「${n}」`,
   cheers: ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！'],
-  tips: ['膝盖微弯，轻轻落地', '前脚掌落地更省力', '手腕发力，手臂放松', '目视前方，背挺直', '呼吸跟上节奏'],
+  tips: ['膝盖微弯，轻轻落地', '前脚掌落地更省力', '手腕发力，手臂放松', '目视前方，背挺直', '呼吸跟上节奏', '双脚并拢，同起同落'],
+  howTitle: '动作要领',
+  howRows: ['双脚并拢跳，同起同落', '交替跳 / 单脚跳不计数，会语音提醒你', '正对镜头，全身入镜', '手腕发力，前脚掌轻落地'],
   spSlow: '别停，跟上 Bono 的节奏！',
   greets: ['今天也一起跳吧！', '新的一天，从 50 下开始', '跳一跳，烦恼都抖掉',
            'Bono 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'],
@@ -1107,7 +1124,7 @@ zh: {
   spEndGood: c => `一共 ${c} 下，太棒了！`, spEnd: '本轮结束，辛苦啦',
   spUnlock: ns => `恭喜解锁${ns.join('，')}`, spPause: '已暂停',
   spRemindOff: '提醒已关闭', spRemindAt: t => `每天 ${t} 提醒你来跳绳`,
-  defNick: '小跳将', opHello: '欢迎来到每日跳绳！我是 Bono。',
+  opHello: '欢迎来跳绳！我是 Bono。', opWelcomeAnon: '欢迎回来！',
   opWelcome: nk => `${nk}，欢迎回来！`, opNth: n => `这是你的第 ${n} 次跳绳。`,
   opStreak: n => `已经连续打卡 ${n} 天啦。`, opYesterday: c => `昨天跳了 ${c} 下。`,
   opPB: c => `你的最好纪录是单轮 ${c} 下。`, opTotal: c => `累计已经跳了 ${c} 下。`,
@@ -1121,19 +1138,23 @@ zh: {
   cap60: '连续 60 分钟，自动结算啦', todayTotal: n => `今日累计 ${n} 下`,
 },
 en: {
-  appTitle: 'Daily Jump', tapEnter: 'Tap to start',
+  appTitle: 'Jump Rope', tapEnter: 'Tap to start',
   launchStreak: n => `${n}-day streak`, streakPre: 'Streak', streakPost: 'days',
-  totalDays: n => `Total ${n} days`,
-  today: n => `Today ${n}`, total: 'Total',
+  totalDays: n => `${n}d`,
+  today: n => `Today total ${n}`, total: 'Total',
+  todayBestLab: 'Best today', totalCnt: n => `${n}`,
   recTitle: 'Check-in Log', boardTitle: 'Global Ranking', achvTitle: 'My Achievements',
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
   bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", best2: "Best 2' test", bestDay: 'Best day',
   modeTitle: 'Choose Mode', modeTimed: 'Timed', modeFree: 'Free Jump', back: 'Back',
   timedSub: (m, pb) => `${m} min countdown${pb ? ` · PB ${pb}` : ''}`,
   freeSub: (g, t) => (g === 0 ? 'Free mode' : `Daily goal ${g}`) + ` · today ${t}`,
-  medalsTitle: 'Medals', boardTodayTitle: 'Ranking', scopeGlobal: 'Global', scopeLocal: 'Local',
-  setTitle: 'Settings', setGoal: 'Daily goal', setLen: 'Timed length', setAge: 'Age',
-  setWeight: 'Weight', setRemind: 'Reminder', setVoice: 'Coach voice',
+  medalsTitle: 'Medals', boardTodayTitle: 'Ranking',
+  boardRound: 'Round', boardTimed: '1-min', boardStreak: 'Streak',
+  boardSubs: { round: 'round best · daily', timed: "1' all-time", streak: 'days in a row' },
+  passFootDay: (d, n) => `${d}d to pass ${n}`, dayUnit: n => `${n}d`,
+  setTitle: 'Settings', setGoal: 'Daily goal', setLen: 'Timed length',
+  setRemind: 'Reminder', setVoice: 'Coach voice',
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
   off: 'Off', on: 'On', adult: 'Adult',
   readyTip: 'Step into view<br>until the edge glows green', readyHint: 'Auto-pauses when you step out',
@@ -1144,21 +1165,21 @@ en: {
   you: 'You', first: "You're #1 today!",
   passFoot: (d, n) => `${d} to pass ${n}`,
   weekSum: (d, c) => `${d}/7 days · ${c} jumps`,
-  boardSub: (pct, sc) => `Ahead of ${pct}% · resets daily`,
-  scopeUserG: 'worldwide', scopeUserL: 'in your city',
   achvLine: (g, a, i, s) => `${g}/${a} earned · ${i} ${s} pts`,
   cnt: c => `${c}`,
   goalReached: 'Goal reached!', roundOver: 'Round over', newRec: 'New record!', timeUp: "Time's up!", celeGoal: 'Goal!',
   rateLine: (r, a) => `Fitness rating: ${r} (age ${a} · sample standard)`,
   ratings: ['Keep going', 'Pass', 'Good', 'Excellent', 'Perfect'], kcal: 'kcal',
-  streakLine: n => `${n}-day check-in streak`, globalRank: r => `Global #${r}`,
+  streakLine: n => `${n}-day check-in streak`, earnStreak: n => `${n}d`, globalRank: r => `Global #${r}`,
   minBest: (m, b) => ` · ${m}' best ${b}`,
   minTest: m => `${m}-min test`, freeJump: 'Free jump', goalOf: g => `Goal ${g}`,
   rated: r => `Rating: ${r}`, dailyMet: 'Daily goal met',
   unlockLine: ns => `Unlocked ${ns.join(', ')}!`,
   sceneTag: n => `new scene “${n}”`, outfitTag: n => `new outfit “${n}”`,
   cheers: ['Steady rhythm!', "Bono can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!'],
-  tips: ['Soft knees, land light', 'Land on the balls of your feet', 'Flick the wrists, relax the arms', 'Eyes forward, back straight', 'Breathe with the rhythm'],
+  tips: ['Soft knees, land light', 'Land on the balls of your feet', 'Flick the wrists, relax the arms', 'Eyes forward, back straight', 'Breathe with the rhythm', 'Feet together — no alternating'],
+  howTitle: 'How to Jump',
+  howRows: ['Jump with both feet together', "Alternating / single-foot hops don't count — voice reminds you", 'Face the camera, whole body in view', 'Flick the wrists, land on the balls of your feet'],
   spSlow: "Don't stop — keep up with Bono!",
   greets: ["Let's jump today!", 'New day — start with 50', 'Shake those worries off',
            'Bono is all warmed up!', 'Lighter than yesterday', 'Even the moon is watching'],
@@ -1180,7 +1201,7 @@ en: {
   spEndGood: c => `${c} total. Amazing!`, spEnd: 'Round over. Nice work!',
   spUnlock: ns => `Unlocked ${ns.join(', ')}`, spPause: 'Paused',
   spRemindOff: 'Reminder off', spRemindAt: t => `Daily reminder at ${t}`,
-  defNick: 'Jumper', opHello: "Welcome to Daily Jump! I'm Bono. ",
+  opHello: "Welcome to Jump Rope! I'm Bono. ", opWelcomeAnon: 'Welcome back! ',
   opWelcome: nk => `Welcome back, ${nk}! `, opNth: n => `This is jump session ${n}. `,
   opStreak: n => `You're on a ${n}-day streak. `, opYesterday: c => `Yesterday you did ${c}. `,
   opPB: c => `Your best round is ${c}. `, opTotal: c => `${c} jumps total so far. `,
@@ -1229,7 +1250,8 @@ function buildOpening() {
   if (profile.bestSession > 0) hls.push(L.opPB(profile.bestSession));
   if (profile.total > 100) hls.push(L.opTotal(profile.total));
   const hl = hls.length ? hls[n % hls.length] : '';
-  return L.opWelcome(profile.nick || L.defNick) + L.opNth(n) + hl + L.opDate(d) + call;
+  /* 会议决议:未填昵称不点名,用无称呼欢迎语 */
+  return (profile.nick ? L.opWelcome(profile.nick) : L.opWelcomeAnon) + L.opNth(n) + hl + L.opDate(d) + call;
 }
 
 function setLang(l) {
@@ -1366,29 +1388,41 @@ function seedFrom(str) {
 }
 const G_A = ['Flying','Turbo','Mighty','Neon','Rocket','Shadow','Cosmic','Blazing','Lucky','Pixel'];
 const G_B = ['Rope','Skipper','Jumper','Rabbit','Roo','Ninja','Comet','Spark','Hopper','Star'];
-const L_A = ['绳王','跳跳','元气','闪电','弹簧','飞毛腿','早起','夜跳','快乐','隔壁'];
-const L_B = ['阿强','小美','老王','丸子','同学','大侠','小鹿','阿宝','教练','萌新'];
-function fakeBoard(scope) {
-  const rand = mulberry32(seedFrom(todayKey() + scope));
-  const n = scope === 'global' ? 40 : 18;
-  const A = scope === 'global' ? G_A : L_A, B = scope === 'global' ? G_B : L_B;
+/* 展示名规则(会议决议):昵称 ≤10 字符截断;未填昵称 → 邮箱/手机前缀脱敏(街机三字母风) */
+function dispName(nm) { return nm.length > 10 ? nm.slice(0, 9) + '…' : nm; }
+function fakeBoard(kind) {
+  const rand = mulberry32(seedFrom(todayKey() + kind));
   const seen = new Set(), list = [];
-  while (list.length < n) {
-    const nm = A[(rand() * A.length) | 0] + (scope === 'global' ? '_' : '') + B[(rand() * B.length) | 0];
+  while (list.length < 40) {
+    const nm = rand() < 0.22
+      ? G_B[(rand() * G_B.length) | 0].slice(0, 3).toLowerCase() + '***'   /* 未填昵称:脱敏前缀 */
+      : G_A[(rand() * G_A.length) | 0] + '_' + G_B[(rand() * G_B.length) | 0];
     if (seen.has(nm)) continue;
     seen.add(nm);
-    const base = scope === 'global' ? 2400 : 1100;
-    list.push({ name: nm, count: Math.floor(60 + base * Math.pow(rand(), 2.6)) });
+    const v = kind === 'streak' ? Math.floor(1 + 90 * Math.pow(rand(), 2.2))
+      : kind === 'timed' ? Math.floor(40 + 150 * Math.pow(rand(), 1.8))
+      : Math.floor(60 + 2400 * Math.pow(rand(), 2.6));
+    list.push({ name: dispName(nm), count: v });
   }
-  return list.sort((a, b) => b.count - a.count);
+  /* 同分并列:按显示名首字母排(会议决议) */
+  return list.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 function todayCount() {
   const rec = profile.history[todayKey()];
   return (rec ? rec.count : 0) + (S.screen === 'jump' ? S.count : 0);
 }
-function myRank(scope) {
-  const t = todayCount();
-  return { rank: 1 + fakeBoard(scope).filter(u => u.count > t).length, count: t };
+/* 榜单口径 = 今日单轮最高(当日累计不上榜,防刷榜——会议决议) */
+function todayBest() {
+  const rec = profile.history[todayKey()];
+  return Math.max((rec && rec.best) || 0, S.screen === 'jump' ? S.count : 0);
+}
+function myScore(kind) {
+  return kind === 'streak' ? profile.streak
+    : kind === 'timed' ? (profile.bests[1] || 0) : todayBest();
+}
+function myRank(kind) {
+  const t = myScore(kind);
+  return { rank: 1 + fakeBoard(kind).filter(u => u.count > t).length, count: t };
 }
 /* ------------------------------------------------------------
    每天来都不一样：全部由"今天的日期"决定，离线可算、双窗口一致。
@@ -1665,7 +1699,7 @@ function render() {
     const ageDisp = profile.age === '成人' ? L.adult : profile.age;
     $('a-r-num').textContent = S.count;
     if (S.goal === TEST) {
-        $('a-r-lab').textContent = S.newBest ? L.newRec : L.timeUp;
+        $('a-r-lab').textContent = (S.newBest ? L.newRec : L.timeUp) + ' · ' + S.testMin + "'";
     } else {
         $('a-r-lab').textContent = (goalMet ? L.goalReached : L.roundOver) + ' · ' + fmtTime(S.elapsedMs);
     }
@@ -1677,7 +1711,7 @@ function render() {
       ? L.rateLine(rateTest(S.count), ageDisp) : '';
     const kcal = sessionKcal();
     $('a-r-earn').innerHTML =
-      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('clock')} ${fmtTime(S.elapsedMs)}` +
+      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('flame', '#FFB020')} ${L.earnStreak(profile.streak)}` +
       (kcal > 0 ? ` · ${kcal.toFixed(1)} ${L.kcal}` : '');
     /* 分享页迷你海报 */
     $('a-poster-num').textContent = S.count;
@@ -1685,9 +1719,8 @@ function render() {
       (S.goal === TEST ? L.minTest(S.testMin) : S.goal === 0 ? L.freeJump : L.goalOf(S.goal));
     $('a-poster-rate').textContent = S.goal === TEST && S.testMin === 1
       ? L.rated(rateTest(S.count)) : (goalMet ? L.dailyMet : '');
-    $('a-r-streak').innerHTML = `${ico('flame', '#FFB020')} ${L.streakLine(profile.streak)}`;
     $('a-r-unlock').innerHTML = S.unlock ? `${ico('gift', '#7FE3A8')} ${S.unlock}` : '';
-    const rg = myRank('global');
+    const rg = myRank('round');
     $('a-r-rank').innerHTML = `${ico('trophy')} ${L.globalRank(rg.rank)}` +
       (S.goal === TEST ? L.minBest(S.testMin, profile.bests[S.testMin] || 0) : '');
     drawQR($('a-qr'));
@@ -1761,7 +1794,7 @@ function startSession(g) {
   S.minIvl = 0; S.slowWarned = false;
   S.ropeCol = pickRopeColor();   /* 本轮绳色随机 */
   testMark30 = false; testMark10 = false; restMark30 = false;
-  liveRank = 1 + GB.filter(u => u.count > todayCount()).length;   /* 记录起跳时的名次 */
+  liveRank = 1 + GB.filter(u => u.count > todayBest()).length;   /* 记录起跳时的名次(单轮口径) */
   clearTimeout(resultTimer);
   bump();
   standLocked();   /* 不做站位校验：选完模式直接 3·2·1·BodyPark 开跳 */
@@ -1858,10 +1891,10 @@ function sessionKcal() {
 }
 
 /* 实时排名爬升反馈：每超过一位对手就即时告知（全球榜，前 15 名内） */
-const GB = fakeBoard('global');
+const GB = fakeBoard('round');
 let liveRank = Infinity;
 function checkOvertake() {
-  const tNow = todayCount();
+  const tNow = todayBest();   /* 单轮口径,与榜单一致 */
   const rk = 1 + GB.filter(u => u.count > tNow).length;
   if (rk < liveRank) {
     if (rk <= 15 && liveRank !== Infinity) {
@@ -1977,6 +2010,7 @@ function endSession() {
   const tk = todayKey();
   const rec = profile.history[tk] || { count: 0, done: false, ms: 0 };
   rec.count += S.count;
+  rec.best = Math.max(rec.best || 0, S.count);   /* 今日单轮最高(榜单口径) */
   rec.ms = (rec.ms || 0) + S.elapsedMs;
   const met = goalMet || rec.count >= 50;
   if (met && !rec.done) {
@@ -2340,28 +2374,22 @@ let skelTimer = setInterval(skelFrame, 66);   /* 帧率随 setFps 联动 */
 $('a-opt-timed').addEventListener('click', () => { audio(); startSession(TEST); });
 $('a-opt-free').addEventListener('click', () => { audio(); startSession(profile.goalNum); });
 $('a-mode-back').addEventListener('click', () => { audio(); goHome(); });
+$('a-mode-tips').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  $('a-tips-rows').innerHTML = L.howRows.map(t => `<div class="srow"><span>${t}</span></div>`).join('');
+  $('a-tips').classList.add('show');
+});
+$('a-tips').addEventListener('click', () => $('a-tips').classList.remove('show'));
 
 /* 设置页（首页 ⚙ 进入）：目标 / 限时时长 / 语音 */
 function renderSettings() {
   $('as-goal').textContent = L.goalVal(profile.goalNum);
   $('as-len').textContent = L.lenVal(S.testMin);
-  $('as-age').textContent = profile.age === '成人' ? L.adult : profile.age;
-  $('as-weight').textContent = profile.weight + ' kg';
   $('as-remind').textContent = profile.remind === '关' ? L.off : profile.remind;
   $('as-voice').textContent = voiceOn ? L.on : L.off;
 }
-const WEIGHTS = [25, 30, 35, 40, 45, 50, 60, 70, 80, 90];
 const REMINDS = ['关', '19:00', '20:00', '21:00'];
-$('as-age').addEventListener('click', (e) => {
-  e.stopPropagation(); audio();
-  profile.age = AGES[(AGES.indexOf(profile.age) + 1) % AGES.length];
-  saveProfile(); renderSettings(); bump();
-});
-$('as-weight').addEventListener('click', (e) => {
-  e.stopPropagation(); audio();
-  profile.weight = WEIGHTS[(WEIGHTS.indexOf(profile.weight) + 1) % WEIGHTS.length];
-  saveProfile(); renderSettings(); bump();
-});
+/* 年龄/体重从账号 profile 带入(identity.personal),设备端不再提供修改——会议决议 */
 $('as-remind').addEventListener('click', (e) => {
   e.stopPropagation(); audio();
   profile.remind = REMINDS[(REMINDS.indexOf(profile.remind) + 1) % REMINDS.length];
@@ -2399,20 +2427,22 @@ $('a-bono-idle').addEventListener('click', () => { audio(); cycleOutfit(1); });
    排行榜独立模块（Atom）：Top3 + 你的邻近区间 + 超越目标提示
    核心原则：永远给"再跳几下就能超过谁"的可爬升感
    ------------------------------------------------------------ */
-let aBoardScope = 'global';
+let aBoardScope = 'round';
 function renderABoard() {
-  const list = fakeBoard(aBoardScope);
-  const me = myRank(aBoardScope);
+  const kind = aBoardScope;
+  const list = fakeBoard(kind);
+  const me = myRank(kind);
   const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
   merged.push({ name: L.you, count: me.count, me: true });
   merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
   const meIdx = merged.findIndex(u => u.me);
 
+  const val = v => kind === 'streak' ? L.dayUnit(v) : v;
   const row = (i, u) =>
     `<div class="hrow${u.me ? ' me-row' : ''}">` +
     `<span class="hd${i < 3 ? ' done' : ''}">${i + 1}</span>` +
     `<span class="nm">${u.name}</span>` +
-    `<span class="hc">${u.count}</span></div>`;
+    `<span class="hc">${val(u.count)}</span></div>`;
   const rows = [];
   merged.slice(0, 3).forEach((u, i) => rows.push(row(i, u)));
   if (meIdx > 4) rows.push('<div class="bgap2">···</div>');
@@ -2422,13 +2452,13 @@ function renderABoard() {
   $('a-board-list').innerHTML = rows.join('');
 
   const above = meIdx > 0 ? merged[meIdx - 1] : null;
+  const d = above ? above.count - me.count + 1 : 0;
   $('a-board-foot').textContent = !above ? L.first
-    : L.passFoot(above.count - me.count + 1, above.name);
-  const pct = Math.round((1 - meIdx / merged.length) * 100);
-  $('a-board-sub').textContent =
-    L.boardSub(pct, aBoardScope === 'global' ? L.scopeUserG : L.scopeUserL);
-  $('ab-global').classList.toggle('dim', aBoardScope !== 'global');
-  $('ab-local').classList.toggle('dim', aBoardScope !== 'local');
+    : kind === 'streak' ? L.passFootDay(d, above.name) : L.passFoot(d, above.name);
+  $('a-board-sub').textContent = L.boardSubs[kind];
+  $('ab-round').classList.toggle('dim', kind !== 'round');
+  $('ab-timed').classList.toggle('dim', kind !== 'timed');
+  $('ab-streak').classList.toggle('dim', kind !== 'streak');
 }
 $('a-board').addEventListener('click', () => $('a-board').classList.remove('show'));
 
@@ -2473,12 +2503,12 @@ function renderQuickCards() {
   /* Page 1 · Home */
   $('a-card-streak').textContent = profile.streak;
   $('a-card-today').innerHTML = L.today(todayCount());
+  /* 会议决议:口径明确——今日累计/今日最高;PB 下沉最佳战绩页(此行点击进入) */
   $('a-card-pb').innerHTML =
-    `<span><span class="pb-badge">PB</span> ${profile.bestSession || '—'}</span>` +
-    `<span>${profile.bests[1] || '—'} / 1'</span>`;
+    `<span>${L.todayBestLab}</span><span>${todayBest() || '—'}</span>`;
   const trainDays = Object.keys(profile.history).filter(k => profile.history[k].count > 0).length;
   $('a-card-total').innerHTML =
-    `<span>${L.totalDays(trainDays)}</span><span>★${profile.stars}</span>`;
+    `<span>${L.total}</span><span>${L.totalDays(trainDays)} · ${L.totalCnt(profile.total)} ★${profile.stars}</span>`;
   /* Page 2 · 打卡记录：周点 + 最近 3 天 */
   const wk = $('a-week'); wk.innerHTML = '';
   for (let i = -6; i <= 0; i++) {
@@ -2504,8 +2534,8 @@ function renderQuickCards() {
   }
   $('a-qrec-sum').textContent = wkDays ? L.weekSum(wkDays, wkCnt) : '';
   /* Page 3 · 全球排行：Top3 + 你 */
-  const list = fakeBoard('global');
-  const me = myRank('global');
+  const list = fakeBoard('round');
+  const me = myRank('round');
   const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
   merged.push({ name: L.you, count: me.count, me: true });
   merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
@@ -2521,7 +2551,8 @@ function renderQuickCards() {
     ? L.passFoot(above.count - me.count + 1, above.name) : L.first;
 }
 function renderBest() {
-  const rows = [[L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
+  const rows = [[L.todayBestLab, todayBest()],
+                [L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
                 [L.best2, profile.bests[2]], [L.bestDay, maxDaily()]];
   $('a-best-rows').innerHTML = rows.map(([lab, v]) =>
     `<div class="srow"><span>${lab}</span><b class="bval">${v || '—'}</b></div>`).join('');
@@ -2572,9 +2603,9 @@ $('qc-rec-go').addEventListener('click', () => {
 $('qc-board-go').addEventListener('click', () => {
   if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
 });
-['ab-global', 'ab-local'].forEach(id => $(id).addEventListener('click', (e) => {
+['ab-round', 'ab-timed', 'ab-streak'].forEach(id => $(id).addEventListener('click', (e) => {
   e.stopPropagation(); audio();
-  aBoardScope = id === 'ab-global' ? 'global' : 'local';
+  aBoardScope = id === 'ab-round' ? 'round' : id === 'ab-timed' ? 'timed' : 'streak';
   renderABoard();
 }));
 
