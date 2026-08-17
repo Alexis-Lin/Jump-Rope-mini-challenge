@@ -1,6 +1,6 @@
 # UI 界面图（全套）
 
-由 [`tools/screenshots.mjs`](../../tools/screenshots.mjs) 从可交互原型自动生成,466×466 真实渲染。
+由 [`backup/screenshots.mjs`](../../backup/screenshots.mjs) 从可交互 Demo 自动生成,466×466 真实渲染。
 `en/` 英文版(讨论主版本),`zh/` 中文版,两套文件名一一对应。改版后重新运行脚本即可全量更新。
 
 | 文件 | 界面 | 说明 |

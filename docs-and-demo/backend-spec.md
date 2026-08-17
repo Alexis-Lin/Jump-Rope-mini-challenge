@@ -1,6 +1,6 @@
 # 后端字段与服务实现说明
 
-> 对象:服务端工程。配合 [PRD](PRD.md) §8 使用;事件由端上经 `on_event`/`AtomBridge.onEvent` 上报(见 [嵌入式参考](../embedded/README.md))。
+> 对象:服务端工程。配合 [PRD](jump-rope-mini-prd.md) §8 使用;事件由端上经 `on_event`/`AtomBridge.onEvent` 上报(见 [工程代码参考](../code/README.md))。
 
 ## 1. 用户档案字段(单账号;端上本地持久化 + 云同步)
 

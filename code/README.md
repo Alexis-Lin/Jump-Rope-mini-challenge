@@ -3,8 +3,8 @@
 **纯 C（C11）+ 纯软件光栅，零外部依赖，无 SVG/字体库需求** —— 设备只要给一块
 466×466 ARGB8888 帧缓冲即可。桌面 `make && ./demo` 直接出关键帧 BMP 验证。
 
-> ⚠ 交互规格以可交互 Demo（[`../demo/index.html`](../demo/index.html)）为源——本参考实现基于 proto-v0.5 行为,
-> 后续界面演进(双语/新首页/BodyPark 即时开跳/刻度环/发光等)以 Demo 与 [PRD](../docs/PRD.md) 为准接力。
+> ⚠ 交互规格以可交互 Demo（[`../docs-and-demo/demo.html`](../docs-and-demo/demo.html)）为源——本参考实现基于 proto-v0.5 行为,
+> 后续界面演进(双语/新首页/BodyPark 即时开跳/刻度环/发光等)以 Demo 与 [PRD](../docs-and-demo/jump-rope-mini-prd.md) 为准接力。
 
 ## 目录
 
@@ -28,12 +28,12 @@ src/main_demo.c       桌面 harness（真机不编译此文件）
 
 | 接口（C / JS） | 说明 |
 |---|---|
-| `atom_app_feed_pose(pts)` / `AtomApp.feedPose(pts)` | 33 点骨骼流（MediaPipe Pose 拓扑，`[{x,y,v?}]` 归一化 0–1、原点左上、喂入前完成镜像），建议 ≥15Hz；500ms 无数据自动回落内置演示动作。渲染细节见 [火柴人渲染说明](../docs/figure-rendering.md) |
+| `atom_app_feed_pose(pts)` / `AtomApp.feedPose(pts)` | 33 点骨骼流（MediaPipe Pose 拓扑，`[{x,y,v?}]` 归一化 0–1、原点左上、喂入前完成镜像），建议 ≥15Hz；500ms 无数据自动回落内置演示动作。渲染细节见 [火柴人渲染说明](../docs-and-demo/figure-rendering.md) |
 | `atom_app_on_jump()` / `AtomApp.onJump()` | AI 判定一次有效跳跃 → 计数 +1，同帧触发数字打击动画/涟漪/发光/音效 |
 | `atom_app_set_presence(b)` / `AtomApp.setPresence(bool)` | **仅用于训练中**：`false` 立即暂停（停表），`true` 恢复；不作为开跳门槛（开跳为 3·2·1·BodyPark 即时流程） |
-| 事件出向 `atom_callbacks_t.on_event` / `AtomBridge.onEvent` | `app_ready / session_start / jump{count} / session_end{count, ms, goal, testMin, kcal, newBest}` → 上报后端（字段说明见 [后端实现说明](../docs/backend-spec.md)） |
+| 事件出向 `atom_callbacks_t.on_event` / `AtomBridge.onEvent` | `app_ready / session_start / jump{count} / session_end{count, ms, goal, testMin, kcal, newBest}` → 上报后端（字段说明见 [后端实现说明](../docs-and-demo/backend-spec.md)） |
 
-WebView 备选方案：设备 WebView（Chromium ≥90，Canvas 2D）全屏加载 `demo/index.html`
+WebView 备选方案：设备 WebView（Chromium ≥90，Canvas 2D）全屏加载 `docs-and-demo/demo.html`
 即可运行——用 `webview.evaluateJavascript("AtomApp.onJump()")` 等注入上表 JS 接口,
 `AtomBridge.speak/saveProfile/onEvent` 由固件在页面加载前注入（缺失时页面自动回落浏览器能力）。
 桌面调试加 `?debug`。

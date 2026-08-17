@@ -1,7 +1,6 @@
 # AI 火柴人渲染说明（含关键点接口）
 
-> 对象:AI 管线团队 + 端上工程。实现基准:[`demo/index.html`](../demo/index.html) 的 `skelFrame()`;
-> 可视规格卡:[`figure-spec.html`](figure-spec.html)(PNG 版见下图)。
+> 对象:AI 管线团队 + 端上工程。实现基准:[`demo.html`](demo.html) 的 `skelFrame()`;交互演示见[交互手册](handbook.html)·火柴人渲染页。
 
 ![火柴人设计定义](ui/figure-spec.png)
 
@@ -66,4 +65,4 @@ ws = clamp(肩点间距px ÷ 40, 0.55, 1.5)
 
 ## 6. 性能要求
 
-骨骼渲染延迟 <100ms;目标帧率 10–15fps(渲染循环间隔随设备帧率设定);嵌入式参考实现见 [`embedded/`](../embedded/)。
+骨骼渲染延迟 <100ms;目标帧率 10–15fps(渲染循环间隔随设备帧率设定);嵌入式参考实现见 [`code/`](../code/)。

@@ -1,9 +1,9 @@
 /**
- * 全 UI 界面截图生成器 —— 输出 docs/ui/{en,zh}/NN-name.png
+ * 全 UI 界面截图生成器 —— 输出 docs-and-demo/ui/{en,zh}/NN-name.png
  *
  * 用法：
- *   npm i playwright-core          # 一次性
- *   node tools/screenshots.mjs     # 在仓库根目录运行
+ *   npm i playwright-core             # 一次性
+ *   node backup/screenshots.mjs       # 在仓库根目录运行
  *
  * 依赖本机 Chromium：默认取 PLAYWRIGHT 环境或 /opt/pw-browsers/chromium，
  * 也可用 CHROMIUM=/path/to/chrome node tools/screenshots.mjs 指定。
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const PROTO = 'file://' + path.join(ROOT, 'demo', 'index.html');
+const PROTO = 'file://' + path.join(ROOT, 'docs-and-demo', 'demo.html');
 const EXEC = process.env.CHROMIUM || '/opt/pw-browsers/chromium';
 
 const browser = await chromium.launch({
@@ -23,7 +23,7 @@ const browser = await chromium.launch({
 });
 
 async function shootLang(lang) {
-  const OUT = path.join(ROOT, 'docs', 'ui', lang);
+  const OUT = path.join(ROOT, 'docs-and-demo', 'ui', lang);
   mkdirSync(OUT, { recursive: true });
   const ctx = await browser.newContext({ viewport: { width: 900, height: 900 } });
   const page = await ctx.newPage();
