@@ -1,6 +1,6 @@
 # AI 火柴人渲染说明（含关键点接口）
 
-> 对象:AI 管线团队 + 端上工程。实现基准:[`demo.html`](demo.html) 的 `skelFrame()`;交互演示见[交互手册](handbook.html)·火柴人渲染页。
+> 对象:AI 管线团队 + 端上工程。实现基准:[`demo.html`](demo.html) 的 `skelFrame()`;交互演示见 [demo.html](demo.html)「火柴人渲染说明」页签。
 
 ![火柴人设计定义](ui/figure-spec.png)
 

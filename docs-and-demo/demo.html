@@ -793,6 +793,215 @@
 
 </div>
 
+
+<!-- ==================== 手册外壳(与 Demo 合并为单文件;?app=1 隐藏) ==================== -->
+<style>
+  #hbnav {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    z-index: 95; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center;
+    background: rgba(16,19,17,.92); border: 1px solid #2B332E; border-radius: 999px;
+    padding: 6px 10px; backdrop-filter: blur(6px); max-width: calc(100vw - 16px);
+  }
+  #hbnav button {
+    background: #242C27; color: var(--stage-ink); border: none;
+    border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit;
+  }
+  #hbnav button.on { background: var(--accent); color: #fff; font-weight: 700; }
+  #hbroot { display: none; max-width: 1120px; margin: 0 auto; padding: 72px 20px 80px; line-height: 1.7; }
+  #hbroot section { display: none; } #hbroot section.on { display: block; }
+  #hbroot .card { background: #171B19; border: 1px solid #242C27; border-radius: 14px; padding: 20px 22px; margin-bottom: 16px; }
+  #hbroot .card h2 { font-size: 17px; margin: 0 0 10px; color: var(--accent); }
+  #hbroot table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+  #hbroot td, #hbroot th { padding: 6px 10px; border-bottom: 1px solid #242C27; text-align: left; vertical-align: top; }
+  #hbroot th { color: var(--stage-soft); font-weight: 600; white-space: nowrap; }
+  #hbroot td b { color: var(--accent); }
+  #hbroot .flow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13.5px; }
+  #hbroot .flow .st { background: #1B201D; border: 1px solid #242C27; border-radius: 10px; padding: 8px 12px; }
+  #hbroot .flow .st.hot { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  #hbroot .flow .ar { color: var(--stage-soft); }
+  #hbroot .note { color: var(--stage-soft); font-size: 12.5px; margin-top: 8px; }
+  #hbroot code { background: #0E1110; border: 1px solid #242C27; border-radius: 6px; padding: 1px 6px; font-size: 12.5px; color: #9FE8BC; }
+  #hbroot a { color: var(--accent); }
+  #hbroot .chips { display: flex; gap: 8px; flex-wrap: wrap; }
+  #hbroot .chip { border-radius: 8px; padding: 4px 10px; font-size: 12.5px; border: 1px solid #242C27; color: var(--stage-soft); }
+  #hbroot .sw { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; }
+  #hbroot .t-demo { display: flex; gap: 14px; flex-wrap: wrap; align-items: baseline; }
+  #figwrap { display: flex; gap: 20px; flex-wrap: wrap; }
+  #figcv { background: #0E1110; border-radius: 50%; border: 3px solid #242C27; display: block; }
+  #hbroot .ctl { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; max-width: 360px; align-items: center; font-size: 13px; color: var(--stage-soft); }
+  #hbroot .ctl button { background: #1B201D; color: var(--stage-ink); border: 1px solid #242C27; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-family: inherit; font-size: 13px; }
+  #hbroot .ctl button.on { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  #hbroot .ctl input[type=range] { width: 130px; accent-color: var(--accent); }
+  #hbroot .ctl label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+</style>
+<div id="hbnav">
+  <button data-t="t1" class="on">交互演示</button>
+  <button data-t="t2">火柴人渲染说明</button>
+  <button data-t="t3">关键逻辑</button>
+  <button data-t="t4">接口与字段</button>
+  <button data-t="t5">视觉标准</button>
+</div>
+<div id="hbroot">
+  <section id="t2">
+    <div class="card">
+      <h2>实时交互演示(与左侧 Demo 同一套几何规则)</h2>
+      <div id="figwrap">
+        <div>
+          <canvas id="figcv" width="360" height="360"></canvas>
+          <div class="ctl"><span>姿态:</span>
+            <button class="pose on" data-p="0">站立</button>
+            <button class="pose" data-p="1">腾空</button>
+            <button class="pose" data-p="2">落地</button>
+          </div>
+          <div class="ctl"><span>远近(ws):</span>
+            <input type="range" id="fig-ws" min="55" max="150" value="100"><span id="fig-wsv">1.00</span>
+          </div>
+          <div class="ctl">
+            <button id="fig-glow">⚡ 逢十金光</button>
+            <button id="fig-rope">换绳色</button>
+            <label><input type="checkbox" id="fig-anno"> 显示关键点与锚点</label>
+          </div>
+          <div class="note">红点 = AI 33 点中渲染使用的 13 点;绿点 = 派生锚点(肩/髋锚点内收进躯干柱)。</div>
+        </div>
+        <div style="flex:1;min-width:320px;">
+          <table>
+            <tr><th>部件</th><th>规则(基准 ws=1,全部圆端帽)</th></tr>
+            <tr><td>头</td><td>纯白圆 <b>r26</b>,圆心=双耳(7/8)中点上移 17;与躯干留窄隙 ≈5</td></tr>
+            <tr><td>躯干</td><td>等宽直柱 <b>宽 40 = 2×腿宽</b>,颈点(11/12 中点)→ 髋中点(23/24 中点);顶端下移 12 补偿圆帽</td></tr>
+            <tr><td>手臂</td><td><b>宽 18</b>;肩锚点 x=颈点±11、<b>y 取各自真实肩点</b>(肩部起伏跟随真人)→ 肘(13/14)→ 腕(15/16)</td></tr>
+            <tr><td>腿</td><td><b>宽 20</b>;髋锚点 = 髋中点 ±10 → 膝(25/26)→ 踝(27/28)</td></tr>
+            <tr><td>手 / 脚</td><td>纯白圆头 <b>r9(=臂宽/2,不外凸)/ r14</b>(落地锚点,全身唯一的"凸")</td></tr>
+            <tr><td>缩放</td><td>全部尺寸 × ws;<code>ws = clamp(肩宽px ÷ 40, 0.55, 1.5)</code></td></tr>
+            <tr><td>颜色</td><td>肢体 #EDF2EF · 头/手/脚 #FFFFFF;逢十全身金光(shadow 26ws)0.5s 衰减</td></tr>
+          </table>
+          <div class="note"><b style="color:var(--stage-ink)">铁律</b>:肩部总宽 = 髋部总宽 = 躯干宽 40(锚点内收,四肢外缘与躯干侧边齐平);无宽肩、无梯形、无关节圆点、无面部、无描边。</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>关键点接口(AI 管线 → 渲染)</h2>
+      <table>
+        <tr><th>接口</th><th>说明</th></tr>
+        <tr><td><code>feedPose(pts[33])</code></td><td>MediaPipe Pose 拓扑,归一化 0–1、原点左上、<b>喂入前完成镜像</b>,≥15Hz;500ms 无数据回落内置模拟。渲染实际使用 13 点:耳 7/8 · 肩 11/12 · 肘 13/14 · 腕 15/16 · 髋 23/24 · 膝 25/26 · 踝 27/28</td></tr>
+        <tr><td><code>onJump()</code></td><td>AI 判定一次有效跳跃 → 计数+1,同帧触发数字打击/涟漪/发光/音效。<b>计数管线独立,骨骼流只负责渲染</b></td></tr>
+        <tr><td><code>setPresence(bool)</code></td><td>仅用于训练中暂停/恢复,不作为开跳门槛</td></tr>
+        <tr><td>视口变换</td><td>整帧固定缩至 2/3、底边锚 0.94(顶部 1/3 永久让给数字):<code>x'=0.5+(x−0.5)×⅔ · y'=0.94−(1−y)×⅔</code></td></tr>
+      </table>
+      <div class="note">完整文档:<a href="figure-rendering.md">figure-rendering.md</a>;规格卡:<a href="ui/figure-spec.png">ui/figure-spec.png</a></div>
+    </div>
+  </section>
+  <section id="t3">
+    <div class="card">
+      <h2>主流程(从打开到结算 ≤3 次点按 · ≤10 秒开跳)</h2>
+      <div class="flow">
+        <span class="st">系统入口卡<br><small style="color:var(--stage-soft)">个性化开场白</small></span><span class="ar">→</span>
+        <span class="st">首页卡组<br><small style="color:var(--stage-soft)">首页/打卡记录/全球排行 横滑</small></span><span class="ar">→</span>
+        <span class="st">模式选择<br><small style="color:var(--stage-soft)">限时跳 1'/2' · 不限时</small></span><span class="ar">→</span>
+        <span class="st hot">3·2·1·BodyPark<br><small>无站位校验,即时开跳</small></span><span class="ar">→</span>
+        <span class="st">训练屏</span><span class="ar">→</span>
+        <span class="st">庆祝<br><small style="color:var(--stage-soft)">达标不打断</small></span><span class="ar">→</span>
+        <span class="st">结算 ⇄ 二维码分享</span>
+      </div>
+      <div class="note">二级页(点按空白处返回):打卡记录 · 排行榜(全球/同城)· 最佳战绩 · 设置;首页数据区块点按直达对应二级页。</div>
+    </div>
+    <div class="card">
+      <h2>训练屏节奏(课中反馈引擎)</h2>
+      <table>
+        <tr><th>节拍</th><th>反馈</th></tr>
+        <tr><td><b>每一跳</b></td><td>五声音阶"叮" + 数字砸入回弹 + 脚下金色透视涟漪(同帧,延迟 <100ms)</td></tr>
+        <tr><td><b>每 10 下</b></td><td>数字重击(1.9×+震屏)+ 火柴人全身金光 0.5s + 语音报数 + 50% 概率小彩带</td></tr>
+        <tr><td><b>每 20 下</b></td><td>+2★ 飞星;15% 概率彩蛋双倍 +4★ + 彩带雨(唯一常规 toast)</td></tr>
+        <tr><td><b>每 50 下</b></td><td>得一颗 ★(全模式统一,与环解耦)+ 燃起来火焰升级 + 换绳色 + 语音报星</td></tr>
+        <tr><td><b>隐藏数字</b></td><td>每天 55–99 换一个,踩中 +5★ + 彩带 + 专属播报</td></tr>
+        <tr><td><b>达标</b></td><td>彩带 + 数字转暖 + "继续冲!"——绝不打断,51、52 继续数</td></tr>
+        <tr><td><b>随时</b></td><td>超越对手即时播报;整 30 语音 = 鼓励/纠错指导五五开;节奏掉 60% 轻推(每轮一次)</td></tr>
+      </table>
+      <div class="note">Toast 纪律:常规节点全语音化不弹层;toast 仅限稀有事件(彩蛋双倍/隐藏数字/达标/超越/休息提醒)。</div>
+    </div>
+    <div class="card">
+      <h2>进度环与星星</h2>
+      <table>
+        <tr><td>环(目标/自由)</td><td>一圈 = 一个目标(自由跳 50),跳满清零重画</td></tr>
+        <tr><td>环(限时)</td><td><b>60 格时间刻度环</b>:每格=总时长/60(1'=1s/格),逢五长刻度;剩余=亮格从尾端逐格熄灭,最后 10s 转暖橙</td></tr>
+        <tr><td>星星 ★</td><td><b>固定每 50 一颗</b>(荣誉刻度,全模式统一,不入账);>4 颗收敛为 ★×N</td></tr>
+        <tr><td>货币星</td><td>整20 +2 / 彩蛋 ×2 / 隐藏数字 +5 / 达标 +10 → 结算入账,消耗于换装/场景/补签卡</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>开场白(进入 APP 时播,模块化拼装)</h2>
+      称呼欢迎(昵称)→ 第 N 次跳绳 → 历史亮点 1 条(连胜/昨日/PB/累计,按轮次轮换)→ 日期 → 目标召唤(4 条池按日轮换)。
+      首次使用播新手版;<b>同一天再次进入只播简短版</b>。开场白只在首页播,不阻塞开跳。
+      <div class="note">在演示页签体验:开「🌱 初始状态」听新手版;关掉恢复后再进听回访版。</div>
+    </div>
+    <div class="card">
+      <h2>状态与超时策略(空 / 边界 / 极限)</h2>
+      <table>
+        <tr><td>计数累积</td><td><b>单轮从 0 起算</b>;<b>今日累计跨轮累加</b>(首页/榜单/结算"今日累计"行),0 点重置;结算即落档</td></tr>
+        <tr><td>离开画面</td><td>训练中立即暂停(停表)→ 5s 未回自动结算;结算页 45s 无操作回首页</td></tr>
+        <tr><td>极限保护</td><td>30min 语音提醒休息 / 60min 强制结算;计数 ≥1000 数字降档 96→68;单日封顶 3000(服务端)</td></tr>
+        <tr><td>空状态</td><td>首页真实零值 + 引导文案;榜单未跳也有真实名次与"再跳 N 下超过 XX"</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>排行榜(可爬升设计)</h2>
+      每日 0 点重置 · 只显示 Top3 + 我的邻近区间 · 脚注永远给"再跳 N 下超过 XX" · 课中超越即时播报,进前三/登顶语音。
+      <div class="note">完整需求与验收标准见 <a href="jump-rope-mini-prd.md">jump-rope-mini-prd.md</a>(含产品设计说明附录)。</div>
+    </div>
+  </section>
+  <section id="t4">
+    <div class="card">
+      <h2>AI 管线接口(C / WebView 通用契约)</h2>
+      <table>
+        <tr><td><code>feedPose(pts[33])</code></td><td>骨骼流(详见"火柴人渲染说明"页签)</td></tr>
+        <tr><td><code>onJump()</code></td><td>有效跳跃判定 → 计数+1,同帧反馈</td></tr>
+        <tr><td><code>setPresence(bool)</code></td><td>仅训练中暂停/恢复</td></tr>
+        <tr><td><code>on_event</code></td><td><code>session_start{mode} · jump{count} · session_end{count, ms, goal, testMin, kcal, newBest}</code>(ms=净时长,暂停不计)</td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h2>档案字段(节选)与账号模型对齐</h2>
+      <table>
+        <tr><td><code>streak / lastDone / history</code></td><td>连胜与每日累计(打卡 = 当日 ≥目标 或 ≥50)</td></tr>
+        <tr><td><code>stars / bestSession / bests{1,2}</code></td><td>货币星 / 单轮 PB / 限时最佳</td></tr>
+        <tr><td><code>nick / sessions / lastGreet</code></td><td>开场白:昵称(云端 identity.account 为源)、第 N 次、当日去重</td></tr>
+        <tr><td><code>age / weight</code></td><td>派生/缓存自 <code>identity.personal</code>(birth_date / weight)</td></tr>
+      </table>
+      <div class="note">账号级字段以 <a href="https://github.com/Alexis-Lin/ATOM-UserGoalPreference-and-OnBoarding">ATOM 用户档案模型</a>为唯一事实源;完整字段表 + Redis 排行榜 + 实现伪代码见 <a href="../code/backend-spec.md">code/backend-spec.md</a>。</div>
+    </div>
+  </section>
+  <section id="t5">
+    <div class="card">
+      <h2>字号 6 档标准(466 设计稿,禁止档外字号)</h2>
+      <div class="t-demo">
+        <span style="font-size:18px">18 微标注</span>
+        <span style="font-size:22px">22 辅助提示</span>
+        <span style="font-size:24px">24 正文/列表</span>
+        <span style="font-size:28px;font-weight:700">28 按钮/强调</span>
+        <span style="font-size:32px;font-weight:700">32 标题/状态</span>
+        <span style="font-size:36px;font-weight:800">36 庆祝</span>
+      </div>
+      <div class="note">数字展示档(不占 6 档):海报 40 / 卡片&结算 56 / 计数降档 68 / 大计数 96 / 倒计时 136。CSS token:<code>--t18…--t36 / --n40…--n136</code></div>
+    </div>
+    <div class="card">
+      <h2>品牌色 + 绳色池</h2>
+      <div class="chips">
+        <span class="chip"><span class="sw" style="background:#121514"></span>舞台黑 #121514</span>
+        <span class="chip"><span class="sw" style="background:#F2F4F2"></span>浅白 #F2F4F2</span>
+        <span class="chip"><span class="sw" style="background:#8D9591"></span>灰 #8D9591</span>
+        <span class="chip"><span class="sw" style="background:#23C766"></span>品牌绿 #23C766(唯一活力色)</span>
+        <span class="chip"><span class="sw" style="background:#FFDB80"></span>打击金(涟漪/重击/发光)</span>
+      </div>
+      <div class="note" style="margin-top:10px">绳色 8 色池(玩趣专属,界面不用)——开轮随机,每满 50 换色:</div>
+      <div class="chips" style="margin-top:8px" id="fig-ropechips"></div>
+    </div>
+    <div class="card">
+      <h2>圆屏页面骨架 + 帧率纪律</h2>
+      标题钉顶部安全区(≤5 汉字/8 词符)→ 内容中区弹性居中 → 提示钉底部 7.5%(≤22px 单行);行式内容左右对齐 + 细分隔线。
+      <div class="note">刷新率 10–15fps:动效一律状态直切 + 离散帧(steps),无 tween;限时刻度环与逢十发光皆为离散设计。图标一律单色 SVG,禁 emoji。</div>
+    </div>
+  </section>
+</div>
+
 <!-- ==================== 原型控制条 ==================== -->
 <div id="protobar" class="hidden">
   <span class="tag">PROTO</span>
@@ -1858,6 +2067,7 @@ function setAuto(on) {
 }
 
 document.addEventListener('keydown', (e) => {
+  if (window.hbTab && window.hbTab !== 't1') return;   /* 手册其它页签不拦截空格 */
   if (e.code === 'Space') { e.preventDefault(); audio(); registerJump(); }
   if (S.screen === 'idle' && (e.code === 'ArrowLeft' || e.code === 'ArrowRight'))
     setCard(cardIdx + (e.code === 'ArrowRight' ? 1 : -1));
@@ -2491,4 +2701,101 @@ if (Math.min(window.innerWidth, window.innerHeight) < 520) {
 }
 /* 只做 Atom 设备端（手机端 DOM 仅作内部脚手架保留，demo 不暴露） */
 enter('atom');
+</script>
+
+<script>
+/* ============ 手册外壳:页签切换(?app=1 隐藏手册,纯 Demo 供设备 WebView) ============ */
+window.hbTab = 't1';
+(function () {
+  if (new URLSearchParams(location.search).has('app')) {
+    document.getElementById('hbnav').style.display = 'none';
+    return;
+  }
+  document.querySelectorAll('#hbnav button').forEach(b => b.onclick = () => {
+    window.hbTab = b.dataset.t;
+    document.querySelectorAll('#hbnav button').forEach(x => x.classList.toggle('on', x === b));
+    const demoMode = b.dataset.t === 't1';
+    document.getElementById('stage').style.display = demoMode ? '' : 'none';
+    document.getElementById('protobar').style.display = demoMode ? '' : 'none';
+    document.getElementById('hbroot').style.display = demoMode ? 'none' : 'block';
+    document.querySelectorAll('#hbroot section').forEach(sc => sc.classList.toggle('on', sc.id === b.dataset.t));
+    window.scrollTo(0, 0);
+  });
+})();
+
+/* ============ 火柴人交互演示(独立作用域,与 Demo 同几何) ============ */
+(function () {
+  const cv = document.getElementById('figcv'); if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const FR = [[48,232,120],[64,200,255],[255,200,64],[255,140,80],[190,140,255],[255,120,170],[120,255,200],[230,255,90]];
+  const POSES = [
+    {e:[[.46,.30],[.54,.30]], s:[[.42,.40],[.58,.40]], el:[[.34,.50],[.66,.50]], w:[[.31,.60],[.69,.60]], h:[[.46,.58],[.54,.58]], k:[[.45,.74],[.55,.74]], a:[[.44,.88],[.56,.88]]},
+    {e:[[.46,.24],[.54,.24]], s:[[.42,.34],[.58,.34]], el:[[.32,.42],[.68,.42]], w:[[.28,.50],[.72,.50]], h:[[.46,.52],[.54,.52]], k:[[.44,.66],[.56,.66]], a:[[.45,.76],[.55,.76]]},
+    {e:[[.46,.33],[.54,.33]], s:[[.42,.43],[.58,.43]], el:[[.33,.52],[.67,.52]], w:[[.30,.61],[.70,.61]], h:[[.46,.60],[.54,.60]], k:[[.44,.75],[.55,.75]], a:[[.44,.88],[.56,.88]]},
+  ];
+  let pose = 0, wsUI = 1, glowT = 0, ropeI = 0, showAnno = false;
+  const FS = 360;
+  function draw() {
+    ctx.clearRect(0, 0, FS, FS);
+    const P = POSES[pose];
+    const ws = wsUI * 0.9, glow = glowT > 0 ? glowT : 0;
+    const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+    const T = p => [FS / 2 + (p[0] * FS - FS / 2) * wsUI, FS * .9 - (FS * .9 - p[1] * FS) * wsUI];
+    const e = P.e.map(T), sh = P.s.map(T), el = P.el.map(T), w = P.w.map(T), h = P.h.map(T), k = P.k.map(T), a = P.a.map(T);
+    const neck = mid(sh[0], sh[1]), hip = mid(h[0], h[1]);
+    const rc = FR[ropeI];
+    ctx.strokeStyle = `rgba(${rc[0]},${rc[1]},${rc[2]},.85)`; ctx.lineWidth = 4 * ws; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(w[0][0], w[0][1]);
+    const sag = pose === 1 ? -(neck[1] - 60 * ws - mid(w[0], w[1])[1]) : (a[0][1] + 26 * ws - mid(w[0], w[1])[1]);
+    ctx.quadraticCurveTo((w[0][0] + w[1][0]) / 2, mid(w[0], w[1])[1] + 2 * sag, w[1][0], w[1][1]); ctx.stroke();
+    if (glow > .02) { ctx.shadowColor = `rgba(255,219,128,${0.9 * glow})`; ctx.shadowBlur = 26 * glow * ws; }
+    const body = glow > .02 ? '#FFFFFF' : '#EDF2EF';
+    ctx.strokeStyle = body; ctx.fillStyle = body; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.lineWidth = 40 * ws; ctx.beginPath(); ctx.moveTo(neck[0], neck[1] + 12 * ws); ctx.lineTo(hip[0], hip[1]); ctx.stroke();
+    ctx.lineWidth = 18 * ws;
+    [[0, -1], [1, 1]].forEach(([i, sg]) => {
+      ctx.beginPath(); ctx.moveTo(neck[0] + sg * 11 * ws, sh[i][1]); ctx.lineTo(el[i][0], el[i][1]); ctx.lineTo(w[i][0], w[i][1]); ctx.stroke();
+    });
+    ctx.lineWidth = 20 * ws;
+    [[0, -1], [1, 1]].forEach(([i, sg]) => {
+      ctx.beginPath(); ctx.moveTo(hip[0] + sg * 10 * ws, hip[1]); ctx.lineTo(k[i][0], k[i][1]); ctx.lineTo(a[i][0], a[i][1]); ctx.stroke();
+    });
+    ctx.fillStyle = '#FFFFFF';
+    const em = mid(e[0], e[1]);
+    ctx.beginPath(); ctx.arc(em[0], em[1] - 17 * ws, 26 * ws, 0, 7); ctx.fill();
+    [...w.map(p => [p, 9]), ...a.map(p => [p, 14])].forEach(([p, r]) => {
+      ctx.beginPath(); ctx.arc(p[0], p[1], r * ws, 0, 7); ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+    if (pose === 2) {
+      const fm = mid(a[0], a[1]);
+      ctx.strokeStyle = 'rgba(255,219,128,.8)'; ctx.lineWidth = 5 * ws;
+      ctx.beginPath(); ctx.ellipse(fm[0], fm[1] + 4, 70 * ws, 21 * ws, 0, 0, 7); ctx.stroke();
+    }
+    if (showAnno) {
+      ctx.fillStyle = '#E5604C';
+      [...e, ...sh, ...el, ...w, ...h, ...k, ...a].forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, 7); ctx.fill(); });
+      ctx.fillStyle = '#23C766';
+      [[neck[0] - 11 * ws, sh[0][1]], [neck[0] + 11 * ws, sh[1][1]], [hip[0] - 10 * ws, hip[1]], [hip[0] + 10 * ws, hip[1]], neck, hip]
+        .forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 4.5, 0, 7); ctx.fill(); });
+    }
+    if (glowT > 0) { glowT -= 0.07; requestAnimationFrame(draw); }
+  }
+  document.querySelectorAll('#hbroot .pose').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#hbroot .pose').forEach(x => x.classList.toggle('on', x === b));
+    pose = +b.dataset.p; draw();
+  });
+  document.getElementById('fig-ws').oninput = (ev) => {
+    wsUI = ev.target.value / 100;
+    document.getElementById('fig-wsv').textContent = wsUI.toFixed(2);
+    draw();
+  };
+  document.getElementById('fig-glow').onclick = () => { glowT = 1; draw(); };
+  document.getElementById('fig-rope').onclick = () => { ropeI = (ropeI + 1) % FR.length; draw(); };
+  document.getElementById('fig-anno').onchange = (ev) => { showAnno = ev.target.checked; draw(); };
+  const names = ['翠绿', '天蓝', '金黄', '珊瑚橙', '紫罗兰', '樱粉', '薄荷', '柠檬'];
+  document.getElementById('fig-ropechips').innerHTML = FR.map((r, i) =>
+    `<span class="chip"><span class="sw" style="background:rgb(${r})"></span>${names[i]}</span>`).join('');
+  draw();
+})();
 </script>

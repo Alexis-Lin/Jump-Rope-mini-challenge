@@ -11,10 +11,10 @@
 
 ```
 docs-and-demo/                     文档与 Demo(一站式)
-├── handbook.html                  ★ 交互手册(整合入口):Tab1 内嵌可交互 Demo(左侧控制面板
-│                                    +「初始状态」开关)· Tab2 火柴人渲染说明(实时交互)
-│                                    · Tab3 起 PRD 关键逻辑 / 接口字段 / 视觉标准
-├── demo.html                      可交互 Demo 本体(单独打开亦可;WebView 直载同此文件)
+├── demo.html                      ★ 唯一入口(Demo + 手册合一):顶部页签切换
+│                                    Tab1 交互演示(左侧控制面板 +「初始状态」开关)
+│                                    · Tab2 火柴人渲染说明(实时交互)· Tab3 起 关键逻辑
+│                                    / 接口字段 / 视觉标准;加 ?app=1 = 纯 Demo(设备 WebView 直载)
 ├── jump-rope-mini-prd.md          PRD 完整版(含产品设计说明附录) —— 开发以此为准
 ├── figure-rendering.md            AI 火柴人渲染说明(33 关键点接口 + 几何 + 动效管线)
 └── ui/                            全部 UI 图(en/ zh/ 各 20 屏 + 火柴人规格卡 PNG)
@@ -27,9 +27,9 @@ backup/                            过程工具(截图生成器 / 规格卡源�
 ## 快速体验
 
 ```
-双击 docs-and-demo/demo.html          # 桌面浏览器,466 物理 1:1;手机打开自动贴合
+双击 docs-and-demo/demo.html          # ★ 一站式入口:交互演示 + 渲染说明 + 关键逻辑(顶部页签)
 docs-and-demo/demo.html?lang=zh       # 中文版(默认英文)
-双击 docs-and-demo/handbook.html      # ★ 一站式入口:内嵌 Demo + 渲染说明 + 关键逻辑
+docs-and-demo/demo.html?app=1         # 纯 Demo 模式(隐藏手册外壳;设备 WebView 用这个)
 ```
 
 Demo 控制条:自动演示 / 语音 / 10·13·15fps / 1×2×3×;空格键 = 模拟跳一下。
