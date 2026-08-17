@@ -352,6 +352,23 @@
   .hrow .hc { font-weight: 700; min-width: 3.4em; text-align: right; }
   .hrow .ht { color: var(--stage-soft); min-width: 2.8em; text-align: right; }
   .h-empty { font-size: var(--t24); color: var(--stage-soft); }
+  /* 打卡详情页:长列表上下滑动,分页加载(每页 20 天) */
+  #a-history .hbody { margin-bottom: 2.3em; }   /* 滚动区让开底部"点按返回" */
+  #a-history-list {
+    flex: 1; min-height: 0; align-self: stretch;
+    overflow-y: auto; -webkit-overflow-scrolling: touch;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: flex-start; padding: .15em 0 .5em;
+    scrollbar-width: none;
+  }
+  #a-history-list::-webkit-scrollbar { display: none; }
+  .hist-more {
+    flex-shrink: 0; margin-top: .55em; font-size: var(--t22); font-weight: 700;
+    color: var(--accent); background: none;
+    border: 1.5px solid rgba(35, 199, 102, .55); border-radius: 2em;
+    padding: .28em 1.3em; cursor: pointer; font-family: inherit;
+  }
+  .hist-more:active { background: #12281B; transform: scale(.96); }
   /* 排行榜行 */
   .hrow .nm { min-width: 6.4em; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hrow.me-row { color: var(--accent); font-weight: 700; }
@@ -1084,6 +1101,7 @@ zh: {
   done: '完成', again: '再跳一轮', flipQR: '点按翻面看二维码',
   flipBack: '手机扫码保存 · 分享海报 · 点按返回', tapBack: '点按返回', tapBackBlank: '点按空白处返回',
   noRecQ: '还没有记录，跳一轮就有啦', noRecH: '还没有记录<br>跳完第一轮就有啦',
+  loadMore: '加载更多',
   you: '你', first: '你是今日第一！',
   passFoot: (d, n) => `再跳 ${d} 下超过 ${n}`,
   weekSum: (d, c) => `${d}/7 天 · 共 ${c} 下`,
@@ -1161,6 +1179,7 @@ en: {
   done: 'Done', again: 'One more', flipQR: 'Tap for QR card',
   flipBack: 'Scan to share · tap back', tapBack: 'Tap to go back', tapBackBlank: 'Tap anywhere to go back',
   noRecQ: 'No records yet — jump a round!', noRecH: 'No records yet<br>your first round starts it',
+  loadMore: 'Load more',
   you: 'You', first: "You're #1 today!",
   passFoot: (d, n) => `${d} to pass ${n}`,
   weekSum: (d, c) => `${d}/7 days · ${c} jumps`,
@@ -2609,8 +2628,11 @@ $('qc-board-go').addEventListener('click', () => {
   renderABoard();
 }));
 
-/* 历史打卡记录（Atom）：日期 · Day x · 当日累计（轮数/用时仅后台数据） */
-function renderHistory() {
+/* 历史打卡详情页：日期 · Day x · 当日累计（轮数/用时仅后台数据）。
+   长列表上下滑动；每页 20 天，末尾「加载更多」点按翻页（避免一次性渲染全部历史） */
+const HIST_PAGE = 20;
+let histShown = HIST_PAGE;
+function renderHistory(more) {
   const keys = Object.keys(profile.history)
     .filter(k => profile.history[k].count > 0).sort();
   const dayNo = {};
@@ -2620,14 +2642,24 @@ function renderHistory() {
     list.innerHTML = `<div class="h-empty">${L.noRecH}</div>`;
     return;
   }
-  list.innerHTML = keys.slice(-6).reverse().map(k => {
+  histShown = more ? histShown + HIST_PAGE : HIST_PAGE;   /* 重新打开回到第一页 */
+  const shown = keys.slice().reverse().slice(0, histShown);
+  list.innerHTML = shown.map(k => {
     const r = profile.history[k];
     return `<div class="hrow">` +
       `<span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
       `<span class="hday">Day ${dayNo[k]}</span>` +
       `<span class="hc">${L.cnt(r.count)}</span>` +
       `</div>`;
-  }).join('');
+  }).join('') +
+    (keys.length > histShown ? `<button class="hist-more" id="a-hist-more">${L.loadMore}</button>` : '');
+  const mb = $('a-hist-more');
+  if (mb) mb.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const keep = list.scrollTop;
+    renderHistory(true);
+    list.scrollTop = keep;   /* 翻页后停在原位继续往下看 */
+  });
 }
 $('a-history-btn').addEventListener('click', (e) => {
   e.stopPropagation(); audio(); renderHistory(); $('a-history').classList.add('show');
