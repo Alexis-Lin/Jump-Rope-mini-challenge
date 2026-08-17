@@ -44,7 +44,7 @@
 | 榜 | 口径 | Key(前缀含分区) | 重置 |
 |---|---|---|---|
 | 今日单轮 | 当日**单轮最高**(当日累计不上榜,防刷) | `{edition}:jump:round:{date}` | 时区滚动建 key + TTL,天然每日 0 点重置 |
-| 1 分钟 | 1' 测试**历史最佳**;限时时长各自成榜(2' 用 `timed2` 单独 key) | `{edition}:jump:timed1:best` | 不重置 |
+| 1 分钟 | 1' 测试**历史最佳**(限时已固定 1 分钟;如未来恢复多时长,按 `timed{min}` 分榜) | `{edition}:jump:timed1:best` | 不重置 |
 | 连胜 | 连续打卡天数 | `{edition}:jump:streak` | 断签回落(每日结算任务刷新) |
 
 - **Redis Sorted Set**:写入用 `ZADD GT`(只升不降=天然取最高,替代 ZINCRBY);`ZREVRANK` 查名次、`ZREVRANGE` 取 Top3/邻近区间;

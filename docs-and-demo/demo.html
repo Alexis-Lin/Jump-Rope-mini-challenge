@@ -712,7 +712,6 @@
         <div class="h-title" data-i18n="setTitle">设置</div>
         <div class="hbody"><div class="set-rows">
           <div class="srow"><span data-i18n="setGoal">每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
-          <div class="srow"><span data-i18n="setLen">限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
           <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
           <div class="srow"><span data-i18n="setBgm">背景音乐</span><button class="a-goal-chip sm" id="as-bgm">开</button></div>
@@ -1061,7 +1060,7 @@ zh: {
   todayBestLab: '今日最高', totalCnt: n => `${n} 下`,
   recTitle: '打卡记录', boardTitle: '全球排行', achvTitle: '我的成就',
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
-  bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', best2: '2 分钟最佳', bestDay: '单日最高',
+  bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', bestDay: '单日最高',
   modeTitle: '选择模式', modeTimed: '限时跳', modeFree: '不限时', back: '返回',
   timedSub: (m, pb) => `${m} 分钟倒计时${pb ? ` · 最佳 ${pb}` : ''}`,
   freeSub: (g, t) => (g === 0 ? '自由模式' : `每日任务 ${g} 下`) + ` · 今日 ${t}`,
@@ -1069,7 +1068,7 @@ zh: {
   boardRound: '今日单轮', boardTimed: '1 分钟', boardStreak: '连胜',
   boardSubs: { round: '单轮最高 · 0 点重置', timed: '1 分钟历史最佳', streak: '连续打卡天数' },
   passFootDay: (d, n) => `再坚持 ${d} 天超过 ${n}`, dayUnit: n => `${n} 天`,
-  setTitle: '设置', setGoal: '每日目标', setLen: '限时时长',
+  setTitle: '设置', setGoal: '每日目标',
   setRemind: '每日提醒', setVoice: '教练语音', setBgm: '背景音乐',
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
   off: '关', on: '开', adult: '成人',
@@ -1141,7 +1140,7 @@ en: {
   todayBestLab: 'Best today', totalCnt: n => `${n}`,
   recTitle: 'Check-in Log', boardTitle: 'Global Ranking', achvTitle: 'My Achievements',
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
-  bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", best2: "Best 2' test", bestDay: 'Best day',
+  bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", bestDay: 'Best day',
   modeTitle: 'Choose Mode', modeTimed: 'Timed', modeFree: 'Free Jump', back: 'Back',
   timedSub: (m, pb) => `${m} min countdown${pb ? ` · PB ${pb}` : ''}`,
   freeSub: (g, t) => (g === 0 ? 'Free mode' : `Daily goal ${g}`) + ` · today ${t}`,
@@ -1149,7 +1148,7 @@ en: {
   boardRound: 'Round', boardTimed: '1-min', boardStreak: 'Streak',
   boardSubs: { round: 'round best · daily', timed: "1' all-time", streak: 'days in a row' },
   passFootDay: (d, n) => `${d}d to pass ${n}`, dayUnit: n => `${n}d`,
-  setTitle: 'Settings', setGoal: 'Daily goal', setLen: 'Timed length',
+  setTitle: 'Settings', setGoal: 'Daily goal',
   setRemind: 'Reminder', setVoice: 'Coach voice', setBgm: 'Music',
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
   off: 'Off', on: 'On', adult: 'Adult',
@@ -1295,6 +1294,7 @@ function loadProfile() {
 }
 let profile = loadProfile();
 if (profile.goal > 0) profile.goalNum = profile.goal;   /* 兼容旧档案 */
+if (![50, 100, 200].includes(profile.goalNum)) profile.goalNum = 100;   /* 目标收敛到新档位 */
 if (profile.bestMinute && !profile.bests[1]) profile.bests[1] = profile.bestMinute;
 function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {} }
 
@@ -1323,7 +1323,7 @@ const pickRopeColor = (not) => {
 const S = {
   screen: 'launch',        // launch = Atom 系统入口卡（APP 外）
   goal: profile.goal,      // >0 目标数；0 = 自由跳；-1 = 限时测试
-  testMin: profile.testMin || 1,   // 限时测试时长（分钟）：1 或 2
+  testMin: 1,   // 限时测试固定 1 分钟（会后定稿:对齐中考/比赛口径,2 分钟移除）
   count: 0,
   earned: 0,               // 本轮星星
   countdown: 0,            // 3/2/1，0 = 未在倒计时
@@ -2409,7 +2409,6 @@ $('a-tips').addEventListener('click', () => $('a-tips').classList.remove('show')
 /* 设置页（首页 ⚙ 进入）：目标 / 限时时长 / 语音 */
 function renderSettings() {
   $('as-goal').textContent = L.goalVal(profile.goalNum);
-  $('as-len').textContent = L.lenVal(S.testMin);
   $('as-remind').textContent = profile.remind === '关' ? L.off : profile.remind;
   $('as-voice').textContent = voiceOn ? L.on : L.off;
   $('as-bgm').textContent = bgmOn ? L.on : L.off;
@@ -2428,16 +2427,10 @@ $('a-settings-btn').addEventListener('click', (e) => {
 $('a-set').addEventListener('click', () => $('a-set').classList.remove('show'));
 $('as-goal').addEventListener('click', (e) => {
   e.stopPropagation(); audio();
-  const order = [100, 200, 300, 0];
+  const order = [50, 100, 200];   /* 目标档位(会后定稿):50/100/200,无自由档 */
   const next = order[(order.indexOf(profile.goalNum) + 1) % order.length];
   profile.goalNum = next; saveProfile();
   if (S.goal !== TEST) { S.goal = next; profile.goal = next; saveProfile(); }
-  renderSettings(); bump();
-});
-$('as-len').addEventListener('click', (e) => {
-  e.stopPropagation(); audio();
-  S.testMin = S.testMin === 1 ? 2 : 1;
-  profile.testMin = S.testMin; saveProfile();
   renderSettings(); bump();
 });
 $('as-bgm').addEventListener('click', (e) => {
@@ -2585,7 +2578,7 @@ function renderQuickCards() {
 function renderBest() {
   const rows = [[L.todayBestLab, todayBest()],
                 [L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
-                [L.best2, profile.bests[2]], [L.bestDay, maxDaily()]];
+                [L.bestDay, maxDaily()]];
   $('a-best-rows').innerHTML = rows.map(([lab, v]) =>
     `<div class="srow"><span>${lab}</span><b class="bval">${v || '—'}</b></div>`).join('');
 }
