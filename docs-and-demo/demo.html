@@ -722,12 +722,12 @@
       <div class="a-history" id="a-set">
         <div class="h-title" data-i18n="setTitle">设置</div>
         <div class="hbody"><div class="set-rows">
+          <div class="srow"><span data-i18n="howTitle">动作要领</span><button class="a-goal-chip sm" id="as-tips">›</button></div>
           <div class="srow"><span data-i18n="setGoal">每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
           <div class="srow"><span data-i18n="setLen">限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
           <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
           <div class="srow"><span data-i18n="setBgm">背景音乐</span><button class="a-goal-chip sm" id="as-bgm">开</button></div>
-          <div class="srow"><span data-i18n="howTitle">动作要领</span><button class="a-goal-chip sm" id="as-tips">›</button></div>
         </div></div>
         <div class="flip-hint" data-i18n="tapBackBlank">点按空白处返回</div>
       </div>
@@ -1122,6 +1122,7 @@ zh: {
   goalToast: g => `${g} 下达成！继续冲！`, passToast: (n, rk) => `超过 ${n}！全球第 ${rk} 名`,
   luckyToast: n => `踩中今日隐藏数字 ${n}！星星 +5`,
   spMode: '选择模式：限时跳，或者不限时',
+  spFirstTips: '第一次跳绳，先记住一件事：双脚并拢一起跳，交替跳和单脚跳不计数。记住了就点一下屏幕，选个模式开跳！',
   spTest: m => `${m} 分钟限时测试，全力以赴！请站到镜头前`,
   spStart: o => `${o}。请站到镜头前`,
   cd: ['三', '二', '一', 'Body Park！'], sp30: '还有三十秒', sp10: '最后十秒，冲刺！',
@@ -1203,6 +1204,7 @@ en: {
   goalToast: g => `${g} done — keep going!`, passToast: (n, rk) => `Passed ${n}! Global #${rk}`,
   luckyToast: n => `Lucky number ${n}! +5 stars`,
   spMode: 'Choose a mode: timed, or free jump.',
+  spFirstTips: "First time jumping? One thing to remember: keep both feet together — alternating hops don't count. Tap the screen and pick a mode to start!",
   spTest: m => `${m}-minute timed test. Give it your all! Step in front of the camera`,
   spStart: o => `${o} Step in front of the camera`,
   cd: ['Three', 'Two', 'One', 'Body Park!'], sp30: 'Thirty seconds left', sp10: 'Final ten seconds. Sprint!',
@@ -1302,7 +1304,7 @@ const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 100, history:
                           total: 0, scenes: 3, outfit: 0, goalNum: 100, testMin: 1,
                           bests: {}, bestSession: 0, luckyHits: 0,
                           age: '9-11', weight: 40, remind: '关',
-                          nick: '', sessions: 0, lastGreet: '' };
+                          nick: '', sessions: 0, lastGreet: '', tipsSeen: false };
 function loadProfile() {
   try { return Object.assign({}, PROFILE_DEFAULT, JSON.parse(localStorage.getItem(PROFILE_KEY) || '{}')); }
   catch (e) { return Object.assign({}, PROFILE_DEFAULT); }
@@ -1800,8 +1802,15 @@ function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 function openMode() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
   S.screen = 'mode';
-  speak(L.spMode);
   bump();
+  /* 首跳引导:第一次点 Start 自动弹一次动作要领(语音讲规则),点按关闭;之后不再自动出 */
+  if (!profile.tipsSeen) {
+    profile.tipsSeen = true; saveProfile();
+    openTips();
+    speak(L.spFirstTips);
+  } else {
+    speak(L.spMode);
+  }
 }
 function startSession(g) {
   if (S.screen !== 'idle' && S.screen !== 'result' && S.screen !== 'mode') return;
