@@ -1118,6 +1118,7 @@ zh: {
   cheers: ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！', '越跳越轻松了！', '这节奏，像职业选手！'],
   spPbNear: d => `离你的最高纪录只差 ${d} 下，冲！`,
   spPbBreak: '新纪录诞生！现在每一下都在刷新它！', pbToast: '新纪录！',
+  rBeatBest: d => `超越旧纪录 ${d} 下`, rToBest: d => `差 ${d} 下破纪录`, rFirstBest: '首个纪录达成！',
   tips: ['膝盖微弯，轻轻落地', '前脚掌落地更省力', '手腕发力，手臂放松', '目视前方，背挺直', '呼吸跟上节奏', '双脚并拢，同起同落'],
   howTitle: '动作要领',
   howRows: ['双脚并拢跳，同起同落', '交替跳 / 单脚跳不计数，会语音提醒你', '正对镜头，全身入镜', '手腕发力，前脚掌轻落地'],
@@ -1198,6 +1199,7 @@ en: {
   cheers: ['Steady rhythm!', "Bono can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!', 'Smoother every jump!', 'Pro-level rhythm!'],
   spPbNear: d => `${d} away from your all-time best — go!`,
   spPbBreak: 'New record! Every jump extends it now!', pbToast: 'New record!',
+  rBeatBest: d => `Beat your best by ${d}`, rToBest: d => `${d} to a new record`, rFirstBest: 'First record set!',
   tips: ['Soft knees, land light', 'Land on the balls of your feet', 'Flick the wrists, relax the arms', 'Eyes forward, back straight', 'Breathe with the rhythm', 'Feet together — no alternating'],
   howTitle: 'How to Jump',
   howRows: ['Jump with both feet together', "Alternating / single-foot hops don't count — voice reminds you", 'Face the camera, whole body in view', 'Flick the wrists, land on the balls of your feet'],
@@ -1730,10 +1732,13 @@ function render() {
     /* 体测评级（仅 1 分钟测试） + 卡路里 */
     $('a-r-rate').textContent = (S.goal === TEST && S.testMin === 1)
       ? L.rateLine(rateTest(S.count), ageDisp) : '';
-    /* 结算页减字(会后反馈):只留 星星+全球名次 一行;连胜/千卡等数据后台有 */
-    const rg = myRank('round');
+    /* 结算页只和自己比(排行榜后端后算,不在结算页展示):超越/差距/首纪录 */
+    const pbDiff = S.count - S.pbAtStart;
     $('a-r-earn').innerHTML =
-      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('trophy')} ${L.globalRank(rg.rank)}`;
+      `${ico('star', '#1FA85B')} +${S.earned} · ${ico('trophy')} ` +
+      (S.pbAtStart <= 0 ? L.rFirstBest
+        : pbDiff > 0 ? L.rBeatBest(pbDiff)
+        : L.rToBest(S.pbAtStart - S.count + 1));
     /* 分享页迷你海报 */
     $('a-poster-num').textContent = S.count;
     $('a-poster-sub').textContent = `${todayKey().slice(5).replace('-', '.')} · ` +
@@ -1810,7 +1815,9 @@ function startSession(g) {
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false;
   S.minIvl = 0; S.slowWarned = false;
-  S.pbAtStart = profile.bestSession || 0; S.pbNearSaid = false; S.pbBroken = false;
+  /* PB 基准按模式取:限时=对应时长历史最佳,自由=单轮最佳(结算页自我对比用) */
+  S.pbAtStart = S.goal === TEST ? (profile.bests[S.testMin] || 0) : (profile.bestSession || 0);
+  S.pbNearSaid = false; S.pbBroken = false;
   S.ropeCol = pickRopeColor();   /* 本轮绳色随机 */
   testMark30 = false; testMark10 = false; capMark1 = false;
   liveRank = 1 + GB.filter(u => u.count > todayBest()).length;   /* 记录起跳时的名次(单轮口径) */
