@@ -5,7 +5,7 @@
 | 版本 | v1.0（对应原型 proto-v0.17） |
 | 日期 | 2026-08-13 |
 | 状态 | 待评审 |
-| 相关文档 | 产品设计说明见本文档附录 · [火柴人渲染说明](figure-rendering.md) · [后端实现说明](backend-spec.md) · [交互手册](handbook.html) · [UI 界面图](ui/) · [可交互 Demo](demo.html) · [工程代码参考](../code/) |
+| 相关文档 | 产品设计说明见本文档附录 · [火柴人渲染说明](figure-rendering.md) · [后端实现说明](../code/backend-spec.md) · [交互手册](handbook.html) · [UI 界面图](ui/) · [可交互 Demo](demo.html) · [工程代码参考](../code/) |
 
 ---
 

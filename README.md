@@ -3,7 +3,7 @@
 **打开就能跳的摄像头跳绳小应用** —— Atom 智能设备(466×466 圆屏 @10–15fps + 摄像头 + 后端 AI 姿态/计数管线)。
 核心诉求:简单易上手,不用动脑,打开就能用。
 
-当前版本:**proto-v0.27**(2026-08-14)· Atom 端(手机端暂缓)。
+当前版本:**proto-v0.28**(2026-08-14)· Atom 端(手机端暂缓)。
 
 ---
 
@@ -11,13 +11,16 @@
 
 ```
 docs-and-demo/                     文档与 Demo(一站式)
-├── jump-rope-mini-prd.md          ① PRD(含产品设计说明附录) —— 开发以此为准
-├── demo.html                      ② 可交互 Demo —— 交互规格唯一事实源
-├── handbook.html                  ③ 交互手册 —— 5 页签速览,含火柴人实时交互演示
-├── figure-rendering.md            ④ AI 火柴人渲染说明(33 关键点接口 + 几何 + 动效管线)
-├── backend-spec.md                ⑤ 后端字段与服务实现说明
+├── handbook.html                  ★ 交互手册(整合入口):Tab1 内嵌可交互 Demo(左侧控制面板
+│                                    +「初始状态」开关)· Tab2 火柴人渲染说明(实时交互)
+│                                    · Tab3 起 PRD 关键逻辑 / 接口字段 / 视觉标准
+├── demo.html                      可交互 Demo 本体(单独打开亦可;WebView 直载同此文件)
+├── jump-rope-mini-prd.md          PRD 完整版(含产品设计说明附录) —— 开发以此为准
+├── figure-rendering.md            AI 火柴人渲染说明(33 关键点接口 + 几何 + 动效管线)
 └── ui/                            全部 UI 图(en/ zh/ 各 20 屏 + 火柴人规格卡 PNG)
-code/                              工程实现代码(嵌入式参考:纯 C + 接口契约 + WebView 方案)
+code/                              工程实现代码 + 后端说明
+├── backend-spec.md                后端字段/排行榜/实现伪代码 + ATOM 用户档案模型字段对齐
+└── (include/ src/ Makefile)       嵌入式参考:纯 C + 接口契约 + WebView 方案
 backup/                            过程工具(截图生成器 / 规格卡源文件)
 ```
 
@@ -26,7 +29,7 @@ backup/                            过程工具(截图生成器 / 规格卡源�
 ```
 双击 docs-and-demo/demo.html          # 桌面浏览器,466 物理 1:1;手机打开自动贴合
 docs-and-demo/demo.html?lang=zh       # 中文版(默认英文)
-双击 docs-and-demo/handbook.html      # 交互手册(产品概览/流程/火柴人交互/接口/标准)
+双击 docs-and-demo/handbook.html      # ★ 一站式入口:内嵌 Demo + 渲染说明 + 关键逻辑
 ```
 
 Demo 控制条:自动演示 / 语音 / 10·13·15fps / 1×2×3×;空格键 = 模拟跳一下。
@@ -44,4 +47,4 @@ Demo 控制条:自动演示 / 语音 / 10·13·15fps / 1×2×3×;空格键 = 模
 - **产品**:PRD §12 开放问题;星星数值复核;体测国标分表
 - **AI 团队**:figure-rendering.md + 手册"火柴人渲染"页(可交互)
 - **端上工程**:`code/`(纯 C 移植 或 WebView 直载 demo.html)
-- **服务端**:backend-spec.md
+- **服务端**:code/backend-spec.md(字段表 + 伪代码 + 账号模型对齐,账号级字段以 ATOM-UserGoalPreference-and-OnBoarding 仓库为源)

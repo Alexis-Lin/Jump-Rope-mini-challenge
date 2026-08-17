@@ -48,6 +48,19 @@
     backdrop-filter: blur(6px);
     max-width: calc(100vw - 16px);
   }
+  /* 宽屏:控制件移到原型屏幕左侧,竖排面板 */
+  @media (min-width: 900px) {
+    #protobar {
+      left: max(14px, calc(50vw - 233px - 190px)); bottom: auto; top: 50%;
+      transform: translateY(-50%);
+      flex-direction: column; align-items: stretch; gap: 6px;
+      border-radius: 16px; padding: 12px 12px; width: 148px;
+    }
+    #protobar button { text-align: left; }
+    #protobar .sep { width: auto; height: 1px; margin: 3px 0; }
+    #protobar .tag { text-align: center; letter-spacing: .18em; }
+  }
+  #pb-fresh.on { background: #B4562A; color: #fff; }
   #protobar .tag { color: var(--accent); font-weight: 700; letter-spacing: .08em; }
   #protobar button {
     background: #242C27; color: var(--stage-ink);
@@ -786,6 +799,7 @@
   <span class="sep"></span>
   <button id="pb-auto">▶ Demo</button>
   <button id="pb-voice" class="on">🔊 Voice</button>
+  <button id="pb-fresh">🌱 初始状态</button>
   <span class="sep"></span>
   <button id="pb-en">EN</button>
   <button id="pb-zh">中文</button>
@@ -2394,6 +2408,23 @@ document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener(
 document.querySelectorAll('[data-act="resume"]').forEach(b => b.addEventListener('click', () => pauseSession(false)));
 
 $('pb-auto').addEventListener('click', () => { audio(); setAuto(!autoTimer); });
+/* 「初始状态」开关:ON = 快照当前档案 → 切换为全新空账号(演示空状态/新手开场白);OFF = 恢复快照 */
+let freshBak = null;
+$('pb-fresh').addEventListener('click', () => {
+  const on = !$('pb-fresh').classList.contains('on');
+  $('pb-fresh').classList.toggle('on', on);
+  setAuto(false);
+  if (on) {
+    freshBak = JSON.stringify(profile);
+    profile = JSON.parse(JSON.stringify(PROFILE_DEFAULT));
+  } else if (freshBak) {
+    profile = Object.assign(JSON.parse(JSON.stringify(PROFILE_DEFAULT)), JSON.parse(freshBak));
+  }
+  saveProfile();
+  clearInterval(cdTimer); clearTimeout(resultTimer);
+  S.screen = 'launch'; S.count = 0; S.countdown = 0; S.paused = false; S.brandFlash = false;
+  bump();
+});
 $('pb-cam').addEventListener('click', () => { audio(); setCam(!cam.on); });
 $('pb-voice').addEventListener('click', () => {
   voiceOn = !voiceOn;
