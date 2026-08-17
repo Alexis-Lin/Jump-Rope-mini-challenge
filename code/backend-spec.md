@@ -33,7 +33,8 @@
 | `session_start` | `{mode}` | mode: timed / free |
 | `jump` | `{count}` | 每跳;弱网可 10 条聚合 |
 | `session_end` | `{count, ms, goal, testMin, kcal, newBest}` | **结算即上报**(排行榜/云档案入口);ms 为净时长(暂停不计)。**数据模型(评审会定稿):一次 session = 一节单组课(对齐 oneset/workout),落一条训练记录;打卡记录按 session 存储、按天聚合展示** |
-| `form_hint` | `{kind}` | 动作纠错事件(评审会新增):alternating 交替跳 / single_foot 单脚 / low_jump 幅度不足;端上触发教练语音,上报做规则调优 |
+| `form_hint` | `{kind}` | 动作纠错事件(评审会新增):alternating 交替跳 / single_foot 单脚 / low_jump 幅度不足 / low_light 弱光;端上触发教练语音,上报做规则调优 |
+| `daily_card` | `{date, png}` | **日卡自动同步**:用户打开某日日卡时,端上把当屏渲染为 PNG 上传对象存储 → 写入手机 App **云相册**(相册接口由 App 侧提供);同日重复打开按内容 hash 去重 |
 
 埋点扩展:`app_open, jump_10x, goal_hit, streak_day{n}, board_view, overtake{rank}, share_flip, setting_change{key}`。
 
