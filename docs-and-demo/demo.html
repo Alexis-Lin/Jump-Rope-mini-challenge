@@ -2524,8 +2524,7 @@ function renderQuickCards() {
     ? keys.slice(-5).reverse().map(k => {
         const r = profile.history[k];
         return `<div class="hrow"><span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
-          `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${L.cnt(r.count)}</span>` +
-          `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span></div>`;
+          `<span class="hday">Day ${dayNo[k]}</span><span class="hc">${L.cnt(r.count)}</span></div>`;
       }).join('')
     : `<div class="h-empty">${L.noRecQ}</div>`;
   let wkDays = 0, wkCnt = 0;
@@ -2610,7 +2609,7 @@ $('qc-board-go').addEventListener('click', () => {
   renderABoard();
 }));
 
-/* 历史打卡记录（Atom）：日期 · Day x · 次数 · 用时 */
+/* 历史打卡记录（Atom）：日期 · Day x · 当日累计（轮数/用时仅后台数据） */
 function renderHistory() {
   const keys = Object.keys(profile.history)
     .filter(k => profile.history[k].count > 0).sort();
@@ -2627,7 +2626,6 @@ function renderHistory() {
       `<span class="hd${r.done ? ' done' : ''}">${k.slice(5).replace('-', '/')}</span>` +
       `<span class="hday">Day ${dayNo[k]}</span>` +
       `<span class="hc">${L.cnt(r.count)}</span>` +
-      `<span class="ht">${r.ms ? fmtTime(r.ms) : '—'}</span>` +
       `</div>`;
   }).join('');
 }
