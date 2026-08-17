@@ -628,7 +628,6 @@
         <div id="a-bono-idle"></div>
         <div class="card-mid" data-i18n="appTitle">每日跳绳</div>
         <div class="sub-tip" id="a-launch-streak"></div>
-        <div class="flip-hint" data-i18n="tapEnter">点按进入</div>
       </div>
 
       <!-- APP 首页：三张卡片横滑
@@ -1061,7 +1060,7 @@ try { LANG = new URLSearchParams(location.search).get('lang') || localStorage.ge
 if (LANG !== 'zh') LANG = 'en';
 const I18N = {
 zh: {
-  appTitle: '跳个绳呗', tapEnter: '点按进入',
+  appTitle: '跳个绳呗',
   launchStreak: n => `已连续打卡 ${n} 天`, streakPre: '连续', streakPost: '天',
   totalDays: n => `${n} 天`,
   today: n => `今日累计 ${n} 下`, total: '累计',
@@ -1138,7 +1137,7 @@ zh: {
   cap60: '连续 60 分钟，自动结算啦', todayTotal: n => `今日累计 ${n} 下`,
 },
 en: {
-  appTitle: 'JumpRope Star', tapEnter: 'Tap to start',
+  appTitle: 'JumpRope Star',
   launchStreak: n => `${n}-day streak`, streakPre: 'Streak', streakPost: 'days',
   totalDays: n => `${n}d`,
   today: n => `Today total ${n}`, total: 'Total',
