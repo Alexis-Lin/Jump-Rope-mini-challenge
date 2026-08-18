@@ -1,6 +1,6 @@
 /* ============================================================
  * Atom 跳绳小挑战 · 应用公共 API（与 Web 版 AtomApp/AtomBridge 契约一致）
- * 行为基准：docs-and-demo/demo.html（2026-08-18，含 08-17 评审会及会后决议）
+ * 行为基准：docs-and-demo/demo.html（2026-08-18，含 08-17 / 08-18 两次评审会决议）
  *
  * 调用模型：
  *   atom_app_init(&hal, &callbacks);
@@ -51,8 +51,8 @@ typedef struct {
 /* ---- 用户档案（工程侧可整体注入 / 读取做云同步）
  * 身高/体重/性别/年龄从账号 profile（identity.personal）带入，设备端不再设置。 ---- */
 typedef struct {
-    int32_t goal_num;        /* 每日目标：50 / 100 / 200（会后定稿，无自由档） */
-    int32_t test_min;        /* 限时时长（分钟：1 / 2，默认 1 主推） */
+    int32_t goal_num;        /* freestyle goal 目标环：50 / 100 / 200，默认 200（8-18 由每日目标更名定稿） */
+    int32_t test_min;        /* 限时时长（8-18 定稿:固定 1 分钟；2 为历史档，best_2min 仅存档） */
     int32_t streak;          /* 连胜天数（服务端时间口径，云端为准） */
     int32_t max_streak;      /* 最长连胜（最佳战绩维度） */
     int32_t stars;           /* 星星积分（货币星） */

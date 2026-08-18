@@ -47,7 +47,7 @@ async function shootLang(lang) {
   /* 注入演示档案 */
   await ev(() => {
     profile.streak = 6; profile.maxStreak = 12; profile.total = 1284; profile.stars = 27;
-    profile.bestSession = 132; profile.bests[1] = 118; profile.bests[2] = 205;
+    profile.bestSession = 132; profile.bests[1] = 118;
     profile.history = {};
     const counts = [120, 150, 80, 210, 100, 160];
     for (let i = 6; i >= 1; i--)
@@ -64,7 +64,7 @@ async function shootLang(lang) {
   await shot('02-home');
   await ev(() => setCard(1)); await page.waitForTimeout(350); await shot('03-log-page');
   await ev(() => setCard(2)); await page.waitForTimeout(350); await shot('04-ranking-page');
-  await ev(() => setCard(3)); await page.waitForTimeout(350); await shot('05-best-page');
+  await ev(() => setCard(3)); await page.waitForTimeout(350); await shot('05-add-record');   /* 8-18:Page4 = 追加记录 */
   await ev(() => setCard(0)); await page.waitForTimeout(300);
 
   /* 二级页 */
@@ -114,14 +114,16 @@ async function shootLang(lang) {
   await ev(() => pauseSession(false));
   await page.waitForTimeout(200);
 
-  /* 庆祝 → 结算（自我对比行,无翻面） */
+  /* 结算(8-18):默认直进结果页;点「完成」后弹新纪录恭喜帧 */
+  await ev(() => { profile.bestSession = 45; S.pbAtStart = 45; saveProfile(); });   /* 让本轮成为新纪录,演示恭喜帧 */
   await ev(() => endSession());
-  await page.waitForTimeout(500); await shot('13-celebrate');
   await page.waitForFunction(() => S.screen === 'result', null, { timeout: 5000 });
   await page.waitForTimeout(350); await shot('14-result');
+  await ev(() => document.querySelector('#a-result [data-act="home"]').click());
+  await page.waitForTimeout(400); await shot('13-celebrate');
+  await page.waitForFunction(() => S.screen === 'idle', null, { timeout: 5000 });
 
-  /* 极限状态：四位数计数降档（时长 12min,避开 15min 上限与预告） */
-  await ev(() => goHome());
+  /* 极限状态：四位数计数降档（时长 12min,远离 30min 上限与预告） */
   await page.waitForTimeout(200);
   await ev(() => { startSession(100); });
   await page.waitForFunction(() => S.screen === 'jump', null, { timeout: 8000 });

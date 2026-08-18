@@ -11,13 +11,13 @@
 | `streak` | int | 连续打卡天数 | 结算时:昨日已打卡 +1;断签重置为 1 |
 | `maxStreak` | int | 最长连胜(最佳战绩维度) | 结算时取 max(streak) |
 | `lastDone` | date | 最近打卡日期 | 当日首次达成打卡条件时 |
-| `history` | map<date, {count, best, n, ms, done}> | 每日聚合:累计次数 / **单轮最高 best(榜单口径)** / 轮数 n(仅数据,不上屏) / 累计净时长 ms / 是否打卡 | 每次结算累加(**单轮从 0 计,当日跨轮累加**;best 取 max);按 session 存明细、按天聚合展示;打卡条件 = 当日 ≥ 目标 或 ≥50 |
+| `history` | map<date, {count, best, n, ms, done, manual}> | 每日聚合:累计次数 / **单轮最高 best(榜单口径)** / 轮数 n(仅数据,不上屏) / 累计净时长 ms / 是否打卡 / manual=补记下数(追加记录——8-18) | 每次结算累加(**单轮从 0 计,当日跨轮累加**;best 取 max);补记仅累加 count/manual,**不写 best**;无记录日期不落条目(打卡页不占位);按 session 存明细、按天聚合展示;打卡条件 = 当日 ≥ 目标 或 ≥50 |
 | `total` | int | 历史累计跳数 | 每跳 +1(结算落档) |
 | `stars` | int | 星星余额(软货币) | 结算时 + 本轮 earned(整 20+2/彩蛋 ×2/隐藏数字+5/达标+10);未来消耗于换装/场景/补签卡 |
 | `bestSession` | int | 单轮最多(PB) | 结算时取 max |
 | `bests` | map<min, count> | 限时测试最佳(key=1/2 分钟) | 限时结算破纪录时 |
-| `goalNum` | int | 每日目标(100/200/300;0=自由跳) | 设置页 |
-| `testMin` | int | 限时时长(1/2) | 设置页 |
+| `goalNum` | int | **freestyle goal** 目标环(50/100/200,默认 200——8-18 由 daily goal 更名定稿) | 设置页 |
+| `testMin` | int | 限时时长(**8-18 定稿:固定 1**;2 为历史档,bests[2] 仅存档) | 设置项已移除 |
 | `age` | enum | 年龄段('6-8'/'9-11'/'12-14'/'15-17'/'成人') | 设置页;体测评级用 |
 | `weight` | int kg | 体重 | 设置页;卡路里用 |
 | `remind` | enum | 每日提醒('关'/19:00/20:00/21:00) | 设置页;推送服务读取 |
@@ -33,21 +33,23 @@
 | `session_start` | `{mode}` | mode: timed / free |
 | `jump` | `{count}` | 每跳;弱网可 10 条聚合 |
 | `session_end` | `{count, ms, goal, testMin, kcal, newBest}` | **结算即上报**(排行榜/云档案入口);ms 为净时长(暂停不计)。**数据模型(评审会定稿):一次 session = 一节单组课(对齐 oneset/workout),落一条训练记录;打卡记录按 session 存储、按天聚合展示** |
-| `form_hint` | `{kind}` | 动作纠错事件(评审会新增):alternating 交替跳 / single_foot 单脚 / low_jump 幅度不足 / low_light 弱光;端上触发教练语音,上报做规则调优 |
+| `form_hint` | `{kind}` | 动作纠错事件(**8-18:V1 暂不启用常规纠错,交替跳识别为后续项,接口保留**):alternating 交替跳 / single_foot 单脚 / low_jump 幅度不足 / low_light 弱光;启用后端上触发教练语音,上报做规则调优 |
+| `record_backfill` | `{date, count}` | **追加记录(8-18 新增一级 tab)**:手动补记过往跳绳;服务端仅累加 `history[date].count/manual` 与 `total`,**不写 best、不上榜、不追溯连胜**;防刷边界(单日补记上限/可补天数)待运营复核 |
+| `result_card` | `{sessionId, png}` | **结果卡自动同步(8-18 定稿)**:每次 session_end 后端上渲染 466×466 结果卡上传对象存储 → 写入手机 App **训练记录 + 云相册**;内容 hash 去重 |
 | `daily_card` | `{date, png}` | **日卡自动同步**:用户打开某日日卡时,端上把当屏渲染为 PNG 上传对象存储 → 写入手机 App **云相册**(相册接口由 App 侧提供);同日重复打开按内容 hash 去重 |
 
-埋点扩展:`app_open, jump_10x, goal_hit, streak_day{n}, board_view, overtake{rank}, share_flip, setting_change{key}`。
+埋点扩展:`app_open, jump_10x, goal_hit, streak_day{n}, board_view, overtake{rank}, record_backfill{date,count}, result_card_gen, setting_change{key}`。
 
-## 3. 排行榜服务(2026-08-17 评审会定稿)
+## 3. 排行榜服务(2026-08-18 定稿:三榜月度刷新)
 
 - 结算上报 `{userId, date, count, ms, mode, testMin}`;
 - **三榜**,全员默认参与、不设退出项(同城/local 取消):
 
 | 榜 | 口径 | Key(前缀含分区) | 重置 |
 |---|---|---|---|
-| 今日单轮 | 当日**单轮最高**(当日累计不上榜,防刷) | `{edition}:jump:round:{date}` | 时区滚动建 key + TTL,天然每日 0 点重置 |
-| 1 分钟 | 1' 测试**历史最佳**;限时按时长分榜(`timed1`/`timed2`),端上先展示 1' 主推 | `{edition}:jump:timed{min}:best` | 不重置 |
-| 连胜 | 连续打卡天数 | `{edition}:jump:streak` | 断签回落(每日结算任务刷新) |
+| 自由单轮 | **自由模式单轮最高**(当日累计不上榜防刷;补记不上榜) | `{edition}:jump:free:{yyyymm}` | **按月建 key,月度刷新**(月度赛季,历史月榜归档) |
+| 1 分钟 | 1' 限时**当月最高**(2' 榜随限时档移除) | `{edition}:jump:timed1:{yyyymm}` | 同上,按月刷新 |
+| 连续打卡 | 连续打卡天数 | `{edition}:jump:streak:{yyyymm}` | 按月刷新;断签回落(每日结算任务刷新) |
 
 - **Redis Sorted Set**:写入用 `ZADD GT`(只升不降=天然取最高,替代 ZINCRBY);`ZREVRANK` 查名次、`ZREVRANGE` 取 Top3/邻近区间;
 - **同分并列**:按显示名首字母升序(读侧二次排序;或 member 编码 `score|name` 归一);
@@ -80,6 +82,7 @@
 | `voiceOn / 语言` | `app_settings` / `device_config` | 纯设备行为配置 |
 | `streak / history / total / stars / bests / bestSession / sessions / luckyHits / scenes / outfit` | STATUS / LOG 域(🚧 模型草案中) | **暂存本应用私有命名空间**,待 STATUS/LOG 定稿后迁移;工程资产命名遵守模型的机械前缀规则:`profile_log_jump_rope_*` |
 | 排行榜分区 | `account_edition`(cn/intl) | ~~同城榜~~已取消(评审会决议);榜单只按分区隔离,不再用 city |
+| 运动实例打标 | LOG 域 `workout_type` | **跳绳独立打标 `jump_rope`**(与普通 workout / oneset 短课区分——8-18);跳绳统计数据**仅来自跳绳小程序内行为**,不与其他课程中的跳绳动作合并计算 |
 
 **账号铁律的两条直接影响**(源自档案模型 v5.28):① 任何按邮箱查用户必须带 `account_edition` 条件(cn/intl 双区数据不互通);② 排行榜/云档案的 key 前缀含分区(如 `cn:jump:2026-08-14:global`),跨区永不合并。
 
@@ -110,17 +113,19 @@ handle_session_end(user, ev):            # ev = {count, ms, goal, testMin, kcal,
 ### 7.2 排行榜(Redis)
 
 ```
-# 三榜 key(评审会定稿;edition 分区,跨区永不合并)
-round_key(date, edition)  = f"{edition}:jump:round:{date}"    # 今日单轮最高,TTL 48h
-timed_key(min, edition)   = f"{edition}:jump:timed{min}:best" # 限时历史最佳,永久
-streak_key(edition)       = f"{edition}:jump:streak"          # 连胜天数,结算任务维护
+# 三榜 key(8-18 定稿:按月度刷新;edition 分区,跨区永不合并)
+free_key(month, edition)   = f"{edition}:jump:free:{month}"    # 自由单轮当月最高(month=yyyymm)
+timed_key(month, edition)  = f"{edition}:jump:timed1:{month}"  # 1' 当月最高(2' 榜移除)
+streak_key(month, edition) = f"{edition}:jump:streak:{month}"  # 连续打卡天数,结算任务维护
 
-on_session_end(user, ev):
-    ZADD round_key(ev.date), GT, ev.count, user.id   # GT=只升不降 → 天然"当日单轮最高"
-    EXPIRE round_key(ev.date), 48h                   # TTL 覆盖时区跨日,天然每日重置
-    if ev.mode == timed:
-        ZADD timed_key(ev.testMin), GT, ev.count, user.id
-    ZADD streak_key(), user.streak, user.id          # 结算后连胜值直接覆盖
+on_session_end(user, ev):                            # month = yyyymm(ev.date)
+    if ev.mode == free:
+        ZADD free_key(month), GT, ev.count, user.id  # GT=只升不降 → 天然"当月单轮最高"
+    else:
+        ZADD timed_key(month), GT, ev.count, user.id
+    EXPIRE key, 62d                                  # 覆盖整月+归档窗口;月初新 key 天然月度刷新
+    ZADD streak_key(month), user.streak, user.id     # 结算后连胜值直接覆盖
+    # record_backfill 事件不写任何榜(防刷——8-18)
 
 board_view(user, board):                             # 返回 Top3 + 邻近区间
     rank  = ZREVRANK key(board), user.id
@@ -150,5 +155,5 @@ push_streak_reminder():                              # 每分钟扫描到点用�
 ### 7.4 端上口径(对齐用)
 
 - 星星:**屏显荣誉星 = floor(count/50),不入账**;入账的是 earned(货币星);
-- 净时长 ms 不含暂停;自由跳 15 分钟上限由端上执行,服务端校验 free 的 ms ≤ 15min、timed 的 ms ≤ testMin;
+- 净时长 ms 不含暂停;自由跳 **30 分钟上限**(8-18 定稿,强制终止、用户不可改、参数可配)由端上执行,服务端校验 free 的 ms ≤ 30min、timed 的 ms ≤ testMin;
 - `newBest` 仅限时模式有意义(按 testMin 分别记录)。

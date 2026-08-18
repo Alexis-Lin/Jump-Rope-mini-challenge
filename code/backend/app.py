@@ -1,14 +1,17 @@
 # ============================================================
 # Atom 跳绳小挑战 · 后端参考实现（FastAPI + Redis，单文件可跑）
 #
-# 与 code/backend-spec.md 一一对应（2026-08-17 评审会及会后决议口径）：
-#   · 三榜：今日单轮最高(日榜, ZADD GT + TTL) / 1'/2' 历史最佳 / 连胜
-#   · 上榜口径 = 单轮最高（当日累计不上榜，防刷）
+# 与 code/backend-spec.md 一一对应（2026-08-18 评审会定稿口径）：
+#   · 三榜（按月度刷新，月度赛季）：自由单轮最高 / 1 分钟最高 / 连续打卡天数
+#   · 上榜口径 = 单轮最高（当日累计不上榜，防刷）；补记(record_backfill)不上榜
+#   · 限时仅 1 分钟（2' 档移除）；自由跳上限 30 分钟（强制终止，参数可配）
 #   · 全员默认参与，无退出项；同分按显示名首字母（读侧二次排序）
 #   · 显示名脱敏：昵称 ≤10 截断；未填 → 邮箱/手机前缀 + ***
-#   · 一次 session = 一条 mini-workout 记录（对齐 oneset）；按天聚合展示
-#   · 校验：空轮拒收 / free ms ≤ 15min、timed ms ≤ testMin / >8 跳每秒剔除 /
+#   · 一次 session = 一条 mini-workout 记录（独立打标 jump_rope，对齐 oneset）；按天聚合展示
+#   · 数据隔离：只统计跳绳小程序内行为，不与课程内跳绳动作合并
+#   · 校验：空轮拒收 / free ms ≤ 30min、timed ms ≤ testMin / >8 跳每秒剔除 /
 #           单日封顶 3000（超出照常入档但不再上榜/给星）
+#   · 结果卡：session_end 后端上渲染 466×466 结果卡上传 → App 训练记录 + 云相册
 #   · 账号铁律：所有 key 带 {edition} 分区（cn/intl 永不合并）
 #
 # 运行：
@@ -34,7 +37,7 @@ import redis
 
 # ---------------- 配置 ----------------
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
-FREE_CAP_MS = 15 * 60_000          # 自由跳单轮上限（端上执行，服务端复验）
+FREE_CAP_MS = 30 * 60_000          # 自由跳单轮上限（8-18 定稿 30min；端上强制终止，服务端复验，可配）
 DAILY_CAP = 3000                   # 单日封顶（防刷）：超出照常入档，不再上榜/给星
 MAX_JPS = 8.0                      # 频率异常剔除阈值（识别标称 ≤3 跳/秒，>8 即可疑）
 BOARD_TZ = timezone(timedelta(hours=8))   # 日榜滚动时区（按部署区配置）
@@ -53,26 +56,30 @@ def rdb() -> redis.Redis:
 # ---------------- Key 布局（{edition} 分区，跨区永不合并） ----------------
 def k_profile(ed: str, uid: str) -> str: return f"{ed}:jump:profile:{uid}"
 def k_log(ed: str, uid: str) -> str: return f"{ed}:jump:log:{uid}"            # session 明细(List)
-def k_round(ed: str, date: str) -> str: return f"{ed}:jump:round:{date}"      # 今日单轮最高(日榜)
-def k_timed(ed: str, minute: int) -> str: return f"{ed}:jump:timed{minute}:best"
-def k_streak(ed: str) -> str: return f"{ed}:jump:streak"
+def k_free(ed: str, month: str) -> str: return f"{ed}:jump:free:{month}"       # 自由单轮当月最高
+def k_timed1(ed: str, month: str) -> str: return f"{ed}:jump:timed1:{month}"   # 1' 当月最高(2' 榜移除)
+def k_streak(ed: str, month: str) -> str: return f"{ed}:jump:streak:{month}"   # 连续打卡天数
 def k_name(ed: str) -> str: return f"{ed}:jump:names"                          # uid -> display_name
 
+BOARD_TTL = 62 * 24 * 3600            # 覆盖整月 + 归档窗口；月初新 key 天然月度刷新(8-18)
 
-def board_key(ed: str, kind: str, date: str) -> str:
-    if kind == "round":
-        return k_round(ed, date)
+
+def board_key(ed: str, kind: str, month: str) -> str:
+    if kind == "free":
+        return k_free(ed, month)
     if kind == "timed1":
-        return k_timed(ed, 1)
-    if kind == "timed2":
-        return k_timed(ed, 2)
+        return k_timed1(ed, month)
     if kind == "streak":
-        return k_streak(ed)
+        return k_streak(ed, month)
     raise HTTPException(400, "unknown board kind")
 
 
 def today(ed_now: Optional[datetime] = None) -> str:
     return (ed_now or datetime.now(BOARD_TZ)).strftime("%Y-%m-%d")
+
+
+def month_of(date: str) -> str:
+    return date[:7].replace("-", "")           # YYYY-MM-DD -> yyyymm
 
 
 # ---------------- 显示名（脱敏，评审会定稿） ----------------
@@ -89,7 +96,7 @@ class SessionEnd(BaseModel):
     count: int = Field(gt=0, description="空轮(0)端上已拦截，服务端同样拒收")
     ms: int = Field(gt=0)
     mode: Literal["free", "timed"]
-    test_min: int = 1                       # timed 时 1/2
+    test_min: int = 1                       # 8-18 定稿:仅 1 分钟(其余值拒收)
     goal: int = 0
     kcal: float = 0
     new_best: bool = False
@@ -107,6 +114,18 @@ class DailyCard(BaseModel):
     user_id: str
     date: str                               # YYYY-MM-DD
     png_b64: str                            # 端上渲染的日卡 PNG（自动同步 App 云相册）
+
+
+class ResultCard(BaseModel):
+    user_id: str
+    session_ts: int                         # session started_at (epoch ms)
+    png_b64: str                            # 结算自动生成的 466×466 结果卡(8-18)
+
+
+class Backfill(BaseModel):
+    user_id: str
+    date: str                               # YYYY-MM-DD，近 7 天内
+    count: int = Field(gt=0, le=1000, description="单次补记上限(数值待运营复核)")
 
 
 class NameSet(BaseModel):
@@ -128,7 +147,9 @@ def session_end(ev: SessionEnd, ed: str = Depends(edition)):
     r = rdb()
     # 复验（端上先行，服务端兜底）
     if ev.mode == "free" and ev.ms > FREE_CAP_MS:
-        raise HTTPException(422, "free session exceeds 15-min cap")
+        raise HTTPException(422, "free session exceeds 30-min cap")
+    if ev.mode == "timed" and ev.test_min != 1:
+        raise HTTPException(422, "timed mode is 1-minute only (2026-08-18)")
     if ev.mode == "timed" and ev.ms > ev.test_min * 60_000 + 2_000:
         raise HTTPException(422, "timed session exceeds duration")
     if ev.count / (ev.ms / 1000) > MAX_JPS:
@@ -140,7 +161,7 @@ def session_end(ev: SessionEnd, ed: str = Depends(edition)):
     pk = k_profile(ed, ev.user_id)
     p = json.loads(r.get(pk) or "{}")
     day = p.setdefault("history", {}).setdefault(
-        date, {"count": 0, "best": 0, "n": 0, "ms": 0, "done": False})
+        date, {"count": 0, "best": 0, "n": 0, "ms": 0, "done": False, "manual": 0})
 
     capped = day["count"] >= DAILY_CAP                          # 封顶后：入档，不上榜/不给星
     day["count"] += ev.count
@@ -163,21 +184,23 @@ def session_end(ev: SessionEnd, ed: str = Depends(edition)):
         p["streak"] = p.get("streak", 0) + 1 if p.get("last_done") == yesterday else 1
         p["last_done"] = date
         p["max_streak"] = max(p.get("max_streak", 0), p["streak"])
-        r.zadd(k_streak(ed), {ev.user_id: p["streak"]})
+        sk = k_streak(ed, month_of(date))
+        r.zadd(sk, {ev.user_id: p["streak"]})
+        r.expire(sk, BOARD_TTL)
 
     r.set(pk, json.dumps(p))
-    # session 明细：一条 mini-workout 记录（对齐 oneset；命名 profile_log_jump_rope_*）
+    # session 明细：一条 mini-workout 记录（独立打标 jump_rope——8-18；对齐 oneset；命名 profile_log_jump_rope_*）
     r.rpush(k_log(ed, ev.user_id), json.dumps({
-        "ts": started, "date": date, "mode": ev.mode, "test_min": ev.test_min,
+        "ts": started, "date": date, "workout_type": "jump_rope",
+        "mode": ev.mode, "test_min": ev.test_min,
         "count": ev.count, "ms": ev.ms, "kcal": round(ev.kcal, 1), "goal": ev.goal}))
 
     if not capped:
-        # 三榜写入：ZADD GT = 只升不降（天然"取单轮最高"）
-        rk = k_round(ed, date)
-        r.zadd(rk, {ev.user_id: ev.count}, gt=True)
-        r.expire(rk, 48 * 3600)                                # TTL 覆盖时区跨日 = 每日 0 点重置
-        if ev.mode == "timed":
-            r.zadd(k_timed(ed, ev.test_min), {ev.user_id: ev.count}, gt=True)
+        # 榜单写入(8-18:月度 key)：ZADD GT = 只升不降（天然"取当月单轮最高"）
+        month = month_of(date)
+        bk = k_free(ed, month) if ev.mode == "free" else k_timed1(ed, month)
+        r.zadd(bk, {ev.user_id: ev.count}, gt=True)
+        r.expire(bk, BOARD_TTL)
 
     return {"date": date, "day": day, "streak": p.get("streak", 0),
             "capped": capped, "total": p["total"]}
@@ -185,10 +208,10 @@ def session_end(ev: SessionEnd, ed: str = Depends(edition)):
 
 # ---------------- 榜单读（Top3 + 我 + 上一名；= backend-spec §7.2） ----------------
 @app.get("/v1/jump/board/{kind}")
-def board_view(kind: Literal["round", "timed1", "timed2", "streak"],
+def board_view(kind: Literal["free", "timed1", "streak"],
                user_id: str, ed: str = Depends(edition)):
     r = rdb()
-    key = board_key(ed, kind, today())
+    key = board_key(ed, kind, month_of(today()))
     names = r.hgetall(k_name(ed))
 
     def disp(uid: str) -> str:
@@ -238,6 +261,39 @@ def daily_card(card: DailyCard, ed: str = Depends(edition)):
     return {"ok": True, "dedup": False, "asset": f"jump_card_{card.date}_{h}.png"}
 
 
+# ---------------- 结果卡上传（8-18:每次训练完成自动生成 466×466,同步训练记录+云相册） ----------------
+@app.post("/v1/jump/result_card")
+def result_card(card: ResultCard, ed: str = Depends(edition)):
+    h = hashlib.sha256(card.png_b64.encode()).hexdigest()[:16]
+    dedup_key = f"{ed}:jump:rcard:{card.user_id}:{card.session_ts}"
+    if rdb().get(dedup_key) == h:
+        return {"ok": True, "dedup": True}
+    rdb().set(dedup_key, h, ex=7 * 24 * 3600)
+    # TODO 工程接力：png 落对象存储 → 写入 App 训练记录 + 云相册（App 侧提供接口）
+    return {"ok": True, "dedup": False, "asset": f"jump_result_{card.session_ts}_{h}.png"}
+
+
+# ---------------- 追加记录（8-18 新增一级 tab:手动补记过往跳绳） ----------------
+@app.post("/v1/jump/record_backfill")
+def record_backfill(bf: Backfill, ed: str = Depends(edition)):
+    d = datetime.strptime(bf.date, "%Y-%m-%d").replace(tzinfo=BOARD_TZ)
+    if not (0 <= (datetime.now(BOARD_TZ) - d).days <= 7):
+        raise HTTPException(422, "backfill window is the last 7 days")
+    r = rdb()
+    pk = k_profile(ed, bf.user_id)
+    p = json.loads(r.get(pk) or "{}")
+    day = p.setdefault("history", {}).setdefault(
+        bf.date, {"count": 0, "best": 0, "n": 0, "ms": 0, "done": False, "manual": 0})
+    # 仅累加 count/manual 与 total：不写 best、不上榜(防刷)、不追溯连胜(连胜以结算任务为准)
+    day["count"] += bf.count
+    day["manual"] = day.get("manual", 0) + bf.count
+    if day["count"] >= 50:
+        day["done"] = True
+    p["total"] = p.get("total", 0) + bf.count
+    r.set(pk, json.dumps(p))
+    return {"date": bf.date, "day": day, "total": p["total"]}
+
+
 # ---------------- 连胜提醒（每分钟扫描到点用户；= backend-spec §7.3，通道待定） ----------------
 def push_streak_reminders(now_hhmm: str):
     r = rdb()
@@ -264,7 +320,7 @@ def smoke():
                                mode="free", stars_earned=cnt // 20 * 2), ed)
     session_end(SessionEnd(user_id="u2", count=118, ms=60_000, mode="timed",
                            test_min=1, new_best=True), ed)
-    b = board_view("round", "u1", ed)
+    b = board_view("free", "u1", ed)                                          # 8-18:自由单轮月榜
     assert b["top3"][0]["score"] == 130 and b["me"]["score"] == 130
     assert b["top3"][0]["name"].endswith("***") or len(b["top3"][0]["name"]) <= 10
     t = board_view("timed1", "u2", ed)
@@ -274,7 +330,17 @@ def smoke():
         raise AssertionError("rate anomaly not caught")
     except HTTPException as e:
         assert e.status_code == 422
-    print("smoke OK:", json.dumps(b, ensure_ascii=False))
+    try:
+        session_end(SessionEnd(user_id="u2", count=100, ms=110_000, mode="timed",
+                               test_min=2), ed)                               # 2' 已移除
+        raise AssertionError("2-min timed not rejected")
+    except HTTPException as e:
+        assert e.status_code == 422
+    bf = record_backfill(Backfill(user_id="u1", date=today(), count=100), ed)  # 补记
+    assert bf["day"]["manual"] == 100
+    b2 = board_view("free", "u1", ed)
+    assert b2["me"]["score"] == 130                                            # 补记不上榜
+    print("smoke OK:", json.dumps(b2, ensure_ascii=False))
 
 
 if __name__ == "__main__":

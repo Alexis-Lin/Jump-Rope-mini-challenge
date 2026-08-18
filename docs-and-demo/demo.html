@@ -250,8 +250,10 @@
            color: var(--accent); font-weight: 800; }
   .qb-me .qb-you { font-size: var(--t24); }
   .qb-me .qb-rank { font-size: var(--t36); font-variant-numeric: tabular-nums; }
-  /* 最佳战绩速览:列表在标题与按钮之间垂直居中,消掉按钮上方空隙 */
-  #qc-best .h-list { flex: 1; min-height: 0; justify-content: center; gap: .6em; margin-bottom: 5.6em; }
+  /* 追加记录:表单在标题与按钮之间垂直居中 */
+  #qc-add .h-list { flex: 1; min-height: 0; justify-content: center; align-items: center; gap: .9em; margin-bottom: 5.6em; }
+  /* 模式页底部提示(8-18 决议:明确告知仅支持并脚跳) */
+  .mode-note { position: absolute; left: 50%; transform: translateX(-50%); bottom: 19.5%; width: 60%; text-align: center; font-size: var(--t18); color: var(--stage-soft); pointer-events: none; }
   #a-board .h-list { gap: .28em; }
   .card-dots {
     position: absolute; bottom: 3.5%; left: 0; right: 0; z-index: 4;
@@ -587,8 +589,8 @@
     position: absolute; inset: 0; z-index: 20;
     display: none;
     align-items: center; justify-content: center; flex-direction: column; gap: 12px;
-    background: rgba(16,19,17,.55);
-    backdrop-filter: blur(2px);
+    /* 8-18:恭喜页移到结果页之后独立弹出 → 改为不透明整屏,不再透出底层内容 */
+    background: radial-gradient(120% 100% at 50% 100%, #1C3324 0%, #121514 70%);
   }
   .celebrate.show { display: flex; }
   .celebrate .txt {
@@ -712,11 +714,15 @@
               <div class="h-list" id="a-qboard"></div>
               <button class="page-cta" id="qc-board-go" data-i18n="fullBoard">完整榜单</button>
             </div>
-            <!-- Page 4 · 最佳战绩速览(完整维度在二级页) -->
-            <div class="qcard page" id="qc-best">
-              <div class="page-title" data-i18n="bestTitle">最佳战绩</div>
-              <div class="h-list" id="a-qbest"></div>
-              <button class="page-cta" id="qc-best-go" data-i18n="viewAll">查看全部</button>
+            <!-- Page 4 · 追加记录(8-18 决议:第三个一级 tab,手动补记过往跳绳;补记不计入榜单) -->
+            <div class="qcard page" id="qc-add">
+              <div class="page-title" data-i18n="addTitle">追加记录</div>
+              <div class="page-sub" data-i18n="addSub">补记过往跳绳 · 不计入榜单</div>
+              <div class="h-list">
+                <button class="a-goal-chip" id="qc-add-date"></button>
+                <button class="a-goal-chip" id="qc-add-cnt"></button>
+              </div>
+              <button class="page-cta" id="qc-add-save" data-i18n="addSave">保存</button>
             </div>
           </div>
         </div>
@@ -736,6 +742,7 @@
           <span class="mode-ico" data-ico="clock"></span>
           <span class="mode-txt"><b data-i18n="modeTimed">限时跳</b><span id="a-opt-timed-sub"></span></span>
         </button>
+        <div class="mode-note" data-i18n="modeNote">仅识别并脚跳 · 交替跳不计数</div>
         <button class="corner-btn left" id="a-mode-back">‹</button>
         <button class="corner-btn right" id="a-mode-tips">Tips</button>
       </div>
@@ -745,7 +752,7 @@
         <div class="h-title" data-i18n="boardTodayTitle">今日排行榜</div>
         <div class="hbody">
           <div class="a-chip-row">
-            <button class="a-goal-chip sm" id="ab-round" data-i18n="boardRound">今日单轮</button>
+            <button class="a-goal-chip sm" id="ab-round" data-i18n="boardRound">自由单轮</button>
             <button class="a-goal-chip sm" id="ab-timed" data-i18n="boardTimed">1 分钟</button>
             <button class="a-goal-chip sm" id="ab-streak" data-i18n="boardStreak">连胜</button>
           </div>
@@ -755,13 +762,12 @@
         <div class="flip-hint" id="a-board-sub"></div>
       </div>
 
-      <!-- 设置（首页 ⚙ 进入）：目标 / 限时时长 / 语音 -->
+      <!-- 设置（首页 ⚙ 进入）：动作要领 / 自由跳目标 / 提醒 / 语音 / BGM（限时固定 1 分钟,无时长设置——8-18 决议） -->
       <div class="a-history" id="a-set">
         <div class="h-title" data-i18n="setTitle">设置</div>
         <div class="hbody"><div class="set-rows">
           <div class="srow"><span data-i18n="howTitle">动作要领</span><button class="a-goal-chip sm" id="as-tips">›</button></div>
           <div class="srow"><span data-i18n="setGoal">每日目标</span><button class="a-goal-chip sm" id="as-goal">100 下</button></div>
-          <div class="srow"><span data-i18n="setLen">限时时长</span><button class="a-goal-chip sm" id="as-len">1 分钟</button></div>
           <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
           <div class="srow"><span data-i18n="setBgm">背景音乐</span><button class="a-goal-chip sm" id="as-bgm">开</button></div>
@@ -958,13 +964,13 @@
       <div class="flow">
         <span class="st">系统入口卡<br><small style="color:var(--stage-soft)">个性化开场白</small></span><span class="ar">→</span>
         <span class="st">首页卡组<br><small style="color:var(--stage-soft)">首页/打卡记录/全球排行 横滑</small></span><span class="ar">→</span>
-        <span class="st">模式选择<br><small style="color:var(--stage-soft)">限时跳 1'/2' · 不限时</small></span><span class="ar">→</span>
+        <span class="st">模式选择<br><small style="color:var(--stage-soft)">限时跳 1' · 不限时自由跳</small></span><span class="ar">→</span>
         <span class="st hot">3·2·1·BodyPark<br><small>无站位校验,即时开跳</small></span><span class="ar">→</span>
         <span class="st">训练屏</span><span class="ar">→</span>
         <span class="st">庆祝<br><small style="color:var(--stage-soft)">达标不打断</small></span><span class="ar">→</span>
         <span class="st">结算 ⇄ 二维码分享</span>
       </div>
-      <div class="note">二级页(点按空白处返回):打卡记录 · 排行榜(今日单轮 / 1 分钟 / 连胜三榜)· 最佳战绩 · 动作要领 · 设置;首页数据区块点按直达对应二级页。</div>
+      <div class="note">一级 tab 三个(8-18 定稿):打卡记录 · 排行榜(自由单轮 / 1 分钟 / 连续打卡三榜,按月度刷新)· 追加记录(手动补记);最佳战绩 / 动作要领 / 设置为覆盖层(点按空白处返回),首页数据区块点按直达。</div>
     </div>
     <div class="card">
       <h2>训练屏节奏(课中反馈引擎)</h2>
@@ -1000,13 +1006,13 @@
       <table>
         <tr><td>计数累积</td><td><b>单轮从 0 起算</b>;<b>今日累计跨轮累加</b>(首页/榜单/结算"今日累计"行),0 点重置;结算即落档</td></tr>
         <tr><td>离开画面/切后台</td><td>训练中立即暂停(停表)→ 超 3 分钟未回自动结算(对齐课程出框策略,可配 3–5min);结算页 45s 无操作回首页</td></tr>
-        <tr><td>极限保护</td><td>自由跳单轮上限 15 分钟(最后 1 分钟语音预告,届满自动结算);计数 ≥1000 数字降档 96→68;单日封顶 3000(服务端)</td></tr>
+        <tr><td>极限保护</td><td>自由跳单轮上限 30 分钟(8-18 定稿:强制终止,用户不可改,参数可配;最后 1 分钟语音预告,届满自动结算);计数 ≥1000 数字降档 96→68;单日封顶 3000(服务端)</td></tr>
         <tr><td>空状态</td><td>首页真实零值 + 引导文案;榜单未跳也有真实名次与"再跳 N 下超过 XX"</td></tr>
       </table>
     </div>
     <div class="card">
       <h2>排行榜(可爬升设计 · 2026-08-17 评审会定稿)</h2>
-      三榜:<b>今日单轮最高</b>(0 点重置;当日累计不上榜,防刷)· <b>1 分钟测试</b>(历史最佳;限时时长各自成榜)· <b>连胜</b>。全员默认参与,无退出项;同分按显示名首字母排;未填昵称显示邮箱/手机脱敏前缀(如 rop***),开场白语音不点名。只显示 Top3 + 我的邻近区间,脚注永远给"再跳 N 下超过 XX",课中超越即时播报,进前三/登顶语音。
+      三榜(8-18 定稿,按月度刷新):<b>自由模式单轮最高</b>(当日累计不上榜,防刷)· <b>1 分钟限时最高</b> · <b>连续打卡天数</b>。全员默认参与,无退出项;同分按显示名首字母排;未填昵称显示邮箱/手机脱敏前缀(如 rop***),开场白语音不点名。只显示 Top3 + 我的邻近区间,脚注永远给"再跳 N 下超过 XX",课中超越即时播报,进前三/登顶语音。
       <div class="note">完整需求与验收标准见 <a href="jump-rope-mini-prd.md">jump-rope-mini-prd.md</a>(含产品设计说明附录)。</div>
     </div>
   </section>
@@ -1016,7 +1022,7 @@
       <table>
         <tr><td><code>feedPose(pts[28])</code></td><td>BP-28 骨骼流(详见"火柴人渲染说明"页签)</td></tr>
         <tr><td><code>onJump()</code></td><td>有效跳跃判定 → 计数+1,同帧反馈。识别口径:并脚跳(双脚同起同落),≤3 跳/秒;正对/侧对均支持,引导正对</td></tr>
-        <tr><td><code>formHint(kind)</code></td><td>动作纠错事件(会议新增):<code>alternating</code> 交替跳 / <code>single_foot</code> 单脚 / <code>low_jump</code> 幅度不足 → 教练语音提醒("双脚并拢跳");交替/单脚不计数</td></tr>
+        <tr><td><code>formHint(kind)</code></td><td>动作纠错事件(8-18:V1 暂不做常规纠错,交替跳识别为后续项,仅保留接口):<code>alternating</code> 交替跳 / <code>single_foot</code> 单脚 / <code>low_jump</code> 幅度不足 → 教练语音提醒("双脚并拢跳");交替/单脚不计数</td></tr>
         <tr><td><code>setPresence(bool)</code></td><td>仅训练中暂停/恢复</td></tr>
         <tr><td><code>on_event</code></td><td><code>session_start{mode} · jump{count} · session_end{count, ms, goal, testMin, kcal, newBest}</code>(ms=净时长,暂停不计)</td></tr>
       </table>
@@ -1120,20 +1126,22 @@ zh: {
   dcJumps: '下', dcMeta: (n, t) => `×${n} 轮 · 用时 ${t}`,
   bestVal: (r, m) => `单轮 ${r || '—'} · 1' ${m || '—'}`,
   recTitle: '打卡记录', boardTitle: '排行榜', achvTitle: '我的成就',
-  boardScopeLine: '今日单轮最高 · 全球 · 每日重置',
+  boardScopeLine: '自由单轮最高 · 全球 · 每月刷新',
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
-  bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', best2: '2 分钟最佳',
+  bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳',
   bestDay: '单日累计最高', bestDayRounds: '单日轮数最多', bestStreak: '最长连胜', roundUnit: n => `${n} 轮`,
   modeTimed: '限时跳', modeFree: '不限时', back: '返回',
   timedSub: (m, pb) => `${m} 分钟${pb ? ` · 最佳 ${pb}` : ''}`,
   freeSub: (g, t) => `目标 ${g} · 今日 ${t}`,
   medalsTitle: '勋章', boardTodayTitle: '排行榜',
-  boardRound: '今日单轮', boardTimed: '1 分钟', boardStreak: '连胜',
-  boardSubs: { round: '单轮最高 · 0 点重置', timed: '1 分钟历史最佳', streak: '连续打卡天数' },
+  boardRound: '自由单轮', boardTimed: '1 分钟', boardStreak: '连续打卡',
+  boardSubs: { round: '自由单轮最高 · 本月', timed: '1 分钟最高 · 本月', streak: '连续打卡天数 · 本月' },
   passFootDay: (d, n) => `再坚持 ${d} 天超过 ${n}`, dayUnit: n => `${n} 天`,
-  setTitle: '设置', setGoal: '每日目标', setLen: '限时时长',
+  setTitle: '设置', setGoal: '自由跳目标',
   setRemind: '每日提醒', setVoice: '教练语音', setBgm: '背景音乐',
-  goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
+  addTitle: '追加记录', addSub: '补记过往跳绳 · 不计入榜单', addSave: '保存',
+  addSaved: (d, n) => `${d} 补记 ${n} 下`, modeNote: '仅识别并脚跳 · 交替跳不计数',
+  goalVal: g => g === 0 ? '自由跳' : `${g} 下`,
   off: '关', on: '开', adult: '成人',
   readyTip: '请站进画面<br>边缘变绿即可', readyHint: '离开画面会自动暂停',
   paused: '已暂停', pausedSub: '回到画面继续', pausedTap: '休息一下', resume: '继续', finishNow: '立即结算',
@@ -1193,7 +1201,7 @@ zh: {
   opFree: '今天自由跳，我们来试一下！',
   opAgain: c => `又来啦！今天已经跳了 ${c} 下，再来一轮？`,
   opBack: call => `又见面啦！${call}`,
-  capFree: '15 分钟满啦，本轮自动结算', spCapSoon: '还有一分钟到十五分钟上限，冲刺！',
+  capFree: '30 分钟满啦，本轮自动结算', spCapSoon: '还有一分钟到三十分钟上限，冲刺！',
   todayTotal: n => `今日累计 ${n} 下`,
 },
 en: {
@@ -1206,20 +1214,22 @@ en: {
   dcJumps: 'JUMPS', dcMeta: (n, t) => `×${n} rounds · ${t}`,
   bestVal: (r, m) => `${r || '—'} · 1' ${m || '—'}`,
   recTitle: 'Check-in Log', boardTitle: 'Ranking', achvTitle: 'My Achievements',
-  boardScopeLine: 'Best round today · Global · daily',
+  boardScopeLine: 'Best free round · Global · monthly',
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
-  bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", best2: "Best 2' test",
+  bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test",
   bestDay: 'Best day total', bestDayRounds: 'Most rounds/day', bestStreak: 'Longest streak', roundUnit: n => `×${n}`,
   modeTimed: 'Timed', modeFree: 'Free Jump', back: 'Back',
   timedSub: (m, pb) => `${m} min${pb ? ` · PB ${pb}` : ''}`,
   freeSub: (g, t) => `Goal ${g} · Today ${t}`,
   medalsTitle: 'Medals', boardTodayTitle: 'Ranking',
-  boardRound: 'Round', boardTimed: '1-min', boardStreak: 'Streak',
-  boardSubs: { round: 'round best · daily', timed: "1' all-time", streak: 'days in a row' },
+  boardRound: 'Free', boardTimed: '1-min', boardStreak: 'Streak',
+  boardSubs: { round: 'free round best · monthly', timed: "1' best · monthly", streak: 'streak days · monthly' },
   passFootDay: (d, n) => `${d}d to pass ${n}`, dayUnit: n => `${n}d`,
-  setTitle: 'Settings', setGoal: 'Daily goal', setLen: 'Timed length',
+  setTitle: 'Settings', setGoal: 'Freestyle goal',
   setRemind: 'Reminder', setVoice: 'Coach voice', setBgm: 'Music',
-  goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
+  addTitle: 'Add Record', addSub: 'Backfill past jumps · not ranked', addSave: 'Save',
+  addSaved: (d, n) => `${d} +${n} logged`, modeNote: 'Both-feet jumps only',
+  goalVal: g => g === 0 ? 'Free' : `${g}`,
   off: 'Off', on: 'On', adult: 'Adult',
   readyTip: 'Step into view<br>until the edge glows green', readyHint: 'Auto-pauses when you step out',
   paused: 'Paused', pausedSub: 'Step back in to resume', pausedTap: 'Take a breather', resume: 'Resume', finishNow: 'Finish now',
@@ -1279,7 +1289,7 @@ en: {
   opFree: "free jump today — let's go!",
   opAgain: c => `Back again! ${c} jumps today already — one more round?`,
   opBack: call => `Back again! ${call}`,
-  capFree: '15-min cap — auto-finishing', spCapSoon: 'One minute to the fifteen-minute cap. Sprint!',
+  capFree: '30-min cap — auto-finishing', spCapSoon: 'One minute to the thirty-minute cap. Sprint!',
   todayTotal: n => `Today total ${n}`,
 },
 };
@@ -1295,7 +1305,7 @@ function applyStatic() {
   });
 }
 /* ------------------------------------------------------------
-   开场白（进入 APP 时播报，模块化拼装；不阻塞 3·2·1 即时开跳）
+   开场白（8-18 决议:首页阶段不触发任何 AI 语音;开场白改在用户点 Start 进入模式页时播报）
    结构：称呼欢迎 → 第 N 次跳绳 → 历史亮点 1 条(按次数轮换) → 日期 → 目标召唤(按日轮换)
    首次使用播新手版；同一天再次进入只播简短版，不重复完整开场白
    ------------------------------------------------------------ */
@@ -1353,8 +1363,8 @@ const ico = (n, c) => `<svg class="ico" viewBox="0 0 24 24"${c ? ` style="color:
    本地档案（打卡 / 星星）— localStorage，双窗口天然共享
    ============================================================ */
 const PROFILE_KEY = 'bodypark_jump_profile_v1';
-const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 100, history: {},
-                          total: 0, scenes: 3, outfit: 0, goalNum: 100, testMin: 1,
+const PROFILE_DEFAULT = { stars: 0, streak: 0, lastDone: '', goal: 200, history: {},
+                          total: 0, scenes: 3, outfit: 0, goalNum: 200, testMin: 1,
                           bests: {}, bestSession: 0, luckyHits: 0,
                           age: '9-11', weight: 40, remind: '关',
                           nick: '', sessions: 0, lastGreet: '' };
@@ -1364,7 +1374,8 @@ function loadProfile() {
 }
 let profile = loadProfile();
 if (profile.goal > 0) profile.goalNum = profile.goal;   /* 兼容旧档案 */
-if (![50, 100, 200].includes(profile.goalNum)) profile.goalNum = 100;   /* 目标收敛到新档位 */
+if (![50, 100, 200].includes(profile.goalNum)) profile.goalNum = 200;   /* 目标收敛到档位;默认 200(8-18:自由跳默认 200 环) */
+profile.testMin = 1;   /* 8-18 定稿:限时仅保留 1 分钟(中小学体测速度比拼口径),2' 设置移除 */
 if (profile.bestMinute && !profile.bests[1]) profile.bests[1] = profile.bestMinute;
 function saveProfile() { try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch (e) {} }
 
@@ -1393,7 +1404,7 @@ const pickRopeColor = (not) => {
 const S = {
   screen: 'launch',        // launch = Atom 系统入口卡（APP 外）
   goal: profile.goal,      // >0 目标数；0 = 自由跳；-1 = 限时测试
-  testMin: profile.testMin || 1,   // 限时时长:1'(默认,中考口径·爆发) / 2'(耐力+爆发,维度更清晰)
+  testMin: 1,                      // 限时时长固定 1 分钟(8-18 定稿;2' 档移除,bests[2] 旧数据保留)
   count: 0,
   earned: 0,               // 本轮星星
   countdown: 0,            // 3/2/1，0 = 未在倒计时
@@ -1404,7 +1415,8 @@ const S = {
   runSince: null,          // 本段开始计时的时间戳
   totalAtStart: 0,         // 本轮开始时的累计数（用于判断解锁）
   unlock: '',              // 本轮解锁提示文案
-  newBest: false,          // 1 分钟测试是否破纪录
+  newBest: false,          // 本轮是否破纪录
+  celebPending: false,     // 结果页点「完成」后待弹的恭喜页(8-18:与结果页解耦)
   ropeCol: ROPE_COLORS[0], // 本轮绳色（开轮随机，每满一圈换新色）
   seq: 0,                  // 同步序号
 };
@@ -1460,7 +1472,7 @@ const G_B = ['Rope','Skipper','Jumper','Rabbit','Roo','Ninja','Comet','Spark','H
 /* 展示名规则(会议决议):昵称 ≤10 字符截断;未填昵称 → 邮箱/手机前缀脱敏(街机三字母风) */
 function dispName(nm) { return nm.length > 10 ? nm.slice(0, 9) + '…' : nm; }
 function fakeBoard(kind) {
-  const rand = mulberry32(seedFrom(todayKey() + kind));
+  const rand = mulberry32(seedFrom(todayKey().slice(0, 7) + kind));   /* 按月播种:三榜月度刷新(8-18) */
   const seen = new Set(), list = [];
   while (list.length < 40) {
     const nm = rand() < 0.22
@@ -1480,14 +1492,18 @@ function todayCount() {
   const rec = profile.history[todayKey()];
   return (rec ? rec.count : 0) + (S.screen === 'jump' ? S.count : 0);
 }
-/* 榜单口径 = 今日单轮最高(当日累计不上榜,防刷榜——会议决议) */
+/* 今日单轮最高(首页/最佳战绩展示用;当日累计不上榜,防刷——沿用) */
 function todayBest() {
   const rec = profile.history[todayKey()];
   return Math.max((rec && rec.best) || 0, S.screen === 'jump' ? S.count : 0);
 }
+/* 榜单口径(8-18 定稿):自由模式单轮最高,月度刷新(切榜由服务端执行,原型用历史 PB 示意;补记不上榜) */
+function boardBest() {
+  return Math.max(profile.bestSession || 0, S.screen === 'jump' && S.goal !== TEST ? S.count : 0);
+}
 function myScore(kind) {
   return kind === 'streak' ? profile.streak
-    : kind === 'timed' ? (profile.bests[1] || 0) : todayBest();
+    : kind === 'timed' ? (profile.bests[1] || 0) : boardBest();
 }
 function myRank(kind) {
   const t = myScore(kind);
@@ -1669,7 +1685,7 @@ function bonoHopOnce() {
 function showScreens() {
   ['launch','idle','mode','ready','jump','result'].forEach(s => {
     const a = $('a-' + s);
-    if (a) a.classList.toggle('show', S.screen === s || (S.screen === 'celebrate' && s === 'jump'));
+    if (a) a.classList.toggle('show', S.screen === s || (S.screen === 'celebrate' && s === 'result'));   /* 恭喜页叠在结果页之上(8-18) */
   });
   $('a-celebrate').classList.toggle('show', S.screen === 'celebrate');
   $('a-pause').classList.toggle('show', S.paused && S.screen === 'jump');
@@ -1723,9 +1739,9 @@ function render() {
   $('a-count').classList.toggle('over', S.goalHit);
   $('a-count').classList.toggle('k4', S.count > 999);
 
-  const inJump = S.screen === 'jump' || S.screen === 'celebrate';
+  const inJump = S.screen === 'jump';   /* 恭喜页已移到结果页之后,不再算课中 */
 
-  /* 圆环：一圈 = 一个目标（自由跳 50），跳满清零重画；
+  /* 圆环：一圈 = 自由跳目标环（freestyle goal,默认 200），跳满自动重置再来一圈(8-18)；
      ★ 与火焰固定每 50 一档（荣誉刻度全模式统一，与环解耦）；
      限时模式：环切换为 60 格时间刻度环 */
   const ringUnit = S.goal > 0 ? S.goal : 50;
@@ -1855,7 +1871,9 @@ function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 function openMode() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
   S.screen = 'mode';
-  speak(L.spMode);
+  /* 语音从用户主动点 Start 之后才开始(8-18):本次会话首次进模式页播开场白,之后播模式提示 */
+  speak(daily.openedOnce ? L.spMode : buildOpening());
+  daily.openedOnce = true;
   bump();
 }
 function startSession(g) {
@@ -1863,20 +1881,20 @@ function startSession(g) {
   if (g !== undefined) { S.goal = g; profile.goal = g; saveProfile(); }
   S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
-  S.elapsedMs = 0; S.runSince = null; S.newBest = false;
+  S.elapsedMs = 0; S.runSince = null; S.newBest = false; S.celebPending = false;
   S.minIvl = 0; S.slowWarned = false;
   /* PB 基准按模式取:限时=对应时长历史最佳,自由=单轮最佳(结算页自我对比用) */
   S.pbAtStart = S.goal === TEST ? (profile.bests[S.testMin] || 0) : (profile.bestSession || 0);
   S.pbNearSaid = false; S.pbBroken = false;
   S.ropeCol = pickRopeColor();   /* 本轮绳色随机 */
   testMark30 = false; testMark10 = false; capMark1 = false;
-  liveRank = 1 + GB.filter(u => u.count > todayBest()).length;   /* 记录起跳时的名次(单轮口径) */
+  liveRank = 1 + GB.filter(u => u.count > boardBest()).length;   /* 记录起跳时的名次(自由单轮口径) */
   clearTimeout(resultTimer);
   bump();
   standLocked();   /* 不做站位校验：选完模式直接 3·2·1·BodyPark 开跳 */
 }
 
-function standLocked() {              /* 3·2·1 倒计时 → BodyPark 发令 → 开跳 */
+function standLocked() {              /* 3·2·1 倒计时 → BodyPark 发令 → 开跳;限时读秒复用现有保持类倒计时控件(8-18) */
   if (S.screen !== 'ready' || S.countdown > 0) return;
   S.countdown = 3; S.brandFlash = false; bump();
   sndBeep(); speak(L.cd[0]);
@@ -1911,7 +1929,7 @@ const fmtTime = (ms) => {
 };
 const sessionElapsed = () => S.elapsedMs + (S.runSince ? Date.now() - S.runSince : 0);
 const testMs = () => (S.testMin || 1) * 60000;
-const FREE_CAP_MS = 15 * 60000;   /* 自由跳单轮上限（评审会后定稿:10–15min 取 15,可配） */
+const FREE_CAP_MS = 30 * 60000;   /* 自由跳单轮上限（8-18 定稿:30 分钟强制终止,用户不可改;参数服务端可配） */
 let testMark30 = false, testMark10 = false, capMark1 = false;
 setInterval(() => {
   if (S.screen !== 'jump' || S.paused || !S.runSince) return;
@@ -1926,7 +1944,7 @@ setInterval(() => {
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak(L.sp10); }
   } else {
     $('a-timer').textContent = fmtTime(sessionElapsed());
-    /* 自由跳单轮上限 15 分钟：最后 1 分钟语音预告，届满自动结算（成绩照常落档） */
+    /* 自由跳单轮上限 30 分钟：最后 1 分钟语音预告，届满自动结算（成绩照常落档） */
     if (sessionElapsed() >= FREE_CAP_MS) { toast(L.capFree, 2200); endSession(); return; }
     if (sessionElapsed() >= FREE_CAP_MS - 60000 && !capMark1) {
       capMark1 = true; speak(L.spCapSoon);
@@ -1972,7 +1990,7 @@ function sessionKcal() {
 const GB = fakeBoard('round');
 let liveRank = Infinity;
 function checkOvertake() {
-  const tNow = todayBest();   /* 单轮口径,与榜单一致 */
+  const tNow = boardBest();   /* 自由单轮口径,与榜单一致 */
   const rk = 1 + GB.filter(u => u.count > tNow).length;
   if (rk < liveRank) {
     if (rk <= 15 && liveRank !== Infinity) {
@@ -2064,6 +2082,13 @@ function registerJump() {
     toast(L.goalToast(S.goal), 1800);
     speak(L.spGoal);
   }
+  /* 8-18:目标环满一整环自动重置(render 取模),再次满环时背景更热烈一档 */
+  else if (S.goal > 0 && S.count > S.goal && S.count % S.goal === 0) {
+    S.bgStep++;
+    sndFanfare();
+    confetti($('atomRoot'), 30);
+    toast(L.goalToast(S.count), 1500);
+  }
   bump();
 }
 
@@ -2079,7 +2104,7 @@ function endSession() {
   if (S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
   S.paused = false; clearTimeout(pauseEndTimer);
   bgmStop();
-  /* 限时测试：按时长（1'/2'）分别记录历史最佳 */
+  /* 限时测试（固定 1 分钟）：记录历史最佳 */
   if (S.goal === TEST) {
     S.newBest = S.count > (profile.bests[S.testMin] || 0);
     if (S.newBest) {
@@ -2088,16 +2113,9 @@ function endSession() {
     }
   }
   else S.newBest = S.count > (profile.bestSession || 0);   /* 自由跳破单轮 PB 也算新纪录 */
-  /* 庆祝页：破纪录必庆祝；达标必庆祝；限时"时间到"也必有收官庆祝帧 */
-  const celebrated = goalMet || S.newBest || S.goal === TEST;
-  if (celebrated) {
-    $('a-celebrate').querySelector('.txt').textContent =
-      S.newBest ? L.newRec : S.goal === TEST ? L.timeUp : L.celeGoal;
-    S.screen = 'celebrate';
-    bump();
-    sndFanfare();
-    confetti($('atomRoot'), 70);
-  }
+  /* 8-18 决议:训练完成默认直接进结果页;解锁新纪录的恭喜页改在用户点「完成」后单独弹出
+     (前后端逻辑解耦;课中达标/破纪录瞬间已有即时庆祝,不再插页打断) */
+  S.celebPending = S.newBest;
   if (S.goal === TEST) {
     const rateTxt = S.testMin === 1 ? rateTest(S.count) : '';
     speak(S.newBest ? L.spTestBest(S.count, rateTxt) : L.spTestEnd(S.testMin, S.count, rateTxt));
@@ -2139,8 +2157,8 @@ function endSession() {
   if (unlocks.length) speak(L.spUnlock(unlocks));
   saveProfile();
 
-  if (celebrated) setTimeout(() => { S.screen = 'result'; bump(); }, 1900);
-  else { S.screen = 'result'; bump(); }
+  /* 8-18:结算同时自动生成 466×466 结果分享卡,同步 App 训练记录与云相册(见 backend-spec §result_card) */
+  S.screen = 'result'; bump();
   clearTimeout(resultTimer);   /* 结算页超时：45s 无操作回首页（数据已落档） */
   resultTimer = setTimeout(() => { if (S.screen === 'result') goHome(); }, 45000);
 }
@@ -2157,7 +2175,7 @@ function pauseSession(v, by) {
   if (v) {
     $('a-pause-sub').textContent = S.pauseBy === 'tap' ? L.pausedTap : L.pausedSub;
     speak(L.spPause);
-    /* 暂停超 3 分钟自动结算(成绩保存;对齐课程出框策略,可配 3–5min) */
+    /* 暂停超 3 分钟自动结算(成绩保存;复用现有课程 暂停/切后台自动暂停/超时结束 生命周期——8-18 确认,可配 3–5min) */
     pauseEndTimer = setTimeout(() => { if (S.paused && S.screen === 'jump') endSession(); }, 180000);
   }
   bump();
@@ -2180,7 +2198,19 @@ $('a-jump').addEventListener('click', (e) => {
   if (!S.paused) pauseSession(true, 'tap');
   else pauseSession(false);
 });
-function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); clearTimeout(resultTimer); bgmStop(); S.countdown = 0; S.brandFlash = false; bump(); }
+/* 结果页「完成」:若本轮解锁新纪录,先弹恭喜页再回首页(8-18 决议:恭喜提示与结果页解耦) */
+function finishResult() {
+  if (S.screen === 'result' && S.celebPending) {
+    S.celebPending = false;
+    $('a-celebrate').querySelector('.txt').textContent = L.newRec;
+    S.screen = 'celebrate'; bump();
+    sndFanfare(); confetti($('atomRoot'), 70);
+    setTimeout(goHome, 1900);
+    return;
+  }
+  goHome();
+}
+function goHome() { S.screen = 'idle'; S.paused = false; S.celebPending = false; clearInterval(cdTimer); clearTimeout(resultTimer); bgmStop(); S.countdown = 0; S.brandFlash = false; bump(); }
 
 /* 伪二维码占位（示意图形，非真实二维码） */
 function drawQR(cv) {
@@ -2213,6 +2243,7 @@ function setAuto(on) {
     if (S.screen === 'launch') { S.screen = 'idle'; bump(); }
     else if (S.screen === 'idle') openMode();
     else if (S.screen === 'mode') startSession(profile.goalNum);
+    else if (S.screen === 'result') { if ((S.resultTicks = (S.resultTicks || 0) + 1) > 8) { S.resultTicks = 0; finishResult(); } }
     else if (S.screen === 'jump' && !S.paused) {
       /* 演示跳到 105 下再停（测试模式例外：跳满 1 分钟由计时器收尾） */
       if (S.goal !== TEST && S.count >= 105) endSession();
@@ -2566,10 +2597,9 @@ $('a-tips').addEventListener('click', () => {
   else $('a-tips').classList.remove('show');
 });
 
-/* 设置页（首页 ⚙ 进入）：目标 / 限时时长 / 语音 */
+/* 设置页（首页 ⚙ 进入）：动作要领 / 自由跳目标 / 提醒 / 语音 / BGM */
 function renderSettings() {
   $('as-goal').textContent = L.goalVal(profile.goalNum);
-  $('as-len').textContent = L.lenVal(S.testMin);
   $('as-remind').textContent = profile.remind === '关' ? L.off : profile.remind;
   $('as-voice').textContent = voiceOn ? L.on : L.off;
   $('as-bgm').textContent = bgmOn ? L.on : L.off;
@@ -2588,16 +2618,10 @@ $('a-settings-btn').addEventListener('click', (e) => {
 $('a-set').addEventListener('click', () => $('a-set').classList.remove('show'));
 $('as-goal').addEventListener('click', (e) => {
   e.stopPropagation(); audio();
-  const order = [50, 100, 200];   /* 目标档位(会后定稿):50/100/200,无自由档 */
+  const order = [50, 100, 200];   /* 自由跳目标环档位:50/100/200,默认 200(8-18) */
   const next = order[(order.indexOf(profile.goalNum) + 1) % order.length];
   profile.goalNum = next; saveProfile();
   if (S.goal !== TEST) { S.goal = next; profile.goal = next; saveProfile(); }
-  renderSettings(); bump();
-});
-$('as-len').addEventListener('click', (e) => {
-  e.stopPropagation(); audio();
-  S.testMin = S.testMin === 1 ? 2 : 1;
-  profile.testMin = S.testMin; saveProfile();
   renderSettings(); bump();
 });
 $('as-tips').addEventListener('click', (e) => {
@@ -2661,7 +2685,7 @@ function renderABoard() {
 $('a-board').addEventListener('click', () => $('a-board').classList.remove('show'));
 
 /* ------------------------------------------------------------
-   首页 Quick Cards：滑动切换 [封面][主卡][排行榜][记录]
+   首页 Quick Cards：滑动切换 [首页][打卡记录][排行榜][追加记录](8-18:一级 tab 三个)
    ------------------------------------------------------------ */
 let cardIdx = 0, swiped = false, swX = null;
 const CARD_N = 4;
@@ -2744,19 +2768,46 @@ function renderQuickCards() {
   $('a-qboard').innerHTML = list.slice(0, 3).map((u, i) =>
     `<div class="hrow"><span class="hd done">${i + 1}</span>` +
     `<span class="nm">${u.name}</span><span class="hc">${u.count}</span></div>`).join('');
-  /* Page 4 · 最佳战绩速览:4 条核心维度,完整 7 维度在二级页 */
-  $('a-qbest').innerHTML = [
-    [L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
-    [L.best2, profile.bests[2]], [L.bestDay, maxDaily()],
-  ].map(([lab, v]) =>
-    `<div class="hrow"><span class="hday" style="min-width:6.4em;text-align:left;">${lab}</span>` +
-    `<span class="hc">${v || '—'}</span></div>`).join('');
+  /* Page 4 · 追加记录:补记表单(日期 × 下数) */
+  renderAddForm();
 }
+/* 追加记录(8-18 决议):点日期在近 7 天循环,点下数在档位循环;保存仅落打卡与累计,
+   不计 best、不上榜(防刷),连胜不追溯(连胜判定以服务端为准) */
+let addOff = -1, addCntI = 1;
+const ADD_CNTS = [50, 100, 150, 200, 300, 500];
+function renderAddForm() {
+  $('qc-add-date').textContent = dayKeyOffset(addOff).slice(5).replace('-', '/');
+  $('qc-add-cnt').textContent = L.cnt(ADD_CNTS[addCntI]);
+}
+$('qc-add-date').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  addOff = addOff <= -7 ? -1 : addOff - 1;
+  renderAddForm();
+});
+$('qc-add-cnt').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  addCntI = (addCntI + 1) % ADD_CNTS.length;
+  renderAddForm();
+});
+$('qc-add-save').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  const k = dayKeyOffset(addOff), v = ADD_CNTS[addCntI];
+  const rec = profile.history[k] || { count: 0, done: false, ms: 0 };
+  rec.count += v;
+  rec.manual = (rec.manual || 0) + v;   /* 补记标记:上报后端时区分实测数据 */
+  if (rec.count >= 50) rec.done = true;
+  profile.history[k] = rec;
+  profile.total += v;
+  saveProfile();
+  toast(L.addSaved(k.slice(5).replace('-', '/'), v), 1800);
+  bump();
+});
 function renderBest() {
   const mr = maxDailyRounds(), ms2 = profile.maxStreak || profile.streak;
+  /* 8-18:限时仅 1 分钟,2' 维度移除(bests[2] 旧数据保留在档案) */
   const rows = [[L.todayBestLab, todayBest()],
                 [L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
-                [L.best2, profile.bests[2]], [L.bestDay, maxDaily()],
+                [L.bestDay, maxDaily()],
                 [L.bestDayRounds, mr ? L.roundUnit(mr) : 0],
                 [L.bestStreak, ms2 ? L.dayUnit(ms2) : 0]];
   $('a-best-rows').innerHTML = rows.map(([lab, v]) =>
@@ -2777,8 +2828,9 @@ $('a-cards-vp').addEventListener('pointerup', (e) => {
   }
 });
 /* 系统入口卡 → 进入 APP */
+/* 8-18 决议:进入首页不触发 AI 语音播报,避免无预期的语音打扰 */
 $('a-launch').addEventListener('click', () => {
-  audio(); S.screen = 'idle'; bump(); speak(buildOpening());
+  audio(); S.screen = 'idle'; bump();
   setTimeout(nudge, 900);
   setTimeout(nudge, 10000);
 });
@@ -2809,9 +2861,6 @@ $('qc-rec-go').addEventListener('click', () => {
 });
 $('qc-board-go').addEventListener('click', () => {
   if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
-});
-$('qc-best-go').addEventListener('click', () => {
-  if (swiped) return; audio(); renderBest(); $('a-best').classList.add('show');
 });
 ['ab-round', 'ab-timed', 'ab-streak'].forEach(id => $(id).addEventListener('click', (e) => {
   e.stopPropagation(); audio();
@@ -2886,7 +2935,7 @@ $('a-history').addEventListener('click', () => $('a-history').classList.remove('
 
 $('a-start').addEventListener('click', () => { audio(); openMode(); });
 document.querySelectorAll('[data-act="end"]').forEach(b => b.addEventListener('click', () => endSession()));
-document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('click', goHome));
+document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('click', finishResult));
 document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener('click', () => { audio(); startSession(); }));
 document.querySelectorAll('[data-act="resume"]').forEach(b => b.addEventListener('click', () => pauseSession(false)));
 document.querySelectorAll('[data-act="discard"]').forEach(b => b.addEventListener('click', () => discardSession()));

@@ -2,8 +2,8 @@
  * Atom 跳绳小挑战 · 应用核心（C 参考实现，行为基准 = demo.html 2026-08-18）
  *
  * 完整实现：状态机（即时开跳 3·2·1·BodyPark）/ 训练屏（贴边环·60 格刻度环·
- *           计时·打击数字·骨骼火柴人最新规格·金闪涟漪）/ 限时 1'/2' /
- *           自由跳 15 分钟上限 / 出框 3 分钟自动结算 / 空轮保护 /
+ *           计时·打击数字·骨骼火柴人最新规格·金闪涟漪）/ 限时仅 1'(8-18) /
+ *           自由跳 30 分钟上限(8-18) / 出框 3 分钟自动结算 / 空轮保护 /
  *           破纪录追逐与必庆祝 / ★固定每 50 / 卡路里 / 体测评级 / 档案持久化
  * 简化占位（工程接力，见 code/README.md）：
  *           首页四卡滑动、二级页组、日卡、动作要领幻灯片、虚拟绳与金光、
@@ -31,7 +31,7 @@ typedef enum { SCR_LAUNCH, SCR_IDLE, SCR_MODE, SCR_READY, SCR_JUMP, SCR_CELEB, S
 
 #define TEST_GOAL     (-1)
 #define MAX_RIPPLE    6
-#define FREE_CAP_MS   (15u * 60000u)   /* 自由跳单轮上限（可配 10/15，取 15） */
+#define FREE_CAP_MS   (30u * 60000u)   /* 自由跳单轮上限（8-18 定稿:30 分钟强制终止,用户不可改,可配） */
 #define PAUSE_END_MS  (3u * 60000u)    /* 出框/切后台超 3 分钟自动结算（对齐课程出框策略） */
 #define FORM_HINT_GAP 20000u           /* 同类纠错提醒最小间隔 */
 
@@ -45,8 +45,9 @@ static struct {
     int goal, count, countdown, earned;
     uint32_t cd_next, brand_until, now, run_since, elapsed, pause_since, celeb_until;
     bool paused, goal_hit, new_best, presence, pause_by_tap;
+    bool celeb_pending;                         /* 8-18:结果页点「完成」后待弹的恭喜帧 */
     int spoke30, spoke10;                       /* 限时语音节点 */
-    bool cap_warned;                            /* 15 分钟上限前 1 分钟预告（一次） */
+    bool cap_warned;                            /* 30 分钟上限前 1 分钟预告（一次） */
     int pb_at_start;                            /* 起跳时 PB 基准（按模式取，自我对比/追逐用） */
     bool pb_near_said, pb_broken;               /* 破纪录追逐状态 */
     uint32_t form_last[4];                      /* 纠错提醒频控（按 kind） */
@@ -68,7 +69,7 @@ static uint32_t ms(void) { return H && H->millis ? H->millis() : 0; }
 /* ---- 档案 ---- */
 static void pf_default(void) {
     memset(&A.pf, 0, sizeof(A.pf));
-    A.pf.goal_num = 100; A.pf.test_min = 1; A.pf.weight_kg = 40; A.pf.age_band = 1;
+    A.pf.goal_num = 200; A.pf.test_min = 1; A.pf.weight_kg = 40; A.pf.age_band = 1;   /* freestyle goal 默认 200(8-18) */
 }
 void atom_app_save(void) {
     if (H && H->storage_write) H->storage_write(&A.pf, sizeof(A.pf));
@@ -80,8 +81,8 @@ static void pf_load(void) {
         if (H->storage_read(&t, sizeof(t)) == (int)sizeof(t)) A.pf = t;
     }
     /* 目标档位收敛 50/100/200（会后定稿，无自由档） */
-    if (A.pf.goal_num != 50 && A.pf.goal_num != 100 && A.pf.goal_num != 200) A.pf.goal_num = 100;
-    if (A.pf.test_min != 2) A.pf.test_min = 1;
+    if (A.pf.goal_num != 50 && A.pf.goal_num != 100 && A.pf.goal_num != 200) A.pf.goal_num = 200;
+    A.pf.test_min = 1;   /* 8-18 定稿:限时仅保留 1 分钟(best_2min 旧数据保留) */
     if (A.pf.weight_kg <= 0) A.pf.weight_kg = 40;
 }
 atom_profile_t *atom_app_profile(void) { return &A.pf; }
@@ -144,20 +145,17 @@ static void session_end(void) {
         A.pf.max_streak = A.pf.streak;
     atom_app_save();
     emit(ATOM_EV_SESSION_END, A.count, (int)A.elapsed, (int)(kcal() * 10), A.new_best);
-    /* 庆祝页（会后定稿）：破纪录必庆祝；达标必庆祝；限时"时间到"必有收官庆祝帧 */
-    if (goal_met || A.new_best || A.goal == TEST_GOAL) {
-        A.scr = SCR_CELEB;
-        A.celeb_until = ms() + 1900;
-        speak(A.new_best ? "新纪录！" : A.goal == TEST_GOAL ? "时间到！" : "目标达成！");
-    } else {
-        A.scr = SCR_RESULT;
-        speak("本轮结束，辛苦啦");
-    }
+    /* 8-18 决议：训练完成默认直接进结果页；新纪录的恭喜帧改在用户点「完成」后单独弹出
+       （前后端逻辑解耦；课中达标/破纪录瞬间已有即时反馈）。
+       结算同时由端上渲染 466×466 结果卡上报（result_card,接力项——见 backend-spec §2） */
+    A.celeb_pending = A.new_best;
+    A.scr = SCR_RESULT;
+    speak(A.goal == TEST_GOAL ? "时间到！辛苦啦" : goal_met ? "目标达成！" : "本轮结束，辛苦啦");
 }
 
 static void session_ready(int goal) {
     A.goal = goal; A.count = 0; A.earned = 0;
-    A.goal_hit = false; A.new_best = false;
+    A.goal_hit = false; A.new_best = false; A.celeb_pending = false;
     A.elapsed = 0; A.run_since = 0; A.paused = false;
     A.spoke30 = A.spoke10 = 0; A.cap_warned = false;
     /* PB 基准按模式取（结算自我对比 + 课中追逐） */
@@ -274,7 +272,12 @@ void atom_app_touch(int x, int y) {
         break;
     case SCR_RESULT:
         if (y < 233) A.scr = SCR_MODE;            /* 上半：再跳 */
-        else A.scr = SCR_IDLE;                    /* 下半：完成 */
+        else if (A.celeb_pending) {               /* 下半：完成 → 有新纪录先弹恭喜帧(8-18) */
+            A.celeb_pending = false;
+            A.scr = SCR_CELEB;
+            A.celeb_until = ms() + 1900;
+            speak("新纪录！");
+        } else A.scr = SCR_IDLE;                  /* 下半：完成 */
         break;
     default: break;
     }
@@ -481,7 +484,7 @@ void atom_app_tick(void) {
                 if (rem <= 10000 && !A.spoke10) { A.spoke10 = 1; speak("最后十秒，冲刺！"); }
             }
         } else {
-            /* 自由跳 15 分钟上限：最后 1 分钟语音预告，届满自动结算（成绩照常落档） */
+            /* 自由跳 30 分钟上限(8-18 定稿)：最后 1 分钟语音预告，届满自动结算（成绩照常落档） */
             if (e >= FREE_CAP_MS) session_end();
             else if (e >= FREE_CAP_MS - 60000 && !A.cap_warned) {
                 A.cap_warned = true;
@@ -491,7 +494,7 @@ void atom_app_tick(void) {
     }
     /* 出框/切后台超 3 分钟自动结算（对齐课程出框策略，可配 3-5min） */
     if (A.scr == SCR_JUMP && A.paused && A.now - A.pause_since > PAUSE_END_MS) session_end();
-    if (A.scr == SCR_CELEB && A.now >= A.celeb_until) A.scr = SCR_RESULT;
+    if (A.scr == SCR_CELEB && A.now >= A.celeb_until) A.scr = SCR_IDLE;   /* 恭喜帧在结果页之后,结束回首页(8-18) */
     if (A.punch > 0) A.punch--;
 
     /* ---- 渲染 ---- */
