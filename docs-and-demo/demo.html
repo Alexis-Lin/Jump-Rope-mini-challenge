@@ -245,6 +245,13 @@
   @keyframes hintpulse { 50% { opacity: .3; } }
   .card-mid { font-size: var(--t32); font-weight: 700; }
   .qcard .h-list { gap: .35em; }
+  .page-sub { font-size: var(--t18); color: var(--stage-soft); margin-top: -.55em; }
+  .qb-me { display: flex; align-items: baseline; justify-content: center; gap: .45em;
+           color: var(--accent); font-weight: 800; }
+  .qb-me .qb-you { font-size: var(--t24); }
+  .qb-me .qb-rank { font-size: var(--t36); font-variant-numeric: tabular-nums; }
+  /* 最佳战绩速览:列表在标题与按钮之间垂直居中,消掉按钮上方空隙 */
+  #qc-best .h-list { flex: 1; min-height: 0; justify-content: center; gap: .6em; margin-bottom: 5.6em; }
   #a-board .h-list { gap: .28em; }
   .card-dots {
     position: absolute; bottom: 3.5%; left: 0; right: 0; z-index: 4;
@@ -694,9 +701,11 @@
             </div>
             <!-- Page 3 · 全球排行 -->
             <div class="qcard page" id="qc-board">
-              <div class="page-title" data-i18n="boardTitle">全球排行</div>
-              <div class="h-list" id="a-qboard"></div>
+              <div class="page-title" data-i18n="boardTitle">排行榜</div>
+              <div class="page-sub" id="qc-board-sub"></div>
+              <div class="qb-me" id="qc-board-me"></div>
               <div class="board-foot-q" id="a-qboard-foot"></div>
+              <div class="h-list" id="a-qboard"></div>
               <button class="page-cta" id="qc-board-go" data-i18n="fullBoard">完整榜单</button>
             </div>
             <!-- Page 4 · 最佳战绩速览(完整维度在二级页) -->
@@ -1104,7 +1113,8 @@ zh: {
   todayEmpty: '今日还没跳，来一轮！', bestLab: '最佳', spZeroEnd: '这轮没有跳哦，准备好随时再来！',
   dcJumps: '下', dcMeta: (n, t) => `×${n} 轮 · 用时 ${t}`,
   bestVal: (r, m) => `单轮 ${r || '—'} · 1' ${m || '—'}`,
-  recTitle: '打卡记录', boardTitle: '全球排行', achvTitle: '我的成就',
+  recTitle: '打卡记录', boardTitle: '排行榜', achvTitle: '我的成就',
+  boardScopeLine: '今日单轮最高 · 全球 · 每日重置',
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
   bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', best2: '2 分钟最佳',
   bestDay: '单日累计最高', bestDayRounds: '单日轮数最多', bestStreak: '最长连胜', roundUnit: n => `${n} 轮`,
@@ -1188,7 +1198,8 @@ en: {
   todayEmpty: "No jumps yet — let's go!", bestLab: 'Best', spZeroEnd: 'No jumps that round — come back anytime!',
   dcJumps: 'JUMPS', dcMeta: (n, t) => `×${n} rounds · ${t}`,
   bestVal: (r, m) => `${r || '—'} · 1' ${m || '—'}`,
-  recTitle: 'Check-in Log', boardTitle: 'Global Ranking', achvTitle: 'My Achievements',
+  recTitle: 'Check-in Log', boardTitle: 'Ranking', achvTitle: 'My Achievements',
+  boardScopeLine: 'Best round today · Global · daily',
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
   bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", best2: "Best 2' test",
   bestDay: 'Best day total', bestDayRounds: 'Most rounds/day', bestStreak: 'Longest streak', roundUnit: n => `×${n}`,
@@ -2666,22 +2677,19 @@ function renderQuickCards() {
     if (r && r.count > 0) { wkDays++; wkCnt += r.count; }
   }
   $('a-qrec-sum').textContent = wkDays ? L.weekSum(wkDays, wkCnt) : '';
-  /* Page 3 · 全球排行：Top3 + 你 */
+  /* Page 3 · 排行榜(会后定稿):口径副标题 → 我的名次(靠后显示区间)→ 追赶行 → Top3 */
   const list = fakeBoard('round');
   const me = myRank('round');
-  const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
-  merged.push({ name: L.you, count: me.count, me: true });
-  merged.sort((a, b) => b.count - a.count || (a.me ? -1 : 1));
-  const meIdx = merged.findIndex(u => u.me);
-  const row = (i, u) =>
-    `<div class="hrow${u.me ? ' me-row' : ''}"><span class="hd${i < 3 ? ' done' : ''}">${i + 1}</span>` +
-    `<span class="nm">${u.name}</span><span class="hc">${u.count}</span></div>`;
-  const rows = merged.slice(0, 3).map((u, i) => row(i, u));
-  if (meIdx > 2) rows.push(row(meIdx, merged[meIdx]));
-  $('a-qboard').innerHTML = rows.join('');
-  const above = meIdx > 0 ? merged[meIdx - 1] : null;
+  $('qc-board-sub').textContent = L.boardScopeLine;
+  const rkDisp = me.rank <= 10 ? `#${me.rank}` : `#${Math.floor(me.rank / 10) * 10}+`;
+  $('qc-board-me').innerHTML = `<span class="qb-you">${L.you}</span><b class="qb-rank">${rkDisp}</b>`;
+  const aboves = list.filter(u => u.count > me.count);
+  const above = aboves.length ? aboves[aboves.length - 1] : null;
   $('a-qboard-foot').textContent = above
     ? L.passFoot(above.count - me.count + 1, above.name) : L.first;
+  $('a-qboard').innerHTML = list.slice(0, 3).map((u, i) =>
+    `<div class="hrow"><span class="hd done">${i + 1}</span>` +
+    `<span class="nm">${u.name}</span><span class="hc">${u.count}</span></div>`).join('');
   /* Page 4 · 最佳战绩速览:4 条核心维度,完整 7 维度在二级页 */
   $('a-qbest').innerHTML = [
     [L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
