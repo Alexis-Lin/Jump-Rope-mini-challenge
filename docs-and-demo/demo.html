@@ -613,7 +613,7 @@
   .pauseveil.show { display: flex; }
   .pauseveil span { font-size: var(--t22); font-weight: 400; color: var(--stage-soft); }
 
-  /* ---------------- 吉祥物 Bono ---------------- */
+  /* ---------------- 吉祥物 ATOM(设备自己的昵称;历史工作名 Bono,代码标识沿用 bono) ---------------- */
   .bono { position: relative; flex: none; }
   .bono svg { display: block; }
   .bono .body-g { transform-origin: 50% 88%; }
@@ -910,6 +910,7 @@
   <button data-t="t3">关键逻辑</button>
   <button data-t="t4">接口与字段</button>
   <button data-t="t5">视觉标准</button>
+  <button data-t="t6">语音播报策略</button>
 </div>
 <div id="hbroot">
   <section id="t2">
@@ -964,13 +965,13 @@
     <div class="card">
       <h2>主流程(从打开到结算 ≤3 次点按 · ≤10 秒开跳)</h2>
       <div class="flow">
-        <span class="st">系统入口卡<br><small style="color:var(--stage-soft)">个性化开场白</small></span><span class="ar">→</span>
+        <span class="st">系统入口卡<br><small style="color:var(--stage-soft)">首页零语音</small></span><span class="ar">→</span>
         <span class="st">首页卡组<br><small style="color:var(--stage-soft)">首页/打卡记录/全球排行 横滑</small></span><span class="ar">→</span>
         <span class="st">模式选择<br><small style="color:var(--stage-soft)">限时跳 1'/2' · 不限时自由跳</small></span><span class="ar">→</span>
         <span class="st hot">3·2·1·BodyPark<br><small>无站位校验,即时开跳</small></span><span class="ar">→</span>
-        <span class="st">训练屏</span><span class="ar">→</span>
-        <span class="st">庆祝<br><small style="color:var(--stage-soft)">达标不打断</small></span><span class="ar">→</span>
-        <span class="st">结算 ⇄ 二维码分享</span>
+        <span class="st">训练屏<br><small style="color:var(--stage-soft)">发令后播今日开场白</small></span><span class="ar">→</span>
+        <span class="st">结果页</span><span class="ar">→</span>
+        <span class="st">新纪录恭喜页<br><small style="color:var(--stage-soft)">点「完成」后弹出</small></span>
       </div>
       <div class="note">一级 tab 三个(8-18 定稿):打卡记录 · 排行榜(自由单轮 / 1 分钟 / 连续打卡三榜,按月度刷新)· 追加记录(手动补记);最佳战绩 / 动作要领 / 设置为覆盖层(点按空白处返回),首页数据区块点按直达。</div>
     </div>
@@ -1071,6 +1072,59 @@
       <div class="note">刷新率 10–15fps:动效一律状态直切 + 离散帧(steps),无 tween;限时刻度环与逢十发光皆为离散设计。图标一律单色 SVG,禁 emoji。</div>
     </div>
   </section>
+  <section id="t6">
+    <div class="card">
+      <h2>三层音频架构(完整策略:<a href="audio-voice-strategy.md">audio-voice-strategy.md</a>)</h2>
+      <table>
+        <tr><th>层</th><th>内容</th><th>音量</th><th>打断</th><th>可关</th></tr>
+        <tr><td><b>L1 音效</b></td><td>计数叮(五声音阶步进)/逢十重击/得星/倒计时/发令/fanfare —— 9 条新制干声,不复用课程音效</td><td>100%</td><td>永不被打断</td><td>不可关(计数确认)</td></tr>
+        <tr><td><b>L2 人声</b></td><td>开场白/报数/激励/指导/事件/趣味彩蛋 —— 单一「元气教练」音色(<b>ATOM 的声音</b>,设备昵称)</td><td>≈90%</td><td>高优可打断低优</td><td>设置「教练语音」</td></tr>
+        <tr><td><b>L3 BGM</b></td><td>五声音阶节奏循环,<b>跳频自适应变速</b>(96–128BPM,±4 量化、小节边界换挡)+ 燃起来强度分层</td><td>≈25%,人声时 duck -50%</td><td>永不打断他层</td><td>设置「背景音乐」</td></tr>
+      </table>
+      <div class="note">安静模式 = 语音+BGM 双关只留计数音效(设置第 7 行);计数音效 onJump→出声 <100ms 同帧。</div>
+    </div>
+    <div class="card">
+      <h2>今日开场白:3·2·1·BodyPark 之后播,预生成就绪才播</h2>
+      <div class="flow">
+        <span class="st">进入 APP(首页零语音)<br><small style="color:var(--stage-soft)">按当日数据拼装文本 → 云 TTS 预生成 → 本地缓存</small></span><span class="ar">→</span>
+        <span class="st">点 Start·选模式<br><small style="color:var(--stage-soft)">只播一句模式提示</small></span><span class="ar">→</span>
+        <span class="st hot">3·2·1·BodyPark</span><span class="ar">→</span>
+        <span class="st">发令后开播(边跳边听)<br><small style="color:var(--stage-soft)">未就绪 → 本轮静默跳过,不等待不补播</small></span>
+      </div>
+      <table style="margin-top:12px">
+        <tr><th>句位</th><th>内容</th><th>示例</th></tr>
+        <tr><td>句1 称呼欢迎</td><td>有昵称点名(未填不点名——脱敏决议);当日首轮含"第 N 次跳绳"</td><td>"小雨,欢迎回来!这是你的第 18 次跳绳。"</td></tr>
+        <tr><td>句2 数据亮点 ×1</td><td>连胜 / 昨日成绩 / 单轮 PB / 累计里程碑 —— 按轮次轮换取 1 条</td><td>"已经连续打卡 6 天啦。"</td></tr>
+        <tr><td>句3 今日召唤</td><td><b>绑定所选模式</b>:自由跳带目标数(4 条池按日轮换);限时 1'/2' 用冲刺/耐力召唤句</td><td>"目标 200 下,出发!" / "一分钟限时,全力冲刺!"</td></tr>
+      </table>
+      <div class="note">总时长 ≤9s(2–3 句)。轮次策略:<b>当日首轮完整版;同日再次训练只播 1 句短版</b>("又来啦,今天已经 128 下,这轮继续冲!");结算页「再跳一轮」不播。预生成缓存 key = 日期+语言+数据快照 hash;完全离线回落语音包通用开场句;句 3 按 free/1'/2' 预生成三个变体,选模式后取对应条。播报期间整十报数(P4)让位丢弃(音效照常),破纪录/达标/报星(P0–P2)可打断开场白。</div>
+    </div>
+    <div class="card">
+      <h2>优先级仲裁(同帧只播最高优,低优丢弃不排队)</h2>
+      <div class="chips">
+        <span class="chip" style="border-color:var(--accent);color:var(--accent)">P0 破纪录</span>
+        <span class="chip">P1 达标 / 时间到</span>
+        <span class="chip">P2 满圈报星 / PB 追逐</span>
+        <span class="chip">P3 整三十激励·指导 / 超越 / 开场白</span>
+        <span class="chip">P4 整十报数</span>
+        <span class="chip">P5 趣味彩蛋</span>
+      </div>
+      <div class="note">P0/P1 可打断 P3–P5;反向永不打断;同优先级后到丢弃(排队会导致"事件过去了才说")。toast 只留稀有事件(破纪录/彩蛋双倍/隐藏数字/达标/上限预告),常规节点全语音化。</div>
+    </div>
+    <div class="card">
+      <h2>频控防疲劳 + 生成方式</h2>
+      <table>
+        <tr><th>项</th><th>规则</th><th>生成</th></tr>
+        <tr><td>整十报数</td><td>每 10 下;被更高优占用时让位</td><td>整十句全预生成(10–990 共 99 条;≥1000 只报整百)</td></tr>
+        <tr><td>整三十激励/指导</td><td>鼓励/指导五五开,同条本轮不重复</td><td>预生成(池 13 条)</td></tr>
+        <tr><td>满圈报星</td><td>每 50 一次(压过整十)</td><td>预生成</td></tr>
+        <tr><td>PB 追逐 / 节奏轻推</td><td>每轮各 ≤1 次</td><td>模板+TTS / 预生成</td></tr>
+        <tr><td>趣味彩蛋</td><td>自由跳 >3min 启用,~90s 窗口 35% 概率,每轮 ≤3</td><td>预生成(池 ≥20 条按日轮换)</td></tr>
+        <tr><td>开场白 / 结算总结 / 榜单播报</td><td>见上卡;动态数字与昵称必须 TTS</td><td>云 TTS 预取,弱网回落无变量兜底句</td></tr>
+      </table>
+      <div class="note">V1 暂不启用常规纠错(交替跳识别为后续项,接口保留);启用后同类 ≥20s。语音包估算 ~171 条/语言(opus ≈2.5–3MB)。</div>
+    </div>
+  </section>
 </div>
 
 <!-- ==================== 原型控制条 ==================== -->
@@ -1165,16 +1219,16 @@ zh: {
   rated: r => `评级 ${r}`, dailyMet: '每日任务达成',
   unlockLine: ns => `解锁 ${ns.join('、')}！`,
   sceneTag: n => `新场景「${n}」`, outfitTag: n => `新装扮「${n}」`,
-  cheers: ['节奏很稳！', 'Bono 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！', '越跳越轻松了！', '这节奏，像职业选手！'],
+  cheers: ['节奏很稳！', 'ATOM 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！', '越跳越轻松了！', '这节奏，像职业选手！'],
   spPbNear: d => `离你的最高纪录只差 ${d} 下，冲！`,
   spPbBreak: '新纪录诞生！现在每一下都在刷新它！', pbToast: '新纪录！',
   rBeatBest: d => `超越旧纪录 ${d} 下`, rToBest: d => `差 ${d} 下破纪录`, rFirstBest: '首个纪录达成！',
   tips: ['膝盖微弯，轻轻落地', '前脚掌落地更省力', '手腕发力，手臂放松', '目视前方，背挺直', '呼吸跟上节奏', '双脚并拢，同起同落'],
   howTitle: '动作要领', tipNext: '点按继续',
   howSlides: ['双脚并拢，一起跳', '交替跳、单脚跳，不计数', '正对镜头，全身入镜', '手腕发力，轻轻落地'],
-  spSlow: '别停，跟上 Bono 的节奏！',
+  spSlow: '别停，跟上 ATOM 的节奏！',
   greets: ['今天也一起跳吧！', '新的一天，从 50 下开始', '跳一跳，烦恼都抖掉',
-           'Bono 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'],
+           'ATOM 已经热好身啦', '今天的你比昨天更轻盈', '月亮都出来看你跳绳了'],
   openings: ['准备好了吗？今天也来一组！', '热身完毕，我们开始吧！',
              '深呼吸，找到自己的节奏', '昨天的纪录，今天来打破它'],
   tenToast: (n, ch) => `${n} 下 · ${ch}`, starsToast: (n, g) => `${n} 下 · 星星 +${g}`,
@@ -1193,7 +1247,7 @@ zh: {
   spEndGood: c => `一共 ${c} 下，太棒了！`, spEnd: '本轮结束，辛苦啦',
   spUnlock: ns => `恭喜解锁${ns.join('，')}`, spPause: '已暂停',
   spRemindOff: '提醒已关闭', spRemindAt: t => `每天 ${t} 提醒你来跳绳`,
-  opHello: '欢迎来跳绳！我是 Bono。', opWelcomeAnon: '欢迎回来！',
+  opHello: '欢迎来跳绳！我是 ATOM。', opWelcomeAnon: '欢迎回来！',
   opWelcome: nk => `${nk}，欢迎回来！`, opNth: n => `这是你的第 ${n} 次跳绳。`,
   opStreak: n => `已经连续打卡 ${n} 天啦。`, opYesterday: c => `昨天跳了 ${c} 下。`,
   opPB: c => `你的最好纪录是单轮 ${c} 下。`, opTotal: c => `累计已经跳了 ${c} 下。`,
@@ -1201,7 +1255,8 @@ zh: {
   opCalls: [g => `目标 ${g} 下，我们来试一下！`, g => `今天也来一组 ${g} 下吧！`,
             g => `向 ${g} 下出发！`, g => `把 ${g} 下拿下，开始吧！`],
   opFree: '今天自由跳，我们来试一下！',
-  opAgain: c => `又来啦！今天已经跳了 ${c} 下，再来一轮？`,
+  opCallTimed: m => m === 1 ? '一分钟限时，全力冲刺！' : '两分钟限时，稳住节奏冲到底！',
+  opAgain: c => `又来啦！今天已经跳了 ${c} 下，这轮继续冲！`,
   opBack: call => `又见面啦！${call}`,
   capFree: '30 分钟满啦，本轮自动结算', spCapSoon: '还有一分钟到三十分钟上限，冲刺！',
   todayTotal: n => `今日累计 ${n} 下`,
@@ -1253,16 +1308,16 @@ en: {
   rated: r => `Rating: ${r}`, dailyMet: 'Daily goal met',
   unlockLine: ns => `Unlocked ${ns.join(', ')}!`,
   sceneTag: n => `new scene “${n}”`, outfitTag: n => `new outfit “${n}”`,
-  cheers: ['Steady rhythm!', "Bono can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!', 'Smoother every jump!', 'Pro-level rhythm!'],
+  cheers: ['Steady rhythm!', "ATOM can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!', 'Smoother every jump!', 'Pro-level rhythm!'],
   spPbNear: d => `${d} away from your all-time best — go!`,
   spPbBreak: 'New record! Every jump extends it now!', pbToast: 'New record!',
   rBeatBest: d => `Beat your best by ${d}`, rToBest: d => `${d} to record`, rFirstBest: 'First record set!',
   tips: ['Soft knees, land light', 'Land on the balls of your feet', 'Flick the wrists, relax the arms', 'Eyes forward, back straight', 'Breathe with the rhythm', 'Feet together — no alternating'],
   howTitle: 'How to Jump', tipNext: 'Tap to continue',
   howSlides: ['Both feet together', "Alternating hops don't count", 'Face the camera, full body in view', 'Flick wrists, land soft'],
-  spSlow: "Don't stop — keep up with Bono!",
+  spSlow: "Don't stop — keep up with ATOM!",
   greets: ["Let's jump today!", 'New day — start with 50', 'Shake those worries off',
-           'Bono is all warmed up!', 'Lighter than yesterday', 'Even the moon is watching'],
+           'ATOM is all warmed up!', 'Lighter than yesterday', 'Even the moon is watching'],
   openings: ["Ready? Let's do a round!", 'Warm-up done — here we go!',
              'Deep breath, find your rhythm', "Yesterday's record is waiting"],
   tenToast: (n, ch) => `${n} · ${ch}`, starsToast: (n, g) => `${n} · +${g} stars`,
@@ -1281,7 +1336,7 @@ en: {
   spEndGood: c => `${c} total. Amazing!`, spEnd: 'Round over. Nice work!',
   spUnlock: ns => `Unlocked ${ns.join(', ')}`, spPause: 'Paused',
   spRemindOff: 'Reminder off', spRemindAt: t => `Daily reminder at ${t}`,
-  opHello: "Welcome to JumpRope Star! I'm Bono. ", opWelcomeAnon: 'Welcome back! ',
+  opHello: "Welcome to JumpRope Star! I'm ATOM. ", opWelcomeAnon: 'Welcome back! ',
   opWelcome: nk => `Welcome back, ${nk}! `, opNth: n => `This is jump session ${n}. `,
   opStreak: n => `You're on a ${n}-day streak. `, opYesterday: c => `Yesterday you did ${c}. `,
   opPB: c => `Your best round is ${c}. `, opTotal: c => `${c} jumps total so far. `,
@@ -1289,7 +1344,8 @@ en: {
   opCalls: [g => `goal ${g}, let's give it a try!`, g => `let's do a round of ${g}!`,
             g => `off to ${g} we go!`, g => `let's take it to ${g}!`],
   opFree: "free jump today — let's go!",
-  opAgain: c => `Back again! ${c} jumps today already — one more round?`,
+  opCallTimed: m => m === 1 ? 'One minute — give it everything!' : 'Two minutes — pace it and push!',
+  opAgain: c => `Back again! ${c} today already — keep it rolling!`,
   opBack: call => `Back again! ${call}`,
   capFree: '30-min cap — auto-finishing', spCapSoon: 'One minute to the thirty-minute cap. Sprint!',
   todayTotal: n => `Today total ${n}`,
@@ -1307,15 +1363,19 @@ function applyStatic() {
   });
 }
 /* ------------------------------------------------------------
-   开场白（8-18 决议:首页阶段不触发任何 AI 语音;开场白改在用户点 Start 进入模式页时播报）
-   结构：称呼欢迎 → 第 N 次跳绳 → 历史亮点 1 条(按次数轮换) → 日期 → 目标召唤(按日轮换)
-   首次使用播新手版；同一天再次进入只播简短版，不重复完整开场白
+   今日开场白（策略定稿,详见手册「语音播报策略」页签 / audio-voice-strategy.md §4.5）:
+   · 时机:3·2·1·BodyPark 发令后开播(边跳边听,绝不阻塞开跳);首页阶段零语音(8-18)
+   · 内容当日确定 → 进入 APP 时即预生成 TTS 缓存;发令时未就绪 → 本轮静默跳过,不补播
+   · 结构(≤3 句 ≤9s):称呼欢迎(+第 N 次) → 数据亮点 1 条(按轮次轮换) → 今日召唤(绑定所选模式)
+   · 轮次:当日首轮完整版;同日再次训练只播 1 句短版;结算页「再跳一轮」不播
    ------------------------------------------------------------ */
 function buildOpening() {
   const tk = todayKey();
   const rec = profile.history[tk];
   const d = new Date();
-  const call = profile.goalNum > 0
+  /* 句3 今日召唤:绑定本轮所选模式(限时用冲刺/耐力召唤句;free/1'/2' 三变体均预生成) */
+  const call = S.goal === TEST ? L.opCallTimed(S.testMin)
+    : profile.goalNum > 0
     ? L.opCalls[daily.openingI % L.opCalls.length](profile.goalNum) : L.opFree;
   if (profile.lastGreet === tk)
     return rec && rec.count > 0 ? L.opAgain(rec.count) : L.opBack(call);
@@ -1419,6 +1479,7 @@ const S = {
   unlock: '',              // 本轮解锁提示文案
   newBest: false,          // 本轮是否破纪录
   celebPending: false,     // 结果页点「完成」后待弹的恭喜页(8-18:与结果页解耦)
+  skipOpening: false,      // 「再跳一轮」不重复播开场白
   ropeCol: ROPE_COLORS[0], // 本轮绳色（开轮随机，每满一圈换新色）
   seq: 0,                  // 同步序号
 };
@@ -1624,7 +1685,7 @@ function speak(text) {
 }
 
 /* ============================================================
-   吉祥物 Bono（SVG，三种姿态 class：idle / hop / party）
+   吉祥物 ATOM（SVG，三种姿态 class：idle / hop / party;命名=设备昵称,原工作名 Bono）
    ============================================================ */
 function outfitLayer(idx) {
   switch (idx) {
@@ -1649,7 +1710,7 @@ function outfitLayer(idx) {
 /* 吉祥物：粗壮 pictogram 火柴人 —— 粗线条身体(currentColor) + 绿色实心圆头，远距离可读 */
 function bonoSVG(size) {
   return `
-  <svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-label="吉祥物 Bono">
+  <svg width="${size}" height="${size}" viewBox="0 0 120 120" aria-label="吉祥物 ATOM">
     <g class="rope"><ellipse cx="60" cy="74" rx="46" ry="38" fill="none" stroke="#23C766" stroke-width="2.5" opacity=".7"/></g>
     <g class="body-g" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round">
       <ellipse cx="60" cy="111" rx="22" ry="4" fill="currentColor" opacity=".12" stroke="none"/>
@@ -1888,9 +1949,7 @@ function setGoal(g) { S.goal = g; profile.goal = g; saveProfile(); bump(); }
 function openMode() {
   if (S.screen !== 'idle' && S.screen !== 'result') return;
   S.screen = 'mode';
-  /* 语音从用户主动点 Start 之后才开始(8-18):本次会话首次进模式页播开场白,之后播模式提示 */
-  speak(daily.openedOnce ? L.spMode : buildOpening());
-  daily.openedOnce = true;
+  speak(L.spMode);   /* 只播一句模式提示;今日开场白改在 3·2·1·BodyPark 发令后播(见 standLocked) */
   bump();
 }
 function startSession(g) {
@@ -1929,6 +1988,10 @@ function standLocked() {              /* 3·2·1 倒计时 → BodyPark 发令 �
         S.screen = 'jump';
         S.elapsedMs = 0; S.runSince = Date.now();
         bgmStart();
+        /* 今日开场白:预生成就绪则发令后即播(原型 speechSynthesis 等价于总是就绪);
+           真机:未就绪 → 本轮静默跳过不补播;「再跳一轮」不播 */
+        if (!S.skipOpening) speak(buildOpening());
+        S.skipOpening = false;
         bump();
       }, 750);
     }
@@ -2971,7 +3034,7 @@ $('a-history').addEventListener('click', () => $('a-history').classList.remove('
 $('a-start').addEventListener('click', () => { audio(); openMode(); });
 document.querySelectorAll('[data-act="end"]').forEach(b => b.addEventListener('click', () => endSession()));
 document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('click', finishResult));
-document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener('click', () => { audio(); startSession(); }));
+document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener('click', () => { audio(); S.skipOpening = true; startSession(); }));
 document.querySelectorAll('[data-act="resume"]').forEach(b => b.addEventListener('click', () => pauseSession(false)));
 document.querySelectorAll('[data-act="discard"]').forEach(b => b.addEventListener('click', () => discardSession()));
 

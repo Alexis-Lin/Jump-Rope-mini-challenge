@@ -451,7 +451,7 @@ static void draw_jump(void) {
     }
 }
 
-static void draw_simple_figure(float cx, float cy, float s) {   /* 静态 Bono（无脸极简版） */
+static void draw_simple_figure(float cx, float cy, float s) {   /* 静态吉祥物 ATOM（无脸极简版;原工作名 Bono） */
     rd_fill_circle(cx, cy - 31 * s, 15.5f * s, C_WHITE);
     rd_thick_line(cx, cy - 9 * s, cx, cy + 23 * s, 13 * s, C_LIMB);
     rd_thick_line(cx, cy - 3 * s, cx - 17 * s, cy + 11 * s, 9 * s, C_LIMB);
