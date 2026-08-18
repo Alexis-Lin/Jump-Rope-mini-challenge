@@ -120,7 +120,7 @@ async function shootLang(lang) {
   await page.waitForFunction(() => S.screen === 'result', null, { timeout: 5000 });
   await page.waitForTimeout(350); await shot('14-result');
   await ev(() => document.querySelector('#a-result [data-act="home"]').click());
-  await page.waitForTimeout(400); await shot('13-celebrate');
+  await page.waitForTimeout(750); await shot('13-celebrate');   /* 蓄力 260ms 后进入爆发帧 */
   await page.waitForFunction(() => S.screen === 'idle', null, { timeout: 5000 });
 
   /* 极限状态：四位数计数降档（时长 12min,远离 30min 上限与预告） */

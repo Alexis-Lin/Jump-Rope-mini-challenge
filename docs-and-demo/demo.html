@@ -545,7 +545,7 @@
   #atomRoot.fps10 .bono .rope         { animation-timing-function: steps(4); }
   #atomRoot.fps10.waiting .edge       { animation-timing-function: steps(15); }
   #atomRoot.fps10 .confetti-p         { animation-timing-function: steps(20); }
-  #atomRoot.fps10 .celebrate .txt     { animation-timing-function: steps(5); }
+  #atomRoot.fps10 .celebrate .c-state { animation-timing-function: steps(5); }
   #atomRoot.fps10 .a-count.pop        { animation-timing-function: steps(3); }
   #atomRoot.fps10 .a-count.pow        { animation-timing-function: steps(4); }
 
@@ -559,7 +559,7 @@
   #atomRoot.fps13 .bono .rope         { animation-timing-function: steps(5); }
   #atomRoot.fps13.waiting .edge       { animation-timing-function: steps(20); }
   #atomRoot.fps13 .confetti-p         { animation-timing-function: steps(26); }
-  #atomRoot.fps13 .celebrate .txt     { animation-timing-function: steps(6); }
+  #atomRoot.fps13 .celebrate .c-state { animation-timing-function: steps(6); }
   #atomRoot.fps13 .a-count.pop        { animation-timing-function: steps(3); }
   #atomRoot.fps13 .a-count.pow        { animation-timing-function: steps(5); }
 
@@ -573,7 +573,7 @@
   #atomRoot.fps15 .bono .rope         { animation-timing-function: steps(6); }
   #atomRoot.fps15.waiting .edge       { animation-timing-function: steps(22); }
   #atomRoot.fps15 .confetti-p         { animation-timing-function: steps(30); }
-  #atomRoot.fps15 .celebrate .txt     { animation-timing-function: steps(8); }
+  #atomRoot.fps15 .celebrate .c-state { animation-timing-function: steps(8); }
   #atomRoot.fps15 .a-count.pop        { animation-timing-function: steps(4); }
   #atomRoot.fps15 .a-count.pow        { animation-timing-function: steps(6); }
 
@@ -582,26 +582,48 @@
   #atomRoot .pauseveil { font-size: var(--t32); }
   #atomRoot .pauseveil span { font-size: var(--t22); }
   #atomRoot .pauseveil .atom-cta { font-size: var(--t28); }
-  #atomRoot .celebrate .txt { font-size: var(--t36); }
+  #atomRoot .celebrate .c-state { font-size: var(--n56); }
 
-  /* 达标庆祝覆盖层（两端共用样式） */
+  /* 庆祝页(自包含原子模块,吸纳 Quick-Voice-Tips-between-sets · set-celebration 设计):
+     三行堆叠(范围小·上 / 状态最大·中·发光 / 表现徽章·下) + 蓄力→爆发 + 分级撒花 + 圆边金光环;
+     不透明整屏(恭喜页在结果页之后独立弹出);演完只发 onDone,不拥有导航 */
   .celebrate {
     position: absolute; inset: 0; z-index: 20;
     display: none;
-    align-items: center; justify-content: center; flex-direction: column; gap: 12px;
-    /* 8-18:恭喜页移到结果页之后独立弹出 → 改为不透明整屏,不再透出底层内容 */
+    align-items: center; justify-content: center; flex-direction: column; gap: .3em;
     background: radial-gradient(120% 100% at 50% 100%, #1C3324 0%, #121514 70%);
+    overflow: hidden;
   }
   .celebrate.show { display: flex; }
-  .celebrate .txt {
-    font-size: var(--t36); font-weight: 800; color: #FFDB80;   /* 打击金(--gold 在本系统为深绿) */
-    letter-spacing: .06em;
-    background: rgba(10, 12, 11, .78);
-    padding: .35em 1em; border-radius: 999px;
-    text-shadow: 0 4px 28px rgba(0, 0, 0, .6);
-    animation: zoomin .5s;
+  .celebrate .cv { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  .celebrate .ring { position: absolute; inset: 7px; border-radius: 50%; border: 3px solid transparent; pointer-events: none; }
+  .celebrate.burst .ring {
+    border-color: rgba(255,219,128,.85);
+    box-shadow: 0 0 34px rgba(255,219,128,.5), inset 0 0 30px rgba(255,219,128,.3);
+    animation: celering 2.2s steps(8) forwards;
   }
-  @keyframes zoomin { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes celering { from { opacity: 1; } to { opacity: 0; } }
+  .celebrate .flash { position: absolute; inset: 0; background: #FFF; opacity: 0; pointer-events: none; }
+  .celebrate.burst .flash { animation: celeflash .28s steps(3) forwards; }
+  @keyframes celeflash { from { opacity: .5; } to { opacity: 0; } }
+  .celebrate .c-scope { font-size: var(--t24); color: var(--stage-soft); letter-spacing: .3em; }
+  .celebrate .c-state {
+    font-size: var(--n56); font-weight: 800; color: #EDF2EF; letter-spacing: .08em;
+    text-shadow: 0 0 24px rgba(35,199,102,.7);   /* 状态词 = 主视觉,neon 发光 */
+  }
+  .celebrate .c-badge {
+    font-size: var(--t24); font-weight: 800; color: #121514;
+    background: #FFDB80; border-radius: 999px; padding: .28em 1em; margin-top: .5em;
+    box-shadow: 0 0 24px rgba(255,219,128,.5); display: none;
+  }
+  .celebrate .c-badge.on { display: block; }
+  /* 蓄力(~170/260ms):半隐缩小充能 → 爆发:overshoot 弹入,错峰 范围→状态→徽章 */
+  .celebrate.charge .c-scope, .celebrate.charge .c-state, .celebrate.charge .c-badge { opacity: .25; transform: scale(.6); }
+  .celebrate.burst .c-scope { animation: celein .3s steps(4) both; }
+  .celebrate.burst .c-state { animation: celepop .42s steps(5) both .06s; }
+  .celebrate.burst .c-badge.on { animation: celepop .42s steps(5) both .3s; }
+  @keyframes celein { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes celepop { 0% { opacity: 0; transform: scale(.4); } 62% { transform: scale(1.14); } 100% { opacity: 1; transform: scale(1); } }
 
   /* 暂停覆盖层 */
   .pauseveil {
@@ -855,7 +877,15 @@
         <div class="flip-hint" data-i18n="tapBack">点按返回</div>
       </div>
 
-      <div class="celebrate" id="a-celebrate"><div class="txt">达成！</div></div>
+      <!-- 庆祝页:config 驱动的原子模块(见下方 celebrationShow);三行=范围/状态/徽章 -->
+      <div class="celebrate" id="a-celebrate">
+        <canvas class="cv" id="a-cele-cv" width="466" height="466"></canvas>
+        <div class="ring"></div>
+        <div class="c-scope" id="a-cele-scope">本轮</div>
+        <div class="c-state" id="a-cele-state">已完成</div>
+        <div class="c-badge" id="a-cele-badge">★ 新纪录</div>
+        <div class="flash"></div>
+      </div>
     </div>
     <div class="atom-caption">Atom · 466×466 圆屏 · 15fps 刷新率模拟</div>
   </div>
@@ -1211,6 +1241,7 @@ zh: {
   achvLine: (g, a, i, s) => `已获 ${g}/${a} 枚 · ${i} 积分 ${s}`,
   cnt: c => `${c} 下`,
   goalReached: '目标达成！', roundOver: '本轮结束', newRec: '新纪录！', timeUp: '时间到！', celeGoal: '达成！',
+  celeScope: '本轮', celeDone: '已完成', celeBadgePb: '★ 新纪录',
   rateLine: (r, a) => `体测评级：${r}（${a} 岁段 · 示意标准）`,
   ratings: ['继续加油', '及格', '良好', '优秀', '满分'], kcal: '千卡',
   streakLine: n => `连续 ${n} 天打卡`, earnStreak: n => `${n} 天`, globalRank: r => `全球第 ${r} 名`,
@@ -1300,6 +1331,7 @@ en: {
   achvLine: (g, a, i, s) => `${g}/${a} earned · ${i} ${s} pts`,
   cnt: c => `${c}`,
   goalReached: 'Goal reached!', roundOver: 'Round over', newRec: 'New record!', timeUp: "Time's up!", celeGoal: 'Goal!',
+  celeScope: 'ROUND', celeDone: 'COMPLETE', celeBadgePb: '★ NEW PB',
   rateLine: (r, a) => `Fitness rating: ${r} (age ${a} · sample standard)`,
   ratings: ['Keep going', 'Pass', 'Good', 'Excellent', 'Perfect'], kcal: 'kcal',
   streakLine: n => `${n}-day check-in streak`, earnStreak: n => `${n}d`, globalRank: r => `Global #${r}`,
@@ -1656,6 +1688,9 @@ const sndGo   = () => tone(880, 0.25, 'sine', 0.16);
 const sndMilestone = () => { tone(523,0.12,'sine',0.12); tone(659,0.12,'sine',0.12,0.10); tone(784,0.2,'sine',0.12,0.20); };
 const sndStar = () => { tone(1047,0.1,'sine',0.1); tone(1319,0.18,'sine',0.1,0.08); };
 const sndFanfare = () => { [523,659,784,1047].forEach((f,i)=>tone(f,0.3,'triangle',0.13,i*0.13)); };
+/* 庆祝模块音效:蓄力上扬 riser(落在爆发瞬间) + PB 叠层「啪啪」 */
+const sndRiser = (ms) => { for (let i = 0; i < 5; i++) tone(330 * Math.pow(1.32, i), 0.07, 'sine', 0.05, i * ms / 5000); };
+const sndClap = () => { tone(1800, 0.05, 'square', 0.055, 0.06); tone(1500, 0.05, 'square', 0.055, 0.18); };
 
 /* AI 教练语音（原型用系统 TTS；真实版接 TTS 服务定制音色，方案见设计文档） */
 let voiceOn = true;
@@ -2278,14 +2313,108 @@ $('a-jump').addEventListener('click', (e) => {
   if (!S.paused) pauseSession(true, 'tap');
   else pauseSession(false);
 });
-/* 结果页「完成」:若本轮解锁新纪录,先弹恭喜页再回首页(8-18 决议:恭喜提示与结果页解耦) */
+/* ------------------------------------------------------------
+   庆祝页原子模块(吸纳 Quick-Voice-Tips-between-sets · set celebration 设计,契约同 celebration.h):
+   config = {scope, state, perf: none|pb, dwellMs?, speak?, onDone} → 模块独立演完一次庆祝,
+   不拥有导航,演完只发 onDone;时间线:蓄力 riser(普通~170ms/PB~260ms) → 爆发 t0(撒花+overshoot+
+   屏闪+圆边金光环+主音,PB 叠「啪啪」) → t+300 语音(错峰) → dwell 溶解 → onDone;
+   点按跳过(最短停留 1200ms 兜底);分级:普通=品牌色小爆,PB=金色+底部两角彩纸炮 ------------------------------------------------------------ */
+let celeRun = null;
+function celebrationShow(cfg) {
+  $('a-cele-scope').textContent = L.celeScope;
+  $('a-cele-state').textContent = L.celeDone;
+  $('a-cele-badge').textContent = L.celeBadgePb;
+  $('a-cele-badge').classList.toggle('on', cfg.perf === 'pb');
+  const el = $('a-celebrate');
+  S.screen = 'celebrate'; bump();
+  el.classList.remove('burst'); el.classList.add('charge');
+  const chargeMs = cfg.perf === 'pb' ? 260 : 170;
+  const dwell = cfg.dwellMs || (cfg.perf === 'pb' ? 2400 : 2000);
+  celeRun = { done: false, onDone: cfg.onDone, t0: Date.now(), minMs: 1200 };
+  sndRiser(chargeMs);
+  setTimeout(() => {
+    if (!celeRun || celeRun.done) return;
+    el.classList.remove('charge'); el.classList.add('burst');
+    sndFanfare();
+    if (cfg.perf === 'pb') sndClap();
+    celeConfetti(cfg.perf === 'pb');
+    setTimeout(() => { if (celeRun && !celeRun.done) speak(cfg.speak || L.newRec); }, 300);   /* 音效 t0,人声 t+300 错峰 */
+  }, chargeMs);
+  celeRun.timer = setTimeout(celebrationDone, chargeMs + dwell);
+}
+function celebrationDone() {
+  if (!celeRun || celeRun.done) return;
+  celeRun.done = true;
+  clearTimeout(celeRun.timer);
+  celeParts = [];
+  $('a-celebrate').classList.remove('burst', 'charge');
+  const cb = celeRun.onDone; celeRun = null;
+  if (cb) cb();
+}
+$('a-celebrate').addEventListener('click', () => {   /* skippable:点按跳过 */
+  if (celeRun && Date.now() - celeRun.t0 >= celeRun.minMs) celebrationDone();
+});
+/* 撒花粒子(canvas 版):flutter 飘摆翻转 + 空气阻力;PB 加底部两角彩纸炮(party popper)与金色 */
+let celeParts = [], celeRaf = 0;
+const celeMkP = (x, y, vx, vy, pal) => ({
+  x, y, vx, vy, rot: Math.random() * 6.28, vr: (Math.random() - 0.5) * 10,
+  ph: Math.random() * 6.28, fl: 6 + Math.random() * 5,
+  col: pal[(Math.random() * pal.length) | 0], shape: (Math.random() * 3) | 0,
+  life: 1.6 + Math.random() * 1.2,
+});
+function celeConfetti(pb) {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const pal = pb ? ['#FFDB80', '#23C766', '#FFFFFF', '#F5C451'] : ['#23C766', '#7FE3A8', '#FFFFFF'];
+  celeParts = [];
+  const nBurst = reduce ? 12 : pb ? 56 : 34;
+  for (let i = 0; i < nBurst; i++) {                  /* 中上部小爆(普通档仅此) */
+    const a = Math.random() * Math.PI * 2, v = 60 + Math.random() * 150;
+    celeParts.push(celeMkP(233, 150, Math.cos(a) * v, Math.sin(a) * v - 120, pal));
+  }
+  if (pb && !reduce) for (const sx of [64, 402]) {    /* 彩纸炮:底部两角向内上方喷(仅高光) */
+    const dir = sx < 233 ? 1 : -1;
+    for (let i = 0; i < 20; i++) {
+      const sp = 280 + Math.random() * 220;
+      const ang = -Math.PI / 2 + dir * (0.3 + Math.random() * 0.32);
+      celeParts.push(celeMkP(sx, 430, Math.cos(ang) * sp, Math.sin(ang) * sp, pal));
+    }
+  }
+  cancelAnimationFrame(celeRaf);
+  const cv = $('a-cele-cv'), ctx = cv.getContext && cv.getContext('2d');
+  if (!ctx) return;
+  let last = performance.now();
+  const tick = (now) => {
+    const dt = Math.min(0.09, (now - last) / 1000); last = now;
+    ctx.clearRect(0, 0, 466, 466);
+    celeParts = celeParts.filter(p => p.life > 0);
+    if (!celeParts.length) return;
+    for (const p of celeParts) {
+      p.life -= dt;
+      p.vy += 300 * dt;                               /* 重力 */
+      p.vx *= 1 - 1.4 * dt; p.vy *= 1 - 0.6 * dt;     /* 空气阻力 */
+      p.ph += p.fl * dt;
+      p.x += (p.vx + Math.sin(p.ph) * 34) * dt;       /* flutter:横向正弦摆 */
+      p.y += p.vy * dt;
+      p.rot += p.vr * dt;
+      ctx.save();
+      ctx.globalAlpha = Math.min(1, p.life / 0.6);
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.scale(1, Math.abs(Math.sin(p.ph * 1.7)) * 0.8 + 0.2);   /* 翻转 */
+      ctx.fillStyle = p.col;
+      if (p.shape === 0) ctx.fillRect(-4, -2.6, 8, 5.2);
+      else if (p.shape === 1) { ctx.beginPath(); ctx.arc(0, 0, 2.6, 0, 7); ctx.fill(); }
+      else ctx.fillRect(-6, -1.1, 12, 2.2);           /* 细丝带 */
+      ctx.restore();
+    }
+    celeRaf = requestAnimationFrame(tick);
+  };
+  celeRaf = requestAnimationFrame(tick);
+}
+/* 结果页「完成」:若本轮解锁新纪录,演一次庆祝模块再回首页(恭喜与结果页解耦;宿主在 onDone 导航) */
 function finishResult() {
   if (S.screen === 'result' && S.celebPending) {
     S.celebPending = false;
-    $('a-celebrate').querySelector('.txt').textContent = L.newRec;
-    S.screen = 'celebrate'; bump();
-    sndFanfare(); confetti($('atomRoot'), 70);
-    setTimeout(goHome, 1900);
+    celebrationShow({ scope: 'round', state: 'done', perf: 'pb', onDone: goHome });
     return;
   }
   goHome();
