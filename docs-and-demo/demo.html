@@ -772,6 +772,7 @@
           <div class="srow"><span data-i18n="setRemind">每日提醒</span><button class="a-goal-chip sm" id="as-remind">关</button></div>
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
           <div class="srow"><span data-i18n="setBgm">背景音乐</span><button class="a-goal-chip sm" id="as-bgm">开</button></div>
+          <div class="srow"><span data-i18n="setQuiet">安静模式</span><button class="a-goal-chip sm" id="as-quiet">关</button></div>
         </div></div>
         <div class="flip-hint" data-i18n="tapBackBlank">点按返回</div>
       </div>
@@ -1139,7 +1140,7 @@ zh: {
   boardSubs: { round: '自由单轮最高 · 本月', timed: '1 分钟最高 · 本月', streak: '连续打卡天数 · 本月' },
   passFootDay: (d, n) => `再坚持 ${d} 天超过 ${n}`, dayUnit: n => `${n} 天`,
   setTitle: '设置', setGoal: '自由跳目标', setLen: '限时时长',
-  setRemind: '每日提醒', setVoice: '教练语音', setBgm: '背景音乐',
+  setRemind: '每日提醒', setVoice: '教练语音', setBgm: '背景音乐', setQuiet: '安静模式',
   addTitle: '追加记录', addSub: '补记过往跳绳 · 不计入榜单', addSave: '保存',
   addSaved: (d, n) => `${d} 补记 ${n} 下`, modeNote: '仅识别并脚跳 · 交替跳不计数',
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
@@ -1227,7 +1228,7 @@ en: {
   boardSubs: { round: 'free round best · monthly', timed: "1' best · monthly", streak: 'streak days · monthly' },
   passFootDay: (d, n) => `${d}d to pass ${n}`, dayUnit: n => `${n}d`,
   setTitle: 'Settings', setGoal: 'Freestyle goal', setLen: 'Timed length',
-  setRemind: 'Reminder', setVoice: 'Coach voice', setBgm: 'Music',
+  setRemind: 'Reminder', setVoice: 'Coach voice', setBgm: 'Music', setQuiet: 'Quiet mode',
   addTitle: 'Add Record', addSub: 'Backfill past jumps · not ranked', addSave: 'Save',
   addSaved: (d, n) => `${d} +${n} logged`, modeNote: 'Both-feet jumps only',
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
@@ -1559,22 +1560,37 @@ const sndJump = (n) => {
   tone(f * 2, 0.10, 'sine', 0.045);
 };
 const sndBeep = () => tone(520, 0.12, 'sine', 0.14);
-/* 轻量 BGM:合成节奏循环(≈110BPM),音量极低垫在音效下;训练中播放,暂停静音,可在设置关 */
-let bgmOn = true, bgmSeq = null;
+/* 轻量 BGM:合成节奏循环,音量极低垫在音效下;训练中播放,暂停静音,可在设置关。
+   跳频自适应变速(音频策略 Q2 拍板):跳频 1.6–2.6 跳/秒 → 96–128 BPM,
+   ±4 BPM 量化、仅小节边界换挡(每小节最多滑一档,防抖动),变速不变调;停跳/暂停缓回 110 */
+let bgmOn = true, bgmSeq = null, bgmBpm = 110;
+function bgmTargetBpm() {
+  const ivl = skel.jumpIvl;                       /* 跳跃间隔 EMA(与虚拟绳同一转速信号源) */
+  if (!ivl || S.paused || S.screen !== 'jump') return 110;
+  const f = Math.min(2.6, Math.max(1.6, 1000 / ivl));
+  return Math.round((96 + (f - 1.6) * 32) / 4) * 4;   /* 线性映射 + ±4 BPM 量化 */
+}
 function bgmStart() {
   if (!bgmOn || bgmSeq) return;
   const ac = audio(); if (!ac) return;
   let step = 0;
-  bgmSeq = setInterval(() => {
-    if (S.paused || S.screen !== 'jump') return;
-    if (step % 4 === 0) tone(82, 0.18, 'sine', 0.075);            /* 低音脉冲 */
-    if (step % 2 === 1) tone(6200, 0.03, 'triangle', 0.012);      /* 轻 hat */
-    if (step === 6) tone(PENTA[0] / 2, 0.22, 'triangle', 0.028);  /* 五声低音应和 */
-    if (step === 14) tone(PENTA[3] / 4, 0.22, 'triangle', 0.028);
-    step = (step + 1) % 16;
-  }, 272);
+  const loop = () => {
+    if (S.screen === 'jump' && !S.paused) {
+      if (step % 4 === 0) tone(82, 0.18, 'sine', 0.075);            /* 低音脉冲 */
+      if (step % 2 === 1) tone(6200, 0.03, 'triangle', 0.012);      /* 轻 hat */
+      if (step === 6) tone(PENTA[0] / 2, 0.22, 'triangle', 0.028);  /* 五声低音应和 */
+      if (step === 14) tone(PENTA[3] / 4, 0.22, 'triangle', 0.028);
+      step = (step + 1) % 16;
+      if (step === 0) {                             /* 小节边界:向目标 BPM 滑一档 */
+        const t = bgmTargetBpm();
+        bgmBpm += Math.max(-4, Math.min(4, t - bgmBpm));
+      }
+    }
+    bgmSeq = setTimeout(loop, 30000 / bgmBpm);      /* 八分音符步进:110BPM ≈ 272ms */
+  };
+  bgmSeq = setTimeout(loop, 30000 / bgmBpm);
 }
-function bgmStop() { clearInterval(bgmSeq); bgmSeq = null; }
+function bgmStop() { clearTimeout(bgmSeq); bgmSeq = null; bgmBpm = 110; }
 const sndGo   = () => tone(880, 0.25, 'sine', 0.16);
 const sndMilestone = () => { tone(523,0.12,'sine',0.12); tone(659,0.12,'sine',0.12,0.10); tone(784,0.2,'sine',0.12,0.20); };
 const sndStar = () => { tone(1047,0.1,'sine',0.1); tone(1319,0.18,'sine',0.1,0.08); };
@@ -2605,6 +2621,7 @@ function renderSettings() {
   $('as-remind').textContent = profile.remind === '关' ? L.off : profile.remind;
   $('as-voice').textContent = voiceOn ? L.on : L.off;
   $('as-bgm').textContent = bgmOn ? L.on : L.off;
+  $('as-quiet').textContent = (!voiceOn && !bgmOn) ? L.on : L.off;   /* 安静模式 = 语音+BGM 双关,只留计数音效 */
 }
 const REMINDS = ['关', '19:00', '20:00', '21:00'];
 /* 年龄/体重从账号 profile 带入(identity.personal),设备端不再提供修改——会议决议 */
@@ -2649,6 +2666,16 @@ $('as-voice').addEventListener('click', (e) => {
   voiceOn = !voiceOn;
   $('pb-voice').classList.toggle('on', voiceOn);
   if (!voiceOn) { try { speechSynthesis.cancel(); } catch (err) {} }
+  renderSettings();
+});
+/* 安静模式(音频策略定稿):一键 = 教练语音+BGM 双关,只留 L1 计数音效;再点恢复双开 */
+$('as-quiet').addEventListener('click', (e) => {
+  e.stopPropagation(); audio();
+  const quiet = !(!voiceOn && !bgmOn);   /* 目标状态 */
+  voiceOn = !quiet; bgmOn = !quiet;
+  $('pb-voice').classList.toggle('on', voiceOn);
+  if (!voiceOn) { try { speechSynthesis.cancel(); } catch (err) {} }
+  if (!bgmOn) bgmStop(); else if (S.screen === 'jump') bgmStart();
   renderSettings();
 });
 /* 换装：手机左右箭头（JRC 同款交互），Atom 待机点 Bono 循环 */
