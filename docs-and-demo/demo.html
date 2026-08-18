@@ -316,14 +316,18 @@
   #a-mode { gap: .8em; z-index: 2; }
   /* 角落小按钮(圆屏安全区内):左=返回图标,右=Tips */
   .corner-btn {
-    position: absolute; bottom: 8.5%;
-    background: none; border: none; cursor: pointer; font-family: inherit;
-    color: var(--stage-soft); font-size: var(--t24); font-weight: 700;
-    padding: .25em .55em; line-height: 1;
+    position: absolute; bottom: 8%;
+    background: #1B201D; border: 1.5px solid rgba(255, 255, 255, .28);
+    border-radius: 999px; cursor: pointer; font-family: inherit;
+    color: var(--stage-ink); font-weight: 700; line-height: 1;
   }
-  .corner-btn.left { left: 17%; font-size: var(--t36); padding-top: 0; }
-  .corner-btn.right { right: 15%; }
-  .corner-btn:active { color: var(--accent); }
+  .corner-btn.left {
+    left: 16%; width: 2em; height: 2em; padding: 0;
+    font-size: var(--t24);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .corner-btn.right { right: 14%; font-size: var(--t22); padding: .42em 1.1em; }
+  .corner-btn:active { color: var(--accent); border-color: var(--accent); background: #12281B; }
   .mode-opt {
     width: 80%;
     background: #1B201D;
@@ -724,13 +728,13 @@
       <!-- 模式选择（点"开始"后的中间页）：图标 + 标题 + 单行个人化副文案 -->
       <!-- 模式选择:无标题(两张卡自解释),左下角返回图标 / 右下角 Tips -->
       <div class="ascreen" id="a-mode">
-        <button class="mode-opt" id="a-opt-timed">
-          <span class="mode-ico" data-ico="clock"></span>
-          <span class="mode-txt"><b data-i18n="modeTimed">限时跳</b><span id="a-opt-timed-sub"></span></span>
-        </button>
         <button class="mode-opt" id="a-opt-free">
           <span class="mode-ico" data-ico="inf"></span>
           <span class="mode-txt"><b data-i18n="modeFree">不限时</b><span id="a-opt-free-sub"></span></span>
+        </button>
+        <button class="mode-opt" id="a-opt-timed">
+          <span class="mode-ico" data-ico="clock"></span>
+          <span class="mode-txt"><b data-i18n="modeTimed">限时跳</b><span id="a-opt-timed-sub"></span></span>
         </button>
         <button class="corner-btn left" id="a-mode-back">‹</button>
         <button class="corner-btn right" id="a-mode-tips">Tips</button>
@@ -1167,7 +1171,7 @@ zh: {
   doubleToast: g => `彩蛋！双倍星星 +${g}`, lapToast: k => `★ 点亮第 ${k} 颗星！`,
   goalToast: g => `${g} 下达成！继续冲！`, passToast: (n, rk) => `超过 ${n}！全球第 ${rk} 名`,
   luckyToast: n => `踩中今日隐藏数字 ${n}！星星 +5`,
-  spMode: '选择模式：限时跳，或者不限时',
+  spMode: '选择模式：不限时自由跳，或者限时挑战',
   spTest: m => `${m} 分钟限时测试，全力以赴！请站到镜头前`,
   spStart: o => `${o}。请站到镜头前`,
   cd: ['三', '二', '一', 'Body Park！'], sp30: '还有三十秒', sp10: '最后十秒，冲刺！',
@@ -1253,7 +1257,7 @@ en: {
   doubleToast: g => `Bonus! Double stars +${g}`, lapToast: k => `★ Star ${k} lit!`,
   goalToast: g => `${g} done — keep going!`, passToast: (n, rk) => `Passed ${n}! Global #${rk}`,
   luckyToast: n => `Lucky number ${n}! +5 stars`,
-  spMode: 'Choose a mode: timed, or free jump.',
+  spMode: 'Choose a mode: free jump, or timed.',
   spTest: m => `${m}-minute timed test. Give it your all! Step in front of the camera`,
   spStart: o => `${o} Step in front of the camera`,
   cd: ['Three', 'Two', 'One', 'Body Park!'], sp30: 'Thirty seconds left', sp10: 'Final ten seconds. Sprint!',
