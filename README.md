@@ -17,10 +17,11 @@ docs-and-demo/                     文档与 Demo(一站式)
 │                                    / 接口字段 / 视觉标准;加 ?app=1 = 纯 Demo(设备 WebView 直载)
 ├── jump-rope-mini-prd.md          PRD 完整版(含产品设计说明附录) —— 开发以此为准
 ├── figure-rendering.md            AI 火柴人渲染说明(33 关键点接口 + 几何 + 动效管线)
-└── ui/                            全部 UI 图(en/ zh/ 各 20 屏 + 火柴人规格卡 PNG)
-code/                              工程实现代码 + 后端说明
+└── ui/                            全部 UI 图(en/ zh/ 各 22 屏 + 火柴人规格卡 PNG)
+code/                              工程实现代码 + 后端
 ├── backend-spec.md                后端字段/排行榜/实现伪代码 + ATOM 用户档案模型字段对齐
-└── (include/ src/ Makefile)       嵌入式参考:纯 C + 接口契约 + WebView 方案
+├── backend/                       后端参考实现(FastAPI+Redis 单文件可跑:三榜/脱敏/校验/日卡)
+└── (include/ src/ Makefile)       嵌入式参考:纯 C(已对齐 2026-08-18 决议版) + 接口契约 + WebView 方案
 backup/                            过程工具(截图生成器 / 规格卡源文件)
 ```
 
@@ -46,5 +47,5 @@ Demo 控制条:自动演示 / 语音 / 10·13·15fps / 1×2×3×;空格键 = 模
 - **设计师**:`docs-and-demo/ui/` + Demo;待产出:Bono 正式形象、燃起来细化、分享海报、轻量音效包(不复用现有课程音效)(硬约束 PRD §7)
 - **产品**:PRD §12 开放问题;星星数值复核;体测国标分表
 - **AI 团队**:figure-rendering.md + 手册"火柴人渲染"页(可交互)
-- **端上工程**:`code/`(纯 C 移植 或 WebView 直载 demo.html)
-- **服务端**:code/backend-spec.md(字段表 + 伪代码 + 账号模型对齐,账号级字段以 ATOM-UserGoalPreference-and-OnBoarding 仓库为源)
+- **端上工程**:`code/`(纯 C 参考已对齐决议版,或 WebView 直载 demo.html?app=1)
+- **服务端**:code/backend-spec.md(规格)+ code/backend/(可运行参考:三榜 ZADD GT/显示名脱敏/校验/日卡云相册;账号级字段以 ATOM-UserGoalPreference-and-OnBoarding 仓库为源)
