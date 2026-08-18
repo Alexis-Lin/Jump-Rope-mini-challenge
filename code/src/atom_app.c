@@ -54,6 +54,7 @@ static struct {
     bool punch_big;
     struct { float x, y, s; uint32_t t0; bool live; } rip[MAX_RIPPLE];
     atom_kp_t pose[ATOM_KP_COUNT];
+    uint32_t kp_ms[ATOM_KP_COUNT];              /* 逐点最近有效时刻(缺失补间用) */
     uint32_t pose_ms;
     float ws;                                   /* 肩宽标尺 */
 } A;
@@ -233,8 +234,13 @@ void atom_app_on_jump(void) {
 }
 
 void atom_app_feed_pose(const atom_kp_t pts[ATOM_KP_COUNT]) {
-    memcpy(A.pose, pts, sizeof(A.pose));
-    A.pose_ms = ms();
+    /* 缺失补间(AI 团队确认):单点缺失保持最近有效值 ≤400ms,超时该部件隐藏 */
+    uint32_t now = ms();
+    for (int i = 0; i < ATOM_KP_COUNT; i++) {
+        if (pts[i].v != 0) { A.pose[i] = pts[i]; A.kp_ms[i] = now; }
+        else if (A.pose[i].v != 0 && now - A.kp_ms[i] > 400) A.pose[i].v = 0;
+    }
+    A.pose_ms = now;
 }
 
 /* ---- 触屏（简化热区；完整卡片交互工程接力） ---- */

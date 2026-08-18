@@ -14,8 +14,9 @@
 #include <stdbool.h>
 #include "atom_hal.h"
 
-/* ---- 骨骼关键点（BP-28 自研拓扑 = AI 后台 KeypointNameEnum；归一化 0-1，原点左上；
- *      镜像/置信度/帧率细节待与 AI 团队最终确认） ---- */
+/* ---- 骨骼关键点（BP-28 自研拓扑 = AI 后台 KeypointNameEnum；归一化 0-1，原点左上）
+ *  镜像 = 照镜子（已确认）：用户举右手 → 画面右侧手抬起（r* 的 x 大于 l*，喂入前已翻转）
+ *  推流 15-20Hz；单点短暂缺失由 feed 层补间保持 ≤400ms，超时该部件隐藏 ---- */
 typedef struct { float x, y, v; } atom_kp_t;
 #define ATOM_KP_COUNT 28
 /* 索引：0 右踝 1 右膝 2 右髋 3 左髋 4 左膝 5 左踝 / 6 髋中 7 肩中 8 颈 9 头 /

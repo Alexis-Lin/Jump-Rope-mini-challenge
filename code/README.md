@@ -30,7 +30,7 @@ backend/              后端参考实现（FastAPI + Redis 单文件可跑,三�
 
 | 接口（C / JS） | 说明 |
 |---|---|
-| `atom_app_feed_pose(pts)` / `AtomApp.feedPose(pts)` | **28 点骨骼流（BP-28 自研拓扑，AI 后台实际输出）**，`[{x,y,v?}]` 归一化 0–1、原点左上，建议 ≥15Hz；500ms 无数据自动回落内置演示动作；镜像/置信度细节待 AI 团队确认。渲染细节见 [火柴人渲染说明](../docs-and-demo/figure-rendering.md) |
+| `atom_app_feed_pose(pts)` / `AtomApp.feedPose(pts)` | **28 点骨骼流（BP-28 自研拓扑，AI 后台实际输出）**，`[{x,y,v?}]` 归一化 0–1、原点左上；**镜像=照镜子**（右手→画面右侧，喂入前已翻转）；推流 **15–20Hz**；**单点缺失端上补间**（保持最近有效值 ≤400ms）；500ms 无整帧回落内置演示动作。渲染细节见 [火柴人渲染说明](../docs-and-demo/figure-rendering.md) |
 | `atom_app_on_jump()` / `AtomApp.onJump()` | AI 判定一次有效跳跃 → 计数 +1，同帧触发数字打击动画/涟漪/发光/音效。识别口径：并脚跳（双脚同起同落），标称 ≤3 跳/秒；正对/侧对均支持、引导正对 |
 | `atom_app_form_hint(kind)` / `AtomApp.formHint(kind)` | 动作纠错事件（2026-08-17 评审会新增）：`alternating` 交替跳 / `single_foot` 单脚 / `low_jump` 幅度不足 → 教练语音提醒（"双脚并拢跳"）；交替/单脚不计数；同类提醒 ≥20s 间隔 |
 | `atom_app_set_presence(b)` / `AtomApp.setPresence(bool)` | **仅用于训练中**：`false` 立即暂停（停表），`true` 恢复；不作为开跳门槛（开跳为 3·2·1·BodyPark 即时流程） |
