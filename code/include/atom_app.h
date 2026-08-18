@@ -52,7 +52,7 @@ typedef struct {
  * 身高/体重/性别/年龄从账号 profile（identity.personal）带入，设备端不再设置。 ---- */
 typedef struct {
     int32_t goal_num;        /* freestyle goal 目标环：50 / 100 / 200，默认 200（8-18 由每日目标更名定稿） */
-    int32_t test_min;        /* 限时时长（8-18 定稿:固定 1 分钟；2 为历史档，best_2min 仅存档） */
+    int32_t test_min;        /* 限时时长（分钟：1 / 2，默认 1 主推——会后修订恢复 2' 档） */
     int32_t streak;          /* 连胜天数（服务端时间口径，云端为准） */
     int32_t max_streak;      /* 最长连胜（最佳战绩维度） */
     int32_t stars;           /* 星星积分（货币星） */

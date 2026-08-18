@@ -4,7 +4,7 @@
 # 与 code/backend-spec.md 一一对应（2026-08-18 评审会定稿口径）：
 #   · 三榜（按月度刷新，月度赛季）：自由单轮最高 / 1 分钟最高 / 连续打卡天数
 #   · 上榜口径 = 单轮最高（当日累计不上榜，防刷）；补记(record_backfill)不上榜
-#   · 限时仅 1 分钟（2' 档移除）；自由跳上限 30 分钟（强制终止，参数可配）
+#   · 限时 1'/2'（默认 1' 主推，会后修订恢复 2'；1' 榜上屏，2' 月榜就绪、入口 P1）；自由跳上限 30 分钟
 #   · 全员默认参与，无退出项；同分按显示名首字母（读侧二次排序）
 #   · 显示名脱敏：昵称 ≤10 截断；未填 → 邮箱/手机前缀 + ***
 #   · 一次 session = 一条 mini-workout 记录（独立打标 jump_rope，对齐 oneset）；按天聚合展示
@@ -57,7 +57,7 @@ def rdb() -> redis.Redis:
 def k_profile(ed: str, uid: str) -> str: return f"{ed}:jump:profile:{uid}"
 def k_log(ed: str, uid: str) -> str: return f"{ed}:jump:log:{uid}"            # session 明细(List)
 def k_free(ed: str, month: str) -> str: return f"{ed}:jump:free:{month}"       # 自由单轮当月最高
-def k_timed1(ed: str, month: str) -> str: return f"{ed}:jump:timed1:{month}"   # 1' 当月最高(2' 榜移除)
+def k_timed(ed: str, m: int, month: str) -> str: return f"{ed}:jump:timed{m}:{month}"  # 限时当月最高(1' 主推;2' 入口 P1)
 def k_streak(ed: str, month: str) -> str: return f"{ed}:jump:streak:{month}"   # 连续打卡天数
 def k_name(ed: str) -> str: return f"{ed}:jump:names"                          # uid -> display_name
 
@@ -67,8 +67,8 @@ BOARD_TTL = 62 * 24 * 3600            # 覆盖整月 + 归档窗口；月初新 
 def board_key(ed: str, kind: str, month: str) -> str:
     if kind == "free":
         return k_free(ed, month)
-    if kind == "timed1":
-        return k_timed1(ed, month)
+    if kind in ("timed1", "timed2"):
+        return k_timed(ed, int(kind[-1]), month)
     if kind == "streak":
         return k_streak(ed, month)
     raise HTTPException(400, "unknown board kind")
@@ -96,7 +96,7 @@ class SessionEnd(BaseModel):
     count: int = Field(gt=0, description="空轮(0)端上已拦截，服务端同样拒收")
     ms: int = Field(gt=0)
     mode: Literal["free", "timed"]
-    test_min: int = 1                       # 8-18 定稿:仅 1 分钟(其余值拒收)
+    test_min: int = 1                       # 1/2,默认 1 主推(会后修订恢复 2')
     goal: int = 0
     kcal: float = 0
     new_best: bool = False
@@ -148,8 +148,8 @@ def session_end(ev: SessionEnd, ed: str = Depends(edition)):
     # 复验（端上先行，服务端兜底）
     if ev.mode == "free" and ev.ms > FREE_CAP_MS:
         raise HTTPException(422, "free session exceeds 30-min cap")
-    if ev.mode == "timed" and ev.test_min != 1:
-        raise HTTPException(422, "timed mode is 1-minute only (2026-08-18)")
+    if ev.mode == "timed" and ev.test_min not in (1, 2):
+        raise HTTPException(422, "test_min must be 1 or 2")
     if ev.mode == "timed" and ev.ms > ev.test_min * 60_000 + 2_000:
         raise HTTPException(422, "timed session exceeds duration")
     if ev.count / (ev.ms / 1000) > MAX_JPS:
@@ -198,7 +198,7 @@ def session_end(ev: SessionEnd, ed: str = Depends(edition)):
     if not capped:
         # 榜单写入(8-18:月度 key)：ZADD GT = 只升不降（天然"取当月单轮最高"）
         month = month_of(date)
-        bk = k_free(ed, month) if ev.mode == "free" else k_timed1(ed, month)
+        bk = k_free(ed, month) if ev.mode == "free" else k_timed(ed, ev.test_min, month)
         r.zadd(bk, {ev.user_id: ev.count}, gt=True)
         r.expire(bk, BOARD_TTL)
 
@@ -208,7 +208,7 @@ def session_end(ev: SessionEnd, ed: str = Depends(edition)):
 
 # ---------------- 榜单读（Top3 + 我 + 上一名；= backend-spec §7.2） ----------------
 @app.get("/v1/jump/board/{kind}")
-def board_view(kind: Literal["free", "timed1", "streak"],
+def board_view(kind: Literal["free", "timed1", "timed2", "streak"],
                user_id: str, ed: str = Depends(edition)):
     r = rdb()
     key = board_key(ed, kind, month_of(today()))
@@ -330,12 +330,10 @@ def smoke():
         raise AssertionError("rate anomaly not caught")
     except HTTPException as e:
         assert e.status_code == 422
-    try:
-        session_end(SessionEnd(user_id="u2", count=100, ms=110_000, mode="timed",
-                               test_min=2), ed)                               # 2' 已移除
-        raise AssertionError("2-min timed not rejected")
-    except HTTPException as e:
-        assert e.status_code == 422
+    session_end(SessionEnd(user_id="u2", count=205, ms=120_000, mode="timed",
+                           test_min=2), ed)                                   # 2' 档恢复,入 timed2 月榜
+    t2 = board_view("timed2", "u2", ed)
+    assert t2["me"]["score"] == 205
     bf = record_backfill(Backfill(user_id="u1", date=today(), count=100), ed)  # 补记
     assert bf["day"]["manual"] == 100
     b2 = board_view("free", "u1", ed)

@@ -2,7 +2,7 @@
  * Atom 跳绳小挑战 · 应用核心（C 参考实现，行为基准 = demo.html 2026-08-18）
  *
  * 完整实现：状态机（即时开跳 3·2·1·BodyPark）/ 训练屏（贴边环·60 格刻度环·
- *           计时·打击数字·骨骼火柴人最新规格·金闪涟漪）/ 限时仅 1'(8-18) /
+ *           计时·打击数字·骨骼火柴人最新规格·金闪涟漪）/ 限时 1'/2'(默认 1' 主推) /
  *           自由跳 30 分钟上限(8-18) / 出框 3 分钟自动结算 / 空轮保护 /
  *           破纪录追逐与必庆祝 / ★固定每 50 / 卡路里 / 体测评级 / 档案持久化
  * 简化占位（工程接力，见 code/README.md）：
@@ -82,7 +82,7 @@ static void pf_load(void) {
     }
     /* 目标档位收敛 50/100/200（会后定稿，无自由档） */
     if (A.pf.goal_num != 50 && A.pf.goal_num != 100 && A.pf.goal_num != 200) A.pf.goal_num = 200;
-    A.pf.test_min = 1;   /* 8-18 定稿:限时仅保留 1 分钟(best_2min 旧数据保留) */
+    if (A.pf.test_min != 2) A.pf.test_min = 1;   /* 限时 1'/2',默认 1' 主推(会后修订恢复 2') */
     if (A.pf.weight_kg <= 0) A.pf.weight_kg = 40;
 }
 atom_profile_t *atom_app_profile(void) { return &A.pf; }

@@ -17,7 +17,7 @@
 | `bestSession` | int | 单轮最多(PB) | 结算时取 max |
 | `bests` | map<min, count> | 限时测试最佳(key=1/2 分钟) | 限时结算破纪录时 |
 | `goalNum` | int | **freestyle goal** 目标环(50/100/200,默认 200——8-18 由 daily goal 更名定稿) | 设置页 |
-| `testMin` | int | 限时时长(**8-18 定稿:固定 1**;2 为历史档,bests[2] 仅存档) | 设置项已移除 |
+| `testMin` | int | 限时时长(1/2,**默认 1 主推**——会后修订恢复 2' 档) | 设置页 |
 | `age` | enum | 年龄段('6-8'/'9-11'/'12-14'/'15-17'/'成人') | 设置页;体测评级用 |
 | `weight` | int kg | 体重 | 设置页;卡路里用 |
 | `remind` | enum | 每日提醒('关'/19:00/20:00/21:00) | 设置页;推送服务读取 |
@@ -48,7 +48,7 @@
 | 榜 | 口径 | Key(前缀含分区) | 重置 |
 |---|---|---|---|
 | 自由单轮 | **自由模式单轮最高**(当日累计不上榜防刷;补记不上榜) | `{edition}:jump:free:{yyyymm}` | **按月建 key,月度刷新**(月度赛季,历史月榜归档) |
-| 1 分钟 | 1' 限时**当月最高**(2' 榜随限时档移除) | `{edition}:jump:timed1:{yyyymm}` | 同上,按月刷新 |
+| 1 分钟 | 1' 限时**当月最高**(端上主推 Tab;2' 同构月榜 `timed2` 后端就绪、入口 P1) | `{edition}:jump:timed{min}:{yyyymm}` | 同上,按月刷新 |
 | 连续打卡 | 连续打卡天数 | `{edition}:jump:streak:{yyyymm}` | 按月刷新;断签回落(每日结算任务刷新) |
 
 - **Redis Sorted Set**:写入用 `ZADD GT`(只升不降=天然取最高,替代 ZINCRBY);`ZREVRANK` 查名次、`ZREVRANGE` 取 Top3/邻近区间;
@@ -115,14 +115,14 @@ handle_session_end(user, ev):            # ev = {count, ms, goal, testMin, kcal,
 ```
 # 三榜 key(8-18 定稿:按月度刷新;edition 分区,跨区永不合并)
 free_key(month, edition)   = f"{edition}:jump:free:{month}"    # 自由单轮当月最高(month=yyyymm)
-timed_key(month, edition)  = f"{edition}:jump:timed1:{month}"  # 1' 当月最高(2' 榜移除)
+timed_key(min, month, edition) = f"{edition}:jump:timed{min}:{month}"  # 限时当月最高(1' 主推;2' 榜就绪,入口 P1)
 streak_key(month, edition) = f"{edition}:jump:streak:{month}"  # 连续打卡天数,结算任务维护
 
 on_session_end(user, ev):                            # month = yyyymm(ev.date)
     if ev.mode == free:
         ZADD free_key(month), GT, ev.count, user.id  # GT=只升不降 → 天然"当月单轮最高"
     else:
-        ZADD timed_key(month), GT, ev.count, user.id
+        ZADD timed_key(ev.testMin, month), GT, ev.count, user.id
     EXPIRE key, 62d                                  # 覆盖整月+归档窗口;月初新 key 天然月度刷新
     ZADD streak_key(month), user.streak, user.id     # 结算后连胜值直接覆盖
     # record_backfill 事件不写任何榜(防刷——8-18)
