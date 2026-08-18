@@ -296,16 +296,27 @@
   .tip-slide .ttxt { font-size: var(--t28); font-weight: 700; max-width: 82%; line-height: 1.3; }
   .tip-dots { display: flex; gap: .5em; margin-top: .2em; }
   #a-best .set-rows { gap: .3em; }
-  #a-best .hbody { margin-bottom: 1.3em; }
+  #a-best .hbody { margin-bottom: .7em; }
   #a-best .srow { font-size: var(--t22); }
-  #a-set .hbody { margin-bottom: 1.7em; }
-  #a-set .set-rows { gap: .45em; }
+  #a-set .hbody { margin-bottom: 1.2em; }
+  #a-set .set-rows { gap: .4em; }
+  #a-set .srow { font-size: var(--t22); }
+  #a-set .a-goal-chip.sm { font-size: var(--t22); padding: .22em .85em; }
   .srow .a-goal-chip.sm { font-size: var(--t24); min-width: 4.2em; padding: .26em .8em; }
   .srow .bval { font-size: var(--t32); font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
 
   /* 模式选择页 */
-  #a-mode { gap: .55em; z-index: 2; }
-  .mode-title { font-size: var(--t32); font-weight: 700; }
+  #a-mode { gap: .8em; z-index: 2; }
+  /* 角落小按钮(圆屏安全区内):左=返回图标,右=Tips */
+  .corner-btn {
+    position: absolute; bottom: 8.5%;
+    background: none; border: none; cursor: pointer; font-family: inherit;
+    color: var(--stage-soft); font-size: var(--t24); font-weight: 700;
+    padding: .25em .55em; line-height: 1;
+  }
+  .corner-btn.left { left: 17%; font-size: var(--t36); padding-top: 0; }
+  .corner-btn.right { right: 15%; }
+  .corner-btn:active { color: var(--accent); }
   .mode-opt {
     width: 80%;
     background: #1B201D;
@@ -570,8 +581,11 @@
   }
   .celebrate.show { display: flex; }
   .celebrate .txt {
-    font-size: var(--t36); font-weight: 800; color: #fff;
-    text-shadow: 0 4px 24px rgba(0,0,0,.4);
+    font-size: var(--t36); font-weight: 800; color: #FFDB80;   /* 打击金(--gold 在本系统为深绿) */
+    letter-spacing: .06em;
+    background: rgba(10, 12, 11, .78);
+    padding: .35em 1em; border-radius: 999px;
+    text-shadow: 0 4px 28px rgba(0, 0, 0, .6);
     animation: zoomin .5s;
   }
   @keyframes zoomin { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
@@ -699,8 +713,8 @@
       </div>
 
       <!-- 模式选择（点"开始"后的中间页）：图标 + 标题 + 单行个人化副文案 -->
+      <!-- 模式选择:无标题(两张卡自解释),左下角返回图标 / 右下角 Tips -->
       <div class="ascreen" id="a-mode">
-        <div class="mode-title" data-i18n="modeTitle">选择模式</div>
         <button class="mode-opt" id="a-opt-timed">
           <span class="mode-ico" data-ico="clock"></span>
           <span class="mode-txt"><b data-i18n="modeTimed">限时跳</b><span id="a-opt-timed-sub"></span></span>
@@ -709,10 +723,8 @@
           <span class="mode-ico" data-ico="inf"></span>
           <span class="mode-txt"><b data-i18n="modeFree">不限时</b><span id="a-opt-free-sub"></span></span>
         </button>
-        <div class="a-chip-row">
-          <button class="a-goal-chip ghost-chip sm" id="a-mode-tips" data-i18n="howTitle">动作要领</button>
-          <button class="a-goal-chip ghost-chip sm" id="a-mode-back" data-i18n="back">返回</button>
-        </div>
+        <button class="corner-btn left" id="a-mode-back">‹</button>
+        <button class="corner-btn right" id="a-mode-tips">Tips</button>
       </div>
 
       <!-- 排行榜二级页 -->
@@ -741,7 +753,7 @@
           <div class="srow"><span data-i18n="setVoice">教练语音</span><button class="a-goal-chip sm" id="as-voice">开</button></div>
           <div class="srow"><span data-i18n="setBgm">背景音乐</span><button class="a-goal-chip sm" id="as-bgm">开</button></div>
         </div></div>
-        <div class="flip-hint" data-i18n="tapBackBlank">点按空白处返回</div>
+        <div class="flip-hint" data-i18n="tapBackBlank">点按返回</div>
       </div>
 
       <!-- 最佳战绩二级页（首页 PB 区块点击进入） -->
@@ -789,7 +801,7 @@
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
         <div class="milestone-toast" id="a-toast"></div>
         <div class="pauseveil" id="a-pause">
-          <b data-i18n="paused">已暂停</b><span data-i18n="pausedSub">回到画面继续 · 离开 3 分钟自动结算</span>
+          <b data-i18n="paused">已暂停</b><span data-i18n="pausedSub">回到画面继续</span>
           <button class="atom-cta" data-act="resume" data-i18n="resume">继续</button>
           <button class="atom-cta" data-act="end" data-i18n="finishNow" style="background:#2B332E;box-shadow:none;">立即结算</button>
         </div>
@@ -1085,7 +1097,7 @@ if (LANG !== 'zh') LANG = 'en';
 const I18N = {
 zh: {
   appTitle: '跳个绳呗',
-  launchStreak: n => `已连续打卡 ${n} 天`, streakPre: '连续', streakPost: '天',
+  launchStreak: n => `连续打卡 ${n} 天`, streakPre: '连续', streakPost: '天',
   totalDays: n => `${n} 天`,
   today: n => `今日累计 ${n} 下`, total: '累计',
   todayBestLab: '今日最高', totalCnt: n => `${n} 下`,
@@ -1096,9 +1108,9 @@ zh: {
   viewAll: '查看全部', fullBoard: '完整榜单', allMedals: '全部勋章',
   bestTitle: '最佳战绩', bestRound: '单轮最多', best1: '1 分钟最佳', best2: '2 分钟最佳',
   bestDay: '单日累计最高', bestDayRounds: '单日轮数最多', bestStreak: '最长连胜', roundUnit: n => `${n} 轮`,
-  modeTitle: '选择模式', modeTimed: '限时跳', modeFree: '不限时', back: '返回',
-  timedSub: (m, pb) => `${m} 分钟倒计时${pb ? ` · 最佳 ${pb}` : ''}`,
-  freeSub: (g, t) => (g === 0 ? '自由模式' : `每日任务 ${g} 下`) + ` · 今日 ${t}`,
+  modeTimed: '限时跳', modeFree: '不限时', back: '返回',
+  timedSub: (m, pb) => `${m} 分钟${pb ? ` · 最佳 ${pb}` : ''}`,
+  freeSub: (g, t) => `目标 ${g} · 今日 ${t}`,
   medalsTitle: '勋章', boardTodayTitle: '排行榜',
   boardRound: '今日单轮', boardTimed: '1 分钟', boardStreak: '连胜',
   boardSubs: { round: '单轮最高 · 0 点重置', timed: '1 分钟历史最佳', streak: '连续打卡天数' },
@@ -1108,8 +1120,8 @@ zh: {
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
   off: '关', on: '开', adult: '成人',
   readyTip: '请站进画面<br>边缘变绿即可', readyHint: '离开画面会自动暂停',
-  paused: '已暂停', pausedSub: '回到画面继续 · 离开 3 分钟自动结算', resume: '继续', finishNow: '立即结算',
-  done: '完成', again: '再跳一轮', tapBack: '点按返回', tapBackBlank: '点按空白处返回',
+  paused: '已暂停', pausedSub: '回到画面继续', resume: '继续', finishNow: '立即结算',
+  done: '完成', again: '再跳一轮', tapBack: '点按返回', tapBackBlank: '点按返回',
   noRecQ: '还没有记录，跳一轮就有啦', noRecH: '还没有记录<br>跳完第一轮就有啦',
   loadMore: '加载更多',
   you: '你', first: '你是今日第一！',
@@ -1180,9 +1192,9 @@ en: {
   viewAll: 'View all', fullBoard: 'Full ranking', allMedals: 'All medals',
   bestTitle: 'Best Records', bestRound: 'Best round', best1: "Best 1' test", best2: "Best 2' test",
   bestDay: 'Best day total', bestDayRounds: 'Most rounds/day', bestStreak: 'Longest streak', roundUnit: n => `×${n}`,
-  modeTitle: 'Choose Mode', modeTimed: 'Timed', modeFree: 'Free Jump', back: 'Back',
-  timedSub: (m, pb) => `${m} min countdown${pb ? ` · PB ${pb}` : ''}`,
-  freeSub: (g, t) => (g === 0 ? 'Free mode' : `Daily goal ${g}`) + ` · today ${t}`,
+  modeTimed: 'Timed', modeFree: 'Free Jump', back: 'Back',
+  timedSub: (m, pb) => `${m} min${pb ? ` · PB ${pb}` : ''}`,
+  freeSub: (g, t) => `Goal ${g} · Today ${t}`,
   medalsTitle: 'Medals', boardTodayTitle: 'Ranking',
   boardRound: 'Round', boardTimed: '1-min', boardStreak: 'Streak',
   boardSubs: { round: 'round best · daily', timed: "1' all-time", streak: 'days in a row' },
@@ -1192,8 +1204,8 @@ en: {
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
   off: 'Off', on: 'On', adult: 'Adult',
   readyTip: 'Step into view<br>until the edge glows green', readyHint: 'Auto-pauses when you step out',
-  paused: 'Paused', pausedSub: 'Step back in to resume · auto-finish after 3 min', resume: 'Resume', finishNow: 'Finish now',
-  done: 'Done', again: 'One more', tapBack: 'Tap to go back', tapBackBlank: 'Tap anywhere to go back',
+  paused: 'Paused', pausedSub: 'Step back in to resume', resume: 'Resume', finishNow: 'Finish now',
+  done: 'Done', again: 'One more', tapBack: 'Tap to go back', tapBackBlank: 'Tap to go back',
   noRecQ: 'No records yet — jump a round!', noRecH: 'No records yet<br>your first round starts it',
   loadMore: 'Load more',
   you: 'You', first: "You're #1 today!",
