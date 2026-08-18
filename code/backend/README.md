@@ -23,6 +23,7 @@ python app.py smoke            # 无需真 Redis 的内置冒烟自测（fakered
 | `POST /v1/jump/daily_card` | 日卡 PNG 上传：同日按内容 hash 去重 → 对象存储 → **自动写入手机 App 云相册**（App 侧接口，TODO） |
 | `POST /v1/jump/result_card` | **结果卡自动同步（8-18）**：每次训练完成端上渲染 466×466 结果卡上传 → App 训练记录 + 云相册；按 session hash 去重 |
 | `POST /v1/jump/record_backfill` | **追加记录（8-18）**：手动补记近 7 天（单次 ≤1000，数值待复核）；仅累加 count/manual/total，不写 best、不上榜、不追溯连胜 |
+| `POST /v1/jump/opening_tts` | **今日开场白 TTS 预生成**（音频策略 §4.5）：进 APP 时预取、按 日期+语言+文本 hash 缓存；TTS 供应商接入 TODO |
 | `push_streak_reminders()` | 连胜提醒定时任务（每分钟扫到点用户，当日未打卡则推送；通道待定 PRD #3） |
 
 ## Key 布局

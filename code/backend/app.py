@@ -122,6 +122,14 @@ class ResultCard(BaseModel):
     png_b64: str                            # 结算自动生成的 466×466 结果卡(8-18)
 
 
+class OpeningTTS(BaseModel):
+    user_id: str
+    lang: Literal["zh", "en"] = "zh"
+    date: str                               # YYYY-MM-DD(内容当日确定)
+    text: str = Field(max_length=200)       # 端上拼装好的开场白文本(≤3 句)
+    variant: Literal["free", "timed1", "timed2"] = "free"   # 句3 模式变体
+
+
 class Backfill(BaseModel):
     user_id: str
     date: str                               # YYYY-MM-DD，近 7 天内
@@ -273,6 +281,20 @@ def result_card(card: ResultCard, ed: str = Depends(edition)):
     return {"ok": True, "dedup": False, "asset": f"jump_result_{card.session_ts}_{h}.png"}
 
 
+# ---------------- 今日开场白 TTS 预生成（音频策略 §4.5:进入 APP 时预取,发令后播） ----------------
+@app.post("/v1/jump/opening_tts")
+def opening_tts(req: OpeningTTS, ed: str = Depends(edition)):
+    h = hashlib.sha256(f"{req.date}|{req.lang}|{req.text}".encode()).hexdigest()[:16]
+    key = f"{ed}:jump:otts:{req.user_id}:{req.date}:{req.variant}"
+    r = rdb()
+    if r.get(key) == h:                             # 数据快照没变 → 命中缓存
+        return {"cached": True, "audio": f"otts_{h}.opus"}
+    r.set(key, h, ex=2 * 24 * 3600)
+    # TODO 工程接力:调 TTS 供应商合成(音色=ATOM 元气教练) → 音频落对象存储;
+    # 端上发令时未就绪则本轮静默跳过(不等待不补播),完全离线回落语音包通用句
+    return {"cached": False, "audio": f"otts_{h}.opus"}
+
+
 # ---------------- 追加记录（8-18 新增一级 tab:手动补记过往跳绳） ----------------
 @app.post("/v1/jump/record_backfill")
 def record_backfill(bf: Backfill, ed: str = Depends(edition)):
@@ -336,6 +358,9 @@ def smoke():
     assert t2["me"]["score"] == 205
     bf = record_backfill(Backfill(user_id="u1", date=today(), count=100), ed)  # 补记
     assert bf["day"]["manual"] == 100
+    o1 = opening_tts(OpeningTTS(user_id="u1", date=today(), text="目标 200 下，出发！"), ed)
+    o2 = opening_tts(OpeningTTS(user_id="u1", date=today(), text="目标 200 下，出发！"), ed)
+    assert not o1["cached"] and o2["cached"]                                   # 开场白 TTS 预生成缓存命中
     b2 = board_view("free", "u1", ed)
     assert b2["me"]["score"] == 130                                            # 补记不上榜
     print("smoke OK:", json.dumps(b2, ensure_ascii=False))

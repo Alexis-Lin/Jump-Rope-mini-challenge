@@ -7,7 +7,9 @@
  *           破纪录追逐与必庆祝 / ★固定每 50 / 卡路里 / 体测评级 / 档案持久化
  * 简化占位（工程接力，见 code/README.md）：
  *           首页四卡滑动、二级页组、日卡、动作要领幻灯片、虚拟绳与金光、
- *           BGM 合成、开场白拼装、火焰放射光细化
+ *           BGM 合成(跳频自适应 96–128BPM)、开场白完整拼装与 TTS 预取、
+ *           放射光风火轮细化(5 档条纹/中心遮罩)、庆祝模块动效(蓄力爆发/撒花)、
+ *           二级页组(返回=右滑手势+左下 ‹ 按钮,无点按空白返回;课中零浮层弹窗)
  * ============================================================ */
 #include "atom_app.h"
 #include "atom_render.h"
@@ -24,6 +26,7 @@ void atom_pose_sim(float t_sec, atom_kp_t out[ATOM_KP_COUNT]);
 #define C_GREEN   0xFF23C766
 #define C_GOLD    0xFFFFDB80
 #define C_AMBER   0xFFFFB020
+#define C_STAR    0xFFFFC24D     /* 荣誉星金黄(会后修订) */
 #define C_LIMB    0xFFEDF2EF     /* 火柴人四肢/躯干 */
 #define C_WHITE   0xFFFFFFFF     /* 头 / 手 / 脚 */
 
@@ -399,11 +402,20 @@ static void draw_tick_ring(float rem_frac, bool urgent) {
 static void draw_jump(void) {
     rd_clear(C_BG);
     int lap = A.count / 50;                       /* ★ 固定每 50 一颗（全模式统一） */
-    int fire = lap > 3 ? 3 : lap;                 /* 燃起来（简化光晕，放射光工程接力） */
-    if (fire > 0)
+    /* 燃起来·风火轮(会后修订:5 档与 freestyle goal 挂钩——满50=档1橙,每完成一目标升档,
+       ≥4 目标=档5白热;限时无目标沿用每 50 一档至档3)。本参考以底部光晕示意档位颜色/强度;
+       完整放射光为工程接力:条纹 15/18/20/24/24 · 转速 18/14/11/8/5.5s · 中心径向遮罩淡出 ·
+       圆心=火柴人渲染中心(50%,62%,屏幕偏下) */
+    int goal_laps = A.goal > 0 ? A.count / A.goal : 0;
+    int fire = A.goal == TEST_GOAL ? (lap > 3 ? 3 : lap)
+             : A.count < 50 ? 0 : (1 + goal_laps > 5 ? 5 : 1 + goal_laps);
+    if (fire > 0) {
+        static const uint32_t FIRE_C[6] =
+            { 0, 0xFFFFA62C, 0xFFFFBA32, 0xFFFFCC36, 0xFFFFDC6E, 0xFFFFF6DC };
         for (int i = 0; i < 3; i++)
             rd_fill_ellipse(RW / 2.0f, RH + 40, 300 - i * 60, 130 - i * 25,
-                            lerp_c(0xFFFF7814, 0xFFFF7814, 0, 0.05f * fire + 0.02f * i));
+                            lerp_c(FIRE_C[fire], FIRE_C[fire], 0, 0.024f * fire + 0.014f * i));
+    }
     /* 进度环：自由=目标圈平滑弧；限时=60 格刻度环 */
     if (A.goal == TEST_GOAL) {
         float rem = 1 - (float)elapsed_ms() / test_ms();
@@ -435,10 +447,10 @@ static void draw_jump(void) {
     rd_7seg_str((RW - cw) / 2.0f, 155 - h, h, h * 0.14f, buf, ccol);
     /* 荣誉星（每 50 一颗；>4 颗工程接力收敛为 ★×N） */
     for (int i = 0; i < lap && i < 4; i++)
-        rd_star((RW + cw) / 2.0f + 24 + (i % 2) * 26, 155 - h + 14 + (i / 2) * 26, 11, C_GREEN);
+        rd_star((RW + cw) / 2.0f + 24 + (i % 2) * 26, 155 - h + 14 + (i / 2) * 26, 11, C_STAR);
     if (lap > 4) {
         snprintf(buf, sizeof(buf), "X%d", lap);
-        rd_text((RW + cw) / 2.0f + 50, 155 - h + 44, 2, buf, C_GREEN);
+        rd_text((RW + cw) / 2.0f + 50, 155 - h + 44, 2, buf, C_STAR);
     }
     draw_figure();
     draw_ripples();
@@ -460,6 +472,20 @@ static void draw_simple_figure(float cx, float cy, float s) {   /* 静态吉祥�
     rd_thick_line(cx, cy + 23 * s, cx + 12 * s, cy + 45 * s, 9 * s, C_LIMB);
 }
 
+/* 今日开场白(会后定稿,策略见 docs-and-demo/audio-voice-strategy.md §4.5):
+   进入 APP 时由工程侧按当日数据预生成 TTS 缓存;3·2·1·BodyPark 发令后边跳边听,
+   未就绪则本轮静默跳过不补播;当日首轮完整版(≤3 句)、同日再轮 1 句短版、「再跳一轮」不播。
+   本参考只播模式召唤句示意;完整拼装(称呼+第N次/数据亮点/模式变体)与预取为工程接力 */
+static void speak_opening(void) {
+    char buf[96];
+    if (A.goal == TEST_GOAL)
+        snprintf(buf, sizeof(buf), "%s",
+                 A.pf.test_min == 2 ? "两分钟限时，稳住节奏冲到底！" : "一分钟限时，全力冲刺！");
+    else
+        snprintf(buf, sizeof(buf), "目标 %d 下，出发！", A.pf.goal_num);
+    speak(buf);
+}
+
 void atom_app_tick(void) {
     A.now = ms();
     /* 倒计时 3·2·1 → BodyPark 发令帧 0.75s → 训练 */
@@ -471,6 +497,7 @@ void atom_app_tick(void) {
         } else if (A.countdown == 0 && A.brand_until && A.now >= A.brand_until) {
             A.brand_until = 0;
             A.scr = SCR_JUMP; A.run_since = A.now;
+            speak_opening();   /* 开场白:发令后播(预生成就绪才播,原型等价于总是就绪) */
         }
     }
     if (A.scr == SCR_JUMP && !A.paused) {
@@ -553,10 +580,13 @@ void atom_app_tick(void) {
         break;
     case SCR_JUMP: draw_jump(); break;
     case SCR_CELEB:
-        draw_jump();
-        rd_fill_circle(233, 233, 466, 0x900A0C0B);
-        rd_text((RW - rd_text_w(5, A.new_best ? "NEW BEST!" : A.goal == TEST_GOAL ? "TIME UP!" : "DONE!")) / 2,
-                210, 5, A.new_best ? "NEW BEST!" : A.goal == TEST_GOAL ? "TIME UP!" : "DONE!", C_GOLD);
+        /* 恭喜页 = 自包含庆祝模块(吸纳 Quick-Voice-Tips set-celebration,契约同其 celebration.h):
+           三行堆叠 范围(小·上)/状态(最大·中)/金徽章(下);仅新纪录时进入(点「完成」后)。
+           蓄力→爆发/撒花 flutter/彩纸炮/圆边金光环/点按跳过 为工程接力 */
+        rd_clear(C_BG);
+        rd_text((RW - rd_text_w(2, "ROUND")) / 2, 150, 2, "ROUND", C_SOFT);
+        rd_text((RW - rd_text_w(6, "COMPLETE")) / 2, 200, 6, "COMPLETE", C_INK);
+        rd_text((RW - rd_text_w(3, "* NEW PB")) / 2, 290, 3, "* NEW PB", C_GOLD);
         break;
     case SCR_RESULT: {
         /* 结算（会后减字）：大数字 / 状态行 / 评级(仅1') / ★+自我对比 / 今日累计 */
