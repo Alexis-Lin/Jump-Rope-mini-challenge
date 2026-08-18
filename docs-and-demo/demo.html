@@ -923,15 +923,15 @@
             <button id="fig-rope">换绳色</button>
             <label><input type="checkbox" id="fig-anno"> 显示关键点与锚点</label>
           </div>
-          <div class="note">红点 = AI 33 点中渲染使用的 13 点;绿点 = 派生锚点(肩/髋锚点内收进躯干柱)。</div>
+          <div class="note">红点 = BP-28 中渲染使用的关键点;绿点 = 派生锚点(肩/髋锚点内收进躯干柱;肩中 7/髋中 6 由后端直出)。</div>
         </div>
         <div style="flex:1;min-width:320px;">
           <table>
             <tr><th>部件</th><th>规则(基准 ws=1,全部圆端帽)</th></tr>
-            <tr><td>头</td><td>纯白圆 <b>r26</b>,圆心=双耳(7/8)中点上移 17;与躯干留窄隙 ≈5</td></tr>
-            <tr><td>躯干</td><td>等宽直柱 <b>宽 40 = 2×腿宽</b>,颈点(11/12 中点)→ 髋中点(23/24 中点);顶端下移 12 补偿圆帽</td></tr>
-            <tr><td>手臂</td><td><b>宽 18</b>;肩锚点 x=颈点±11、<b>y 取各自真实肩点</b>(肩部起伏跟随真人)→ 肘(13/14)→ 腕(15/16)</td></tr>
-            <tr><td>腿</td><td><b>宽 20</b>;髋锚点 = 髋中点 ±10 → 膝(25/26)→ 踝(27/28)</td></tr>
+            <tr><td>头</td><td>纯白圆 <b>r26</b>,圆心=<b>头部点(9)直接使用</b>(BP-28 直出,无需派生);与躯干留窄隙 ≈5</td></tr>
+            <tr><td>躯干</td><td>等宽直柱 <b>宽 40 = 2×腿宽</b>,<b>肩中(7)→ 髋中(6)</b>(后端直出中心点);顶端下移 12 补偿圆帽</td></tr>
+            <tr><td>手臂</td><td><b>宽 18</b>;肩锚点 x=肩中±11、<b>y 取各自真实肩点(12/13)</b>→ 肘(11/14)→ 腕(10/15)</td></tr>
+            <tr><td>腿</td><td><b>宽 20</b>;髋锚点 x=髋中±10、<b>y 取各自真实髋点(2/3)</b>→ 膝(1/4)→ 踝(0/5)</td></tr>
             <tr><td>手 / 脚</td><td>纯白圆头 <b>r9(=臂宽/2,不外凸)/ r14</b>(落地锚点,全身唯一的"凸")</td></tr>
             <tr><td>缩放</td><td>全部尺寸 × ws;<code>ws = clamp(肩宽px ÷ 40, 0.55, 1.5)</code></td></tr>
             <tr><td>颜色</td><td>肢体 #EDF2EF · 头/手/脚 #FFFFFF;逢十全身金光(shadow 26ws)0.5s 衰减</td></tr>
@@ -944,7 +944,7 @@
       <h2>关键点接口(AI 管线 → 渲染)</h2>
       <table>
         <tr><th>接口</th><th>说明</th></tr>
-        <tr><td><code>feedPose(pts[33])</code></td><td>MediaPipe Pose 拓扑,归一化 0–1、原点左上、<b>喂入前完成镜像</b>,≥15Hz;500ms 无数据回落内置模拟。渲染实际使用 13 点:耳 7/8 · 肩 11/12 · 肘 13/14 · 腕 15/16 · 髋 23/24 · 膝 25/26 · 踝 27/28</td></tr>
+        <tr><td><code>feedPose(pts[28])</code></td><td><b>BP-28 拓扑(AI 后台实际输出)</b>,归一化 0–1、原点左上,≥15Hz;500ms 无数据回落内置模拟。渲染使用 15 点:头 9 · 肩中 7 · 髋中 6 · 肩 12/13 · 肘 11/14 · 腕 10/15 · 髋 2/3 · 膝 1/4 · 踝 0/5(+脚跟 18/21 作涟漪落点);<b>不渲染</b>:脚 16/19·脚趾 17/20·腰椎 22·指尖 23-26·鼻 27。镜像/置信度/帧率细节待 AI 团队确认</td></tr>
         <tr><td><code>onJump()</code></td><td>AI 判定一次有效跳跃 → 计数+1,同帧触发数字打击/涟漪/发光/音效。<b>计数管线独立,骨骼流只负责渲染</b></td></tr>
         <tr><td><code>setPresence(bool)</code></td><td>仅用于训练中暂停/恢复,不作为开跳门槛</td></tr>
         <tr><td>视口变换</td><td>整帧固定缩至 2/3、底边锚 0.94(顶部 1/3 永久让给数字):<code>x'=0.5+(x−0.5)×⅔ · y'=0.94−(1−y)×⅔</code></td></tr>
@@ -1014,7 +1014,7 @@
     <div class="card">
       <h2>AI 管线接口(C / WebView 通用契约)</h2>
       <table>
-        <tr><td><code>feedPose(pts[33])</code></td><td>骨骼流(详见"火柴人渲染说明"页签)</td></tr>
+        <tr><td><code>feedPose(pts[28])</code></td><td>BP-28 骨骼流(详见"火柴人渲染说明"页签)</td></tr>
         <tr><td><code>onJump()</code></td><td>有效跳跃判定 → 计数+1,同帧反馈。识别口径:并脚跳(双脚同起同落),≤3 跳/秒;正对/侧对均支持,引导正对</td></tr>
         <tr><td><code>formHint(kind)</code></td><td>动作纠错事件(会议新增):<code>alternating</code> 交替跳 / <code>single_foot</code> 单脚 / <code>low_jump</code> 幅度不足 → 教练语音提醒("双脚并拢跳");交替/单脚不计数</td></tr>
         <tr><td><code>setPresence(bool)</code></td><td>仅训练中暂停/恢复</td></tr>
@@ -2237,10 +2237,11 @@ document.addEventListener('keydown', (e) => {
    实时骨骼火柴人渲染（466×466 @ 15fps）
 
    AI 团队对接口：window.AtomSkeleton.feed(pts)
-   - pts: 33 个关键点数组 [{x, y, v?}, ...]，MediaPipe Pose 拓扑
-     （0 鼻 / 7,8 耳 / 11,12 肩 / 13,14 肘 / 15,16 腕 /
-       23,24 髋 / 25,26 膝 / 27,28 踝）
-   - 坐标归一化 0–1，原点左上，请在喂入前完成镜像
+   - pts: 28 个关键点数组 [{x, y, v?}, ...]，BP-28 拓扑（AI 后台实际输出）
+     0 右踝 1 右膝 2 右髋 3 左髋 4 左膝 5 左踝 / 6 髋中 7 肩中 8 颈 9 头 /
+     10 右腕 11 右肘 12 右肩 13 左肩 14 左肘 15 左腕 /
+     16-21 脚·趾·跟（仅 18/21 脚跟作涟漪落点）22 腰椎 23-26 指尖 27 鼻（不渲染）
+   - 坐标归一化 0–1，原点左上；镜像方向/置信度字段/帧率待与 AI 团队最终确认
    - 建议喂入频率 ≥15Hz；500ms 无数据自动切回内置模拟
    - 计数管线独立（registerJump），骨骼只负责渲染与触地动效
    ============================================================ */
@@ -2271,13 +2272,12 @@ function syncRope(now) {
   skel.ropePhase += d * 0.4;
 }
 function ropeGhosts(pts, ws, dt) {
-  const L = pts[15], R = pts[16];
+  const L = pts[10], R = pts[15];   /* 右腕/左腕(BP-28) */
   if (!L || !R) return [];
   const X = (q) => q.x * 466, Y = (q) => q.y * 466;
   const wym = (Y(L) + Y(R)) / 2;
-  const footY = Math.max(pts[27] ? Y(pts[27]) : wym + 120, pts[28] ? Y(pts[28]) : wym + 120);
-  const headTop = pts[7] && pts[8]
-    ? (Y(pts[7]) + Y(pts[8])) / 2 - 43 * ws : wym - 120;
+  const footY = Math.max(pts[0] ? Y(pts[0]) : wym + 120, pts[5] ? Y(pts[5]) : wym + 120);
+  const headTop = pts[9] ? Y(pts[9]) - 26 * ws : wym - 120;
   const Rlow = (footY + 34 * ws) - wym;      /* 谷底：过脚下大弧度（宽松感） */
   const Rhigh = wym - (headTop - 30 * ws);   /* 顶点：过头顶大弧度 */
   /* 活跃度：只在"正在跳"时显示 —— 距上次计数 1.2s 内全显，之后 0.7s 内淡出 */
@@ -2316,7 +2316,8 @@ function spawnRipple() {
   if (!skel.ctx) return;
   syncRope(performance.now());
   const pts = skel.rpts;
-  const la = pts && pts[27], ra = pts && pts[28];
+  /* 落点优先取脚后跟(18/21,真实触地),缺省回落双踝(0/5) */
+  const la = pts && (pts[18] || pts[5]), ra = pts && (pts[21] || pts[0]);
   const x = la && ra ? (la.x + ra.x) / 2 * 466 : 233;
   const y = la && ra ? (Math.max(la.y, ra.y) + 0.02) * 466 : 466 * 0.88;
   skel.ripples.push({ x, y, s: skel.ws || 1, t0: performance.now() });
@@ -2331,14 +2332,19 @@ function simPose(now) {
   const swing = Math.sin(2 * Math.PI * t * f) * 0.012;
   const P = [];
   const set = (i, x, y) => { P[i] = { x, y, v: 1 }; };
-  set(0, 0.5, 0.47 + dy);
-  set(7, 0.465, 0.475 + dy); set(8, 0.535, 0.475 + dy);
-  set(11, 0.435, 0.545 + dy); set(12, 0.565, 0.545 + dy);
-  set(13, 0.385, 0.615 + dy); set(14, 0.615, 0.615 + dy);
-  set(15, 0.36 + swing, 0.665 + dy * 0.7); set(16, 0.64 - swing, 0.665 + dy * 0.7);
-  set(23, 0.462, 0.665 + dy); set(24, 0.538, 0.665 + dy);
-  set(25, 0.455, 0.775 + dy * 0.75 + crouch); set(26, 0.545, 0.775 + dy * 0.75 + crouch);
-  set(27, 0.45, 0.878 + dy * 0.5); set(28, 0.55, 0.878 + dy * 0.5);
+  /* BP-28 拓扑:中心点(头9/颈8/肩中7/髋中6)直出 */
+  set(9, 0.5, 0.4385 + dy);                                       /* 头(圆心) */
+  set(8, 0.5, 0.515 + dy);                                        /* 颈 */
+  set(7, 0.5, 0.545 + dy);                                        /* 肩中 */
+  set(12, 0.435, 0.545 + dy); set(13, 0.565, 0.545 + dy);         /* 右肩/左肩 */
+  set(11, 0.385, 0.615 + dy); set(14, 0.615, 0.615 + dy);         /* 右肘/左肘 */
+  set(10, 0.36 + swing, 0.665 + dy * 0.7);                        /* 右腕 */
+  set(15, 0.64 - swing, 0.665 + dy * 0.7);                        /* 左腕 */
+  set(6, 0.5, 0.665 + dy);                                        /* 髋中 */
+  set(2, 0.462, 0.665 + dy); set(3, 0.538, 0.665 + dy);           /* 右髋/左髋 */
+  set(1, 0.455, 0.775 + dy * 0.75 + crouch); set(4, 0.545, 0.775 + dy * 0.75 + crouch);
+  set(0, 0.45, 0.878 + dy * 0.5); set(5, 0.55, 0.878 + dy * 0.5); /* 右踝/左踝 */
+  set(21, 0.443, 0.888 + dy * 0.5); set(18, 0.557, 0.888 + dy * 0.5); /* 脚跟(涟漪落点) */
   /* 随机漫游（多正弦叠加的平滑漂移）：远近缩放 ±26%、左右 ±13%、高低 ±4%
      —— 演示固定视口下火柴人大小与位置的真实变化 */
   const d = 1 + 0.26 * Math.sin(t * 0.55 + 1.3) * Math.sin(t * 0.13 + 0.4);
@@ -2379,8 +2385,8 @@ function skelFrame() {
   skel.ropePhase = (skel.ropePhase || 0) + skel.ropeOmega * dt;
   const X = (p) => p.x * 466, Y = (p) => p.y * 466;
   /* 线宽随人物远近缩放：以肩宽为尺（基准 40px），远小近大 */
-  const span = pts[11] && pts[12]
-    ? Math.hypot(X(pts[12]) - X(pts[11]), Y(pts[12]) - Y(pts[11])) : 40;
+  const span = pts[12] && pts[13]
+    ? Math.hypot(X(pts[13]) - X(pts[12]), Y(pts[13]) - Y(pts[12])) : 40;
   const ws = Math.max(0.55, Math.min(1.5, span / 40));
   skel.ws = ws;
   const rope = ropeGhosts(pts, ws, dt);
@@ -2401,16 +2407,18 @@ function skelFrame() {
     c.lineWidth = w * ws;
     c.beginPath(); c.moveTo(X(pts[a]), Y(pts[a])); c.lineTo(X(pts[b]), Y(pts[b])); c.stroke();
   };
-  /* 躯干：等宽直柱（颈点→髋中点），宽 40 = 2×腿宽；顶端下移 12ws 补偿圆帽半径，
-     保持头-躯干 pictogram 间隙。直上直下，无宽肩无梯形 */
+  /* 躯干：等宽直柱（肩中(7)→髋中(6)，BP-28 后端直出中心点，无需求中点），
+     宽 40 = 2×腿宽；顶端下移 12ws 补偿圆帽半径，保持头-躯干 pictogram 间隙 */
   c.fillStyle = bodyCol;
-  let neck = null;
-  if (pts[11] && pts[12] && pts[23] && pts[24]) {
-    neck = { x: (X(pts[11]) + X(pts[12])) / 2, y: (Y(pts[11]) + Y(pts[12])) / 2 };
+  const midOf = (a, b) => pts[a] && pts[b]
+    ? { x: (X(pts[a]) + X(pts[b])) / 2, y: (Y(pts[a]) + Y(pts[b])) / 2 } : null;
+  const sho = pts[7] ? { x: X(pts[7]), y: Y(pts[7]) } : midOf(12, 13);
+  const hipC = pts[6] ? { x: X(pts[6]), y: Y(pts[6]) } : midOf(2, 3);
+  if (sho && hipC) {
     c.lineWidth = 40 * ws;
     c.beginPath();
-    c.moveTo(neck.x, neck.y + 12 * ws);
-    c.lineTo((X(pts[23]) + X(pts[24])) / 2, (Y(pts[23]) + Y(pts[24])) / 2);
+    c.moveTo(sho.x, sho.y + 12 * ws);
+    c.lineTo(hipC.x, hipC.y);
     c.stroke();
   }
   /* 手臂：从肩锚点分出——x = 颈点 ±11ws（11×2+18=40=躯干宽，肩不外凸），
@@ -2418,22 +2426,21 @@ function skelFrame() {
      腿：从髋锚点分出（髋中点 ±10ws）——髋部总宽恒等于躯干宽 40ws，
      四肢外缘与躯干侧边齐平，无任何关节外凸（圆润 pictogram 定义，见 docs/figure-spec.html） */
   const armSeg = (sh, elbow, wrist) => {
-    if (!neck || !pts[sh] || !pts[elbow]) return;
-    const ax = neck.x + (X(pts[sh]) < neck.x ? -11 : 11) * ws;
+    if (!sho || !pts[sh] || !pts[elbow]) return;
+    const ax = sho.x + (X(pts[sh]) < sho.x ? -11 : 11) * ws;
     c.lineWidth = 18 * ws;
     c.beginPath(); c.moveTo(ax, Y(pts[sh])); c.lineTo(X(pts[elbow]), Y(pts[elbow])); c.stroke();
     seg(elbow, wrist, 18);
   };
-  armSeg(11, 13, 15); armSeg(12, 14, 16);
+  armSeg(12, 11, 10); armSeg(13, 14, 15);   /* 右肩12→肘11→腕10;左肩13→肘14→腕15 */
   const legSeg = (hip, knee, ankle) => {
-    if (!pts[hip] || !pts[knee] || !pts[23] || !pts[24]) return;
-    const hmx = (X(pts[23]) + X(pts[24])) / 2, hmy = (Y(pts[23]) + Y(pts[24])) / 2;
-    const ax = hmx + (X(pts[hip]) < hmx ? -10 : 10) * ws;
+    if (!hipC || !pts[hip] || !pts[knee]) return;
+    const ax = hipC.x + (X(pts[hip]) < hipC.x ? -10 : 10) * ws;
     c.lineWidth = 20 * ws;
-    c.beginPath(); c.moveTo(ax, hmy); c.lineTo(X(pts[knee]), Y(pts[knee])); c.stroke();
+    c.beginPath(); c.moveTo(ax, Y(pts[hip])); c.lineTo(X(pts[knee]), Y(pts[knee])); c.stroke();
     seg(knee, ankle, 20);
   };
-  legSeg(23, 25, 27); legSeg(24, 26, 28);
+  legSeg(2, 1, 0); legSeg(3, 4, 5);   /* 右髋2→膝1→踝0;左髋3→膝4→踝5;髋锚 y 取真实髋点 */
   /* 手/脚圆头（纯白）：手 r9 = 臂宽一半——白色指示"手"的存在但与前臂等宽不外凸；
      脚 r14 略大于腿半宽，作落地视觉锚点 */
   c.fillStyle = '#FFFFFF';
@@ -2441,13 +2448,16 @@ function skelFrame() {
     if (!pts[i]) return;
     c.beginPath(); c.arc(X(pts[i]), Y(pts[i]), r * ws, 0, Math.PI * 2); c.fill();
   };
-  knob(15, 9); knob(16, 9);
-  knob(27, 14); knob(28, 14);
-  /* 头：纯白实心圆，与肩部留出 pictogram 式间隙 */
-  if (pts[7] && pts[8]) {
+  knob(10, 9); knob(15, 9);
+  knob(0, 14); knob(5, 14);
+  /* 头：纯白实心圆——BP-28 直接给"头部"点(9)作圆心（不再需要双耳中点上移）;
+     缺省回落肩中上移 43ws(26+12+5,保持 pictogram 间隙) */
+  const headC = pts[9] ? { x: X(pts[9]), y: Y(pts[9]) }
+    : sho ? { x: sho.x, y: sho.y - 43 * ws } : null;
+  if (headC) {
     c.fillStyle = '#FFFFFF';
     c.beginPath();
-    c.arc((X(pts[7]) + X(pts[8])) / 2, (Y(pts[7]) + Y(pts[8])) / 2 - 17 * ws, 26 * ws, 0, Math.PI * 2);
+    c.arc(headC.x, headC.y, 26 * ws, 0, Math.PI * 2);
     c.fill();
   }
   c.shadowBlur = 0; c.shadowColor = 'transparent';   /* 辉光只作用于身体 */
@@ -2975,10 +2985,11 @@ window.hbTab = 't1';
   const cv = document.getElementById('figcv'); if (!cv) return;
   const ctx = cv.getContext('2d');
   const FR = [[48,232,120],[64,200,255],[255,200,64],[255,140,80],[190,140,255],[255,120,170],[120,255,200],[230,255,90]];
+  /* BP-28:头(9)为单点圆心;s=双肩 12/13,h=双髋 2/3,肩中/髋中由中点近似(真实管线为后端直出) */
   const POSES = [
-    {e:[[.46,.30],[.54,.30]], s:[[.42,.40],[.58,.40]], el:[[.34,.50],[.66,.50]], w:[[.31,.60],[.69,.60]], h:[[.46,.58],[.54,.58]], k:[[.45,.74],[.55,.74]], a:[[.44,.88],[.56,.88]]},
-    {e:[[.46,.24],[.54,.24]], s:[[.42,.34],[.58,.34]], el:[[.32,.42],[.68,.42]], w:[[.28,.50],[.72,.50]], h:[[.46,.52],[.54,.52]], k:[[.44,.66],[.56,.66]], a:[[.45,.76],[.55,.76]]},
-    {e:[[.46,.33],[.54,.33]], s:[[.42,.43],[.58,.43]], el:[[.33,.52],[.67,.52]], w:[[.30,.61],[.70,.61]], h:[[.46,.60],[.54,.60]], k:[[.44,.75],[.55,.75]], a:[[.44,.88],[.56,.88]]},
+    {hd:[.5,.2575], s:[[.42,.40],[.58,.40]], el:[[.34,.50],[.66,.50]], w:[[.31,.60],[.69,.60]], h:[[.46,.58],[.54,.58]], k:[[.45,.74],[.55,.74]], a:[[.44,.88],[.56,.88]]},
+    {hd:[.5,.1975], s:[[.42,.34],[.58,.34]], el:[[.32,.42],[.68,.42]], w:[[.28,.50],[.72,.50]], h:[[.46,.52],[.54,.52]], k:[[.44,.66],[.56,.66]], a:[[.45,.76],[.55,.76]]},
+    {hd:[.5,.2875], s:[[.42,.43],[.58,.43]], el:[[.33,.52],[.67,.52]], w:[[.30,.61],[.70,.61]], h:[[.46,.60],[.54,.60]], k:[[.44,.75],[.55,.75]], a:[[.44,.88],[.56,.88]]},
   ];
   let pose = 0, wsUI = 1, glowT = 0, ropeI = 0, showAnno = false;
   const FS = 360;
@@ -2988,7 +2999,7 @@ window.hbTab = 't1';
     const ws = wsUI * 0.9, glow = glowT > 0 ? glowT : 0;
     const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
     const T = p => [FS / 2 + (p[0] * FS - FS / 2) * wsUI, FS * .9 - (FS * .9 - p[1] * FS) * wsUI];
-    const e = P.e.map(T), sh = P.s.map(T), el = P.el.map(T), w = P.w.map(T), h = P.h.map(T), k = P.k.map(T), a = P.a.map(T);
+    const hd = T(P.hd), sh = P.s.map(T), el = P.el.map(T), w = P.w.map(T), h = P.h.map(T), k = P.k.map(T), a = P.a.map(T);
     const neck = mid(sh[0], sh[1]), hip = mid(h[0], h[1]);
     const rc = FR[ropeI];
     ctx.strokeStyle = `rgba(${rc[0]},${rc[1]},${rc[2]},.85)`; ctx.lineWidth = 4 * ws; ctx.lineCap = 'round';
@@ -3005,11 +3016,10 @@ window.hbTab = 't1';
     });
     ctx.lineWidth = 20 * ws;
     [[0, -1], [1, 1]].forEach(([i, sg]) => {
-      ctx.beginPath(); ctx.moveTo(hip[0] + sg * 10 * ws, hip[1]); ctx.lineTo(k[i][0], k[i][1]); ctx.lineTo(a[i][0], a[i][1]); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(hip[0] + sg * 10 * ws, h[i][1]); ctx.lineTo(k[i][0], k[i][1]); ctx.lineTo(a[i][0], a[i][1]); ctx.stroke();
     });
     ctx.fillStyle = '#FFFFFF';
-    const em = mid(e[0], e[1]);
-    ctx.beginPath(); ctx.arc(em[0], em[1] - 17 * ws, 26 * ws, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.arc(hd[0], hd[1], 26 * ws, 0, 7); ctx.fill();   /* 头点(9)直接作圆心 */
     [...w.map(p => [p, 9]), ...a.map(p => [p, 14])].forEach(([p, r]) => {
       ctx.beginPath(); ctx.arc(p[0], p[1], r * ws, 0, 7); ctx.fill();
     });
@@ -3021,9 +3031,9 @@ window.hbTab = 't1';
     }
     if (showAnno) {
       ctx.fillStyle = '#E5604C';
-      [...e, ...sh, ...el, ...w, ...h, ...k, ...a].forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, 7); ctx.fill(); });
+      [hd, ...sh, ...el, ...w, ...h, ...k, ...a].forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 4, 0, 7); ctx.fill(); });
       ctx.fillStyle = '#23C766';
-      [[neck[0] - 11 * ws, sh[0][1]], [neck[0] + 11 * ws, sh[1][1]], [hip[0] - 10 * ws, hip[1]], [hip[0] + 10 * ws, hip[1]], neck, hip]
+      [[neck[0] - 11 * ws, sh[0][1]], [neck[0] + 11 * ws, sh[1][1]], [hip[0] - 10 * ws, h[0][1]], [hip[0] + 10 * ws, h[1][1]], neck, hip]
         .forEach(p => { ctx.beginPath(); ctx.arc(p[0], p[1], 4.5, 0, 7); ctx.fill(); });
     }
     if (glowT > 0) { glowT -= 0.07; requestAnimationFrame(draw); }

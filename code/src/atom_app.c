@@ -281,10 +281,12 @@ void atom_app_touch(int x, int y) {
 static void spawn_ripple(void) {
     for (int i = 0; i < MAX_RIPPLE; i++)
         if (!A.rip[i].live) {
-            float lx = A.pose[27].v ? A.pose[27].x : 0.45f;
-            float rx = A.pose[28].v ? A.pose[28].x : 0.55f;
-            float ly = A.pose[27].v ? A.pose[27].y : 0.878f;
-            float ry_ = A.pose[28].v ? A.pose[28].y : 0.878f;
+            /* 落点优先脚跟(18/21,真实触地),缺省回落双踝(0/5) —— BP-28 */
+            int li = A.pose[18].v ? 18 : 5, ri = A.pose[21].v ? 21 : 0;
+            float lx = A.pose[li].v ? A.pose[li].x : 0.45f;
+            float rx = A.pose[ri].v ? A.pose[ri].x : 0.55f;
+            float ly = A.pose[li].v ? A.pose[li].y : 0.878f;
+            float ry_ = A.pose[ri].v ? A.pose[ri].y : 0.878f;
             /* 2/3 视口变换（同渲染） */
             float x = 0.5f + (((lx + rx) * 0.5f) - 0.5f) * (2.0f / 3.0f);
             float y = 0.94f - (1 - fmaxf(ly, ry_)) * (2.0f / 3.0f) + 0.02f;
@@ -340,30 +342,34 @@ static void draw_figure(void) {
         P[i].x = (0.5f + (P[i].x - 0.5f) * (2.0f / 3.0f)) * RW;
         P[i].y = (0.94f - (1 - P[i].y) * (2.0f / 3.0f)) * RH;
     }
-    float span = P[11].v && P[12].v ? hypotf(P[12].x - P[11].x, P[12].y - P[11].y) : 40;
+    float span = P[12].v && P[13].v ? hypotf(P[13].x - P[12].x, P[13].y - P[12].y) : 40;
     float ws = span / 40; if (ws < 0.55f) ws = 0.55f; if (ws > 1.5f) ws = 1.5f;
     A.ws = ws;
-    float nx = (P[11].x + P[12].x) * 0.5f, ny = (P[11].y + P[12].y) * 0.5f;
-    float hx = (P[23].x + P[24].x) * 0.5f, hy = (P[23].y + P[24].y) * 0.5f;
-    /* 腿：髋锚点内收进躯干柱（髋中 ±10），膝/踝用真实点 */
-    rd_thick_line(hx - 10 * ws, P[23].y, P[25].x, P[25].y, 20 * ws, C_LIMB);
-    rd_thick_line(P[25].x, P[25].y, P[27].x, P[27].y, 20 * ws, C_LIMB);
-    rd_thick_line(hx + 10 * ws, P[24].y, P[26].x, P[26].y, 20 * ws, C_LIMB);
-    rd_thick_line(P[26].x, P[26].y, P[28].x, P[28].y, 20 * ws, C_LIMB);
-    /* 臂：肩锚点 x=颈点 ±11、y 取各自真实肩点（起伏跟随真人），肘/腕真实点 */
-    rd_thick_line(nx - 11 * ws, P[11].y, P[13].x, P[13].y, 18 * ws, C_LIMB);
-    rd_thick_line(P[13].x, P[13].y, P[15].x, P[15].y, 18 * ws, C_LIMB);
-    rd_thick_line(nx + 11 * ws, P[12].y, P[14].x, P[14].y, 18 * ws, C_LIMB);
-    rd_thick_line(P[14].x, P[14].y, P[16].x, P[16].y, 18 * ws, C_LIMB);
-    /* 躯干：等宽直柱 40（顶自颈点下移 12 补偿圆帽） */
+    /* BP-28:肩中(7)/髋中(6)后端直出,缺省回落左右点中点 */
+    float nx = P[7].v ? P[7].x : (P[12].x + P[13].x) * 0.5f;
+    float ny = P[7].v ? P[7].y : (P[12].y + P[13].y) * 0.5f;
+    float hx = P[6].v ? P[6].x : (P[2].x + P[3].x) * 0.5f;
+    float hy = P[6].v ? P[6].y : (P[2].y + P[3].y) * 0.5f;
+    /* 腿：髋锚点 x=髋中 ±10、y 取各自真实髋点(2/3)，膝(1/4)/踝(0/5)真实点 */
+    rd_thick_line(hx - 10 * ws, P[2].y, P[1].x, P[1].y, 20 * ws, C_LIMB);
+    rd_thick_line(P[1].x, P[1].y, P[0].x, P[0].y, 20 * ws, C_LIMB);
+    rd_thick_line(hx + 10 * ws, P[3].y, P[4].x, P[4].y, 20 * ws, C_LIMB);
+    rd_thick_line(P[4].x, P[4].y, P[5].x, P[5].y, 20 * ws, C_LIMB);
+    /* 臂：肩锚点 x=肩中 ±11、y 取各自真实肩点(12/13)，肘(11/14)/腕(10/15)真实点 */
+    rd_thick_line(nx - 11 * ws, P[12].y, P[11].x, P[11].y, 18 * ws, C_LIMB);
+    rd_thick_line(P[11].x, P[11].y, P[10].x, P[10].y, 18 * ws, C_LIMB);
+    rd_thick_line(nx + 11 * ws, P[13].y, P[14].x, P[14].y, 18 * ws, C_LIMB);
+    rd_thick_line(P[14].x, P[14].y, P[15].x, P[15].y, 18 * ws, C_LIMB);
+    /* 躯干：等宽直柱 40（顶自肩中下移 12 补偿圆帽） */
     rd_thick_line(nx, ny + 12 * ws, hx, hy, 40 * ws, C_LIMB);
     /* 手（白 r9=臂宽/2 不外凸）/ 脚（白 r14，全身唯一的"凸"） */
+    rd_fill_circle(P[10].x, P[10].y, 9 * ws, C_WHITE);
     rd_fill_circle(P[15].x, P[15].y, 9 * ws, C_WHITE);
-    rd_fill_circle(P[16].x, P[16].y, 9 * ws, C_WHITE);
-    rd_fill_circle(P[27].x, P[27].y, 14 * ws, C_WHITE);
-    rd_fill_circle(P[28].x, P[28].y, 14 * ws, C_WHITE);
-    /* 头：纯白圆 r26，双耳中点上移 17（与躯干留窄缝 ≈5） */
-    float hcx = (P[7].x + P[8].x) * 0.5f, hcy = (P[7].y + P[8].y) * 0.5f - 17 * ws;
+    rd_fill_circle(P[0].x, P[0].y, 14 * ws, C_WHITE);
+    rd_fill_circle(P[5].x, P[5].y, 14 * ws, C_WHITE);
+    /* 头：纯白圆 r26 —— BP-28 头部点(9)直接作圆心;缺省回落肩中上移 43ws */
+    float hcx = P[9].v ? P[9].x : nx;
+    float hcy = P[9].v ? P[9].y : ny - 43 * ws;
     rd_fill_circle(hcx, hcy, 26 * ws, C_WHITE);
 }
 
