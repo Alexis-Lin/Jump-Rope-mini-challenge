@@ -1145,7 +1145,7 @@
         <span class="chip">P4 整十报数</span>
         <span class="chip">P5 趣味彩蛋</span>
       </div>
-      <div class="note">P0/P1 可打断 P3–P5;反向永不打断;同优先级后到丢弃(排队会导致"事件过去了才说")。toast 只留稀有事件(破纪录/彩蛋双倍/隐藏数字/达标/上限预告),常规节点全语音化。</div>
+      <div class="note">P0/P1 可打断 P3–P5;反向永不打断;同优先级后到丢弃(排队会导致"事件过去了才说")。toast 只留稀有事件(破纪录/彩蛋双倍/达标/上限预告;隐藏数字只语音不弹窗),常规节点全语音化。</div>
     </div>
     <div class="card">
       <h2>频控防疲劳 + 生成方式</h2>
@@ -1271,7 +1271,6 @@ zh: {
   tenToast: (n, ch) => `${n} 下 · ${ch}`, starsToast: (n, g) => `${n} 下 · 星星 +${g}`,
   doubleToast: g => `彩蛋！双倍星星 +${g}`, lapToast: k => `★ 点亮第 ${k} 颗星！`,
   goalToast: g => `${g} 下达成！继续冲！`, passToast: (n, rk) => `超过 ${n}！全球第 ${rk} 名`,
-  luckyToast: n => `踩中今日隐藏数字 ${n}！星星 +5`,
   spMode: '选择模式：不限时自由跳，或者限时挑战',
   spTest: m => `${m} 分钟限时测试，全力以赴！请站到镜头前`,
   spStart: o => `${o}。请站到镜头前`,
@@ -1361,7 +1360,6 @@ en: {
   tenToast: (n, ch) => `${n} · ${ch}`, starsToast: (n, g) => `${n} · +${g} stars`,
   doubleToast: g => `Bonus! Double stars +${g}`, lapToast: k => `★ Star ${k} lit!`,
   goalToast: g => `${g} done — keep going!`, passToast: (n, rk) => `Passed ${n}! Global #${rk}`,
-  luckyToast: n => `Lucky number ${n}! +5 stars`,
   spMode: 'Choose a mode: free jump, or timed.',
   spTest: m => `${m}-minute timed test. Give it your all! Step in front of the camera`,
   spStart: o => `${o} Step in front of the camera`,
@@ -1675,10 +1673,11 @@ function bgmStart() {
   let step = 0;
   const loop = () => {
     if (S.screen === 'jump' && !S.paused) {
-      if (step % 4 === 0) tone(82, 0.18, 'sine', 0.075);            /* 低音脉冲 */
-      if (step % 2 === 1) tone(6200, 0.03, 'triangle', 0.012);      /* 轻 hat */
-      if (step === 6) tone(PENTA[0] / 2, 0.22, 'triangle', 0.028);  /* 五声低音应和 */
-      if (step === 14) tone(PENTA[3] / 4, 0.22, 'triangle', 0.028);
+      /* 82Hz 纯低频在小喇叭上不可闻 → 叠一层 E3 可闻中低音;整体增益上调至可感知(仍垫在音效下) */
+      if (step % 4 === 0) { tone(82, 0.18, 'sine', 0.11); tone(164.8, 0.14, 'triangle', 0.055); }
+      if (step % 2 === 1) tone(6200, 0.03, 'triangle', 0.022);      /* 轻 hat */
+      if (step === 6) tone(PENTA[0] / 2, 0.22, 'triangle', 0.055);  /* 五声低音应和 */
+      if (step === 14) tone(PENTA[3] / 4, 0.22, 'triangle', 0.055);
       step = (step + 1) % 16;
       if (step === 0) {                             /* 小节边界:向目标 BPM 滑一档 */
         const t = bgmTargetBpm();
@@ -2193,7 +2192,7 @@ function registerJump() {
     profile.luckyHits = (profile.luckyHits || 0) + 1;
     sndStar();
     confetti($('atomRoot'), 30);
-    toast(L.luckyToast(daily.lucky), 1800);
+    /* 隐藏数字不弹 toast(会后修订:惊喜走 语音+彩带+星星,不占画面) */
     speak(L.spLucky(daily.lucky));
   }
 
@@ -2454,20 +2453,24 @@ function bump() { render(); }
    ============================================================ */
 let autoTimer = null;
 function setAuto(on) {
-  clearInterval(autoTimer); autoTimer = null;
+  clearTimeout(autoTimer); autoTimer = null;
   $('pb-auto').classList.toggle('on', on);
   if (!on) return;
-  autoTimer = setInterval(() => {
+  const tick = () => {
     if (S.screen === 'launch') { S.screen = 'idle'; bump(); }
     else if (S.screen === 'idle') openMode();
     else if (S.screen === 'mode') startSession(profile.goalNum);
     else if (S.screen === 'result') { if ((S.resultTicks = (S.resultTicks || 0) + 1) > 8) { S.resultTicks = 0; finishResult(); } }
     else if (S.screen === 'jump' && !S.paused) {
-      /* 演示跳到 105 下再停（测试模式例外：跳满 1 分钟由计时器收尾） */
-      if (S.goal !== TEST && S.count >= 105) endSession();
+      /* 演示跑满 3 个目标再停(可看到风火轮 橙→金→白热 三档;测试模式例外:跳满时长由计时器收尾) */
+      if (S.goal !== TEST && S.count >= S.goal * 3 + 5) endSession();
       else registerJump();
     }
-  }, 460);
+    /* 每完成一个目标演示提速一档(460→260→170ms),三个目标全程 ≈3 分钟;随时可空格/点按手动加速 */
+    const laps = S.screen === 'jump' && S.goal > 0 ? Math.floor(S.count / S.goal) : 0;
+    autoTimer = setTimeout(tick, [460, 260, 170][Math.min(laps, 2)]);
+  };
+  autoTimer = setTimeout(tick, 460);
 }
 
 document.addEventListener('keydown', (e) => {
