@@ -44,7 +44,7 @@ static struct {
     atom_profile_t pf;
     int goal, count, countdown, earned;
     uint32_t cd_next, brand_until, now, run_since, elapsed, pause_since, celeb_until;
-    bool paused, goal_hit, new_best, presence;
+    bool paused, goal_hit, new_best, presence, pause_by_tap;
     int spoke30, spoke10;                       /* 限时语音节点 */
     bool cap_warned;                            /* 15 分钟上限前 1 分钟预告（一次） */
     int pb_at_start;                            /* 起跳时 PB 基准（按模式取，自我对比/追逐用） */
@@ -180,11 +180,11 @@ void atom_app_set_presence(bool p) {
     A.presence = p;
     /* 仅训练中：出框/切后台立即暂停停表；回到画面恢复（开跳不设门槛） */
     if (!p && A.scr == SCR_JUMP && !A.paused) {
-        A.paused = true; A.pause_since = ms();
+        A.paused = true; A.pause_by_tap = false; A.pause_since = ms();
         if (A.run_since) { A.elapsed += ms() - A.run_since; A.run_since = 0; }
         speak("已暂停");
-    } else if (p && A.scr == SCR_JUMP && A.paused) {
-        A.paused = false; A.run_since = ms();
+    } else if (p && A.scr == SCR_JUMP && A.paused && !A.pause_by_tap) {
+        A.paused = false; A.run_since = ms();   /* 手动暂停不被回画面自动恢复 */
     }
 }
 
@@ -250,6 +250,22 @@ void atom_app_touch(int x, int y) {
         else atom_app_start(false);               /* 不限时 */
         break;
     case SCR_READY: break;                        /* 倒计时/发令中不响应 */
+    case SCR_JUMP:
+        /* 训练中单击屏幕 = 暂停并弹控制面板;暂停中按纵向分区选择 */
+        if (!A.paused) {
+            A.paused = true; A.pause_by_tap = true; A.pause_since = ms();
+            if (A.run_since) { A.elapsed += ms() - A.run_since; A.run_since = 0; }
+            speak("已暂停");
+        } else if (y < 240) {                     /* 上区:继续 */
+            A.paused = false; A.pause_by_tap = false; A.run_since = ms();
+        } else if (y < 300) {                     /* 中区:立即结算(保存) */
+            session_end();
+        } else {                                  /* 下区:放弃本轮(不落档,已结算历史不可删) */
+            A.paused = false; A.pause_by_tap = false;
+            A.scr = SCR_IDLE;
+            speak("本轮已放弃，不计入记录");
+        }
+        break;
     case SCR_RESULT:
         if (y < 233) A.scr = SCR_MODE;            /* 上半：再跳 */
         else A.scr = SCR_IDLE;                    /* 下半：完成 */
@@ -413,8 +429,10 @@ static void draw_jump(void) {
     draw_ripples();
     if (A.paused) {
         rd_fill_circle(233, 233, 466, 0xB00A0C0B);
-        rd_text((RW - rd_text_w(4, "PAUSED")) / 2, 190, 4, "PAUSED", C_INK);
-        rd_text((RW - rd_text_w(2, "AUTO END IN 3 MIN")) / 2, 250, 2, "AUTO END IN 3 MIN", C_SOFT);
+        rd_text((RW - rd_text_w(4, "PAUSED")) / 2, 145, 4, "PAUSED", C_INK);
+        rd_text((RW - rd_text_w(3, "RESUME")) / 2, 215, 3, "RESUME", C_GREEN);
+        rd_text((RW - rd_text_w(3, "FINISH")) / 2, 262, 3, "FINISH", C_INK);
+        rd_text((RW - rd_text_w(2, "DISCARD")) / 2, 318, 2, "DISCARD", C_SOFT);
     }
 }
 

@@ -809,10 +809,12 @@
         </div>
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
         <div class="milestone-toast" id="a-toast"></div>
+        <!-- 暂停控制面板:出框自动 / 单击屏幕手动 两个入口共用;空白处点按=继续 -->
         <div class="pauseveil" id="a-pause">
-          <b data-i18n="paused">已暂停</b><span data-i18n="pausedSub">回到画面继续</span>
+          <b data-i18n="paused">已暂停</b><span id="a-pause-sub">回到画面继续</span>
           <button class="atom-cta" data-act="resume" data-i18n="resume">继续</button>
           <button class="atom-cta" data-act="end" data-i18n="finishNow" style="background:#2B332E;box-shadow:none;">立即结算</button>
+          <button class="a-goal-chip ghost-chip sm" data-act="discard" data-i18n="discardBtn" style="margin-top:.3em;">放弃本轮</button>
         </div>
       </div>
 
@@ -1130,7 +1132,8 @@ zh: {
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
   off: '关', on: '开', adult: '成人',
   readyTip: '请站进画面<br>边缘变绿即可', readyHint: '离开画面会自动暂停',
-  paused: '已暂停', pausedSub: '回到画面继续', resume: '继续', finishNow: '立即结算',
+  paused: '已暂停', pausedSub: '回到画面继续', pausedTap: '休息一下', resume: '继续', finishNow: '立即结算',
+  discardBtn: '放弃本轮', spDiscard: '本轮已放弃，不计入记录',
   done: '完成', again: '再跳一轮', tapBack: '点按返回', tapBackBlank: '点按返回',
   noRecQ: '还没有记录，跳一轮就有啦', noRecH: '还没有记录<br>跳完第一轮就有啦',
   loadMore: '加载更多',
@@ -1215,7 +1218,8 @@ en: {
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
   off: 'Off', on: 'On', adult: 'Adult',
   readyTip: 'Step into view<br>until the edge glows green', readyHint: 'Auto-pauses when you step out',
-  paused: 'Paused', pausedSub: 'Step back in to resume', resume: 'Resume', finishNow: 'Finish now',
+  paused: 'Paused', pausedSub: 'Step back in to resume', pausedTap: 'Take a breather', resume: 'Resume', finishNow: 'Finish now',
+  discardBtn: 'Discard round', spDiscard: 'Round discarded — not saved.',
   done: 'Done', again: 'One more', tapBack: 'Tap to go back', tapBackBlank: 'Tap to go back',
   noRecQ: 'No records yet — jump a round!', noRecH: 'No records yet<br>your first round starts it',
   loadMore: 'Load more',
@@ -2138,20 +2142,40 @@ function endSession() {
 }
 
 let pauseEndTimer = null;
-function pauseSession(v) {
+function pauseSession(v, by) {
   if (S.screen !== 'jump') return;
   S.paused = v;
+  S.pauseBy = v ? (by || 'away') : '';   /* away=出框自动 / tap=单击屏幕手动 */
   clearTimeout(pauseEndTimer);
   /* 计时随暂停停表 */
   if (v && S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
   if (!v && !S.runSince) S.runSince = Date.now();
   if (v) {
+    $('a-pause-sub').textContent = S.pauseBy === 'tap' ? L.pausedTap : L.pausedSub;
     speak(L.spPause);
-    /* 出框/切后台超 3 分钟视为离开，自动结算（对齐课程通用出框策略，可配 3–5min） */
+    /* 暂停超 3 分钟自动结算(成绩保存;对齐课程出框策略,可配 3–5min) */
     pauseEndTimer = setTimeout(() => { if (S.paused && S.screen === 'jump') endSession(); }, 180000);
   }
   bump();
 }
+/* 放弃本轮:计数/时长全部作废,不落档不进结算(已结算的历史数据不可删) */
+function discardSession() {
+  if (S.screen !== 'jump') return;
+  clearTimeout(pauseEndTimer);
+  S.paused = false; S.runSince = null;
+  profile.total = S.totalAtStart;   /* 回滚课中逐跳累加的 total */
+  saveProfile();
+  speak(L.spDiscard);
+  goHome();
+}
+/* 训练中单击屏幕 = 暂停并弹控制面板;遮罩空白处点按 = 继续 */
+$('a-jump').addEventListener('click', (e) => {
+  if (S.screen !== 'jump') return;
+  if (e.target.closest('button')) return;
+  audio();
+  if (!S.paused) pauseSession(true, 'tap');
+  else pauseSession(false);
+});
 function goHome() { S.screen = 'idle'; S.paused = false; clearInterval(cdTimer); clearTimeout(resultTimer); bgmStop(); S.countdown = 0; S.brandFlash = false; bump(); }
 
 /* 伪二维码占位（示意图形，非真实二维码） */
@@ -2835,6 +2859,7 @@ document.querySelectorAll('[data-act="end"]').forEach(b => b.addEventListener('c
 document.querySelectorAll('[data-act="home"]').forEach(b => b.addEventListener('click', goHome));
 document.querySelectorAll('[data-act="again"]').forEach(b => b.addEventListener('click', () => { audio(); startSession(); }));
 document.querySelectorAll('[data-act="resume"]').forEach(b => b.addEventListener('click', () => pauseSession(false)));
+document.querySelectorAll('[data-act="discard"]').forEach(b => b.addEventListener('click', () => discardSession()));
 
 $('pb-auto').addEventListener('click', () => { audio(); setAuto(!autoTimer); });
 /* 「初始状态」开关:ON = 快照当前档案 → 切换为全新空账号(演示空状态/新手开场白);OFF = 恢复快照 */
