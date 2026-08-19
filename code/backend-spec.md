@@ -34,7 +34,7 @@
 | `jump` | `{count}` | 每跳;弱网可 10 条聚合 |
 | `session_end` | `{count, ms, goal, testMin, kcal, newBest}` | **结算即上报**(排行榜/云档案入口);ms 为净时长(暂停不计)。**数据模型(评审会定稿):一次 session = 一节单组课(对齐 oneset/workout),落一条训练记录;打卡记录按 session 存储、按天聚合展示** |
 | `form_hint` | `{kind}` | 动作纠错事件(**8-18:V1 暂不启用常规纠错,交替跳识别为后续项,接口保留**):alternating 交替跳 / single_foot 单脚 / low_jump 幅度不足 / low_light 弱光;启用后端上触发教练语音,上报做规则调优 |
-| `record_backfill` | `{date, count}` | **追加记录(8-18 新增一级 tab)**:手动补记过往跳绳;服务端仅累加 `history[date].count/manual` 与 `total`,**不写 best、不上榜、不追溯连胜**;防刷边界(单日补记上限/可补天数)待运营复核 |
+| `record_backfill` | `{date, count}` | **追加记录(8-18 新增;端上入口=打卡记录页「补记」二级页)**:手动补记过往跳绳;服务端仅累加 `history[date].count/manual` 与 `total`,**不写 best、不上榜、不追溯连胜**;防刷边界(单日补记上限/可补天数)待运营复核 |
 | `result_card` | `{sessionId, png}` | **结果卡自动同步(8-18 定稿)**:每次 session_end 后端上渲染 466×466 结果卡上传对象存储 → 写入手机 App **训练记录 + 云相册**;内容 hash 去重 |
 | `opening_tts` | `{lang, date, text, variant}` | **今日开场白 TTS 预生成**(音频策略 §4.5):进入 APP 时端上拼装文本请求合成并缓存;缓存 key=日期+语言+文本 hash;发令时未就绪 → 本轮静默跳过不补播;音色=ATOM 元气教练 |
 | `daily_card` | `{date, png}` | **日卡自动同步**:用户打开某日日卡时,端上把当屏渲染为 PNG 上传对象存储 → 写入手机 App **云相册**(相册接口由 App 侧提供);同日重复打开按内容 hash 去重 |

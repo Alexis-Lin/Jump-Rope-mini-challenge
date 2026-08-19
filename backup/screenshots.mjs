@@ -64,18 +64,25 @@ async function shootLang(lang) {
   await shot('02-home');
   await ev(() => setCard(1)); await page.waitForTimeout(350); await shot('03-log-page');
   await ev(() => setCard(2)); await page.waitForTimeout(350); await shot('04-ranking-page');
-  await ev(() => setCard(3)); await page.waitForTimeout(350); await shot('05-add-record');   /* 8-18:Page4 = 追加记录 */
+  await ev(() => setCard(3)); await page.waitForTimeout(350); await shot('05-best-page');   /* 改版恢复:Page4 = 最佳战绩速览 */
   await ev(() => setCard(0)); await page.waitForTimeout(300);
 
   /* 二级页 */
   await ev(() => { renderHistory(); $('a-history').classList.add('show'); });
   await page.waitForTimeout(250); await shot('15-log-overlay');
+  /* 追加记录:打卡记录页右下「补记」进入 */
+  await ev(() => $('a-hist-add').click());
+  await page.waitForTimeout(250); await shot('23-add-record');
+  await ev(() => $('a-add').classList.remove('show'));
   /* 日卡:点今天那行 */
   await ev(() => document.querySelector('#a-history-list .hrow').click());
   await page.waitForTimeout(250); await shot('16-day-card');
   await ev(() => { $('a-daycard').classList.remove('show'); $('a-history').classList.remove('show'); });
   await ev(() => { renderABoard(); $('a-board').classList.add('show'); });
   await page.waitForTimeout(250); await shot('17-ranking-overlay');
+  /* 三榜 Page View:滑到第二榜(1 分钟) */
+  await ev(() => setBoardPage(1));
+  await page.waitForTimeout(350); await shot('24-ranking-timed');
   await ev(() => { $('a-board').classList.remove('show'); renderBest(); $('a-best').classList.add('show'); });
   await page.waitForTimeout(250); await shot('18-best-records');
   await ev(() => { $('a-best').classList.remove('show'); renderSettings(); $('a-set').classList.add('show'); });

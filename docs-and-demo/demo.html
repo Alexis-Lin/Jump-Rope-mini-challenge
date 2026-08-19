@@ -243,11 +243,23 @@
            color: var(--accent); font-weight: 800; }
   .qb-me .qb-you { font-size: var(--t24); }
   .qb-me .qb-rank { font-size: var(--t36); font-variant-numeric: tabular-nums; }
-  /* 追加记录:表单在标题与按钮之间垂直居中 */
-  #qc-add .h-list { flex: 1; min-height: 0; justify-content: center; align-items: center; gap: .9em; margin-bottom: 5.6em; }
+  /* 最佳战绩速览卡(改版恢复:追加记录移入打卡记录二级页) */
+  #qc-best .h-list { flex: 1; min-height: 0; justify-content: center; gap: .6em; margin-bottom: 5.6em; }
+  /* 追加记录二级页:表单与保存键垂直居中 */
+  #a-add .h-list { justify-content: center; align-items: center; gap: .9em; }
+  #a-add .hbody { gap: 1.2em; margin-bottom: 2.1em; }   /* 让开左下角返回按钮 */
+  #a-add { z-index: 9; }   /* 从打卡记录页(同层级,DOM 在后)进入,需盖在其上 */
+  #a-add .page-cta { position: static; transform: none; width: 44%; }   /* 跟随表单流式排布,不压底部返回按钮 */
+  #a-add .page-cta:active { transform: scale(.95); }
   /* 模式页底部提示(8-18 决议:明确告知仅支持并脚跳) */
   .mode-note { position: absolute; left: 50%; transform: translateX(-50%); bottom: 19.5%; width: 60%; text-align: center; font-size: var(--t18); color: var(--stage-soft); pointer-events: none; }
   #a-board .h-list { gap: .28em; }
+  /* 排行榜三榜 Page View(改版:小屏免点按,左右滑动换榜) */
+  .card-dots.bd-dots { position: static; margin-top: -.15em; }   /* 覆盖 .card-dots 的绝对定位,圆点跟在标题下 */
+  .bd-vp { flex: 1; min-height: 0; width: 100%; overflow: hidden; }
+  .bd-pages { display: flex; width: 300%; height: 100%; transition: transform .28s ease; }
+  .bd-page { width: calc(100%/3); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .55em; }
+  .bd-name { font-size: var(--t22); font-weight: 700; color: var(--accent); }
   .card-dots {
     position: absolute; bottom: 3.5%; left: 0; right: 0; z-index: 4;
     display: flex; justify-content: center; gap: .5em;
@@ -370,7 +382,6 @@
   }
   .a-history .flip-hint { position: absolute; bottom: 7.5%; left: 0; right: 0; margin-top: 0; }
   #a-board .flip-hint { font-size: var(--t18); bottom: 6.5%; }
-  #a-board .a-goal-chip { white-space: nowrap; }
   .board-foot {
     color: var(--accent); font-weight: 700; font-size: var(--t22);
     max-width: 82%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -747,15 +758,11 @@
               <div class="h-list" id="a-qboard"></div>
               <button class="page-cta" id="qc-board-go" data-i18n="fullBoard">完整榜单</button>
             </div>
-            <!-- Page 4 · 追加记录(8-18 决议:第三个一级 tab,手动补记过往跳绳;补记不计入榜单) -->
-            <div class="qcard page" id="qc-add">
-              <div class="page-title" data-i18n="addTitle">追加记录</div>
-              <div class="page-sub" data-i18n="addSub">补记过往跳绳 · 不计入榜单</div>
-              <div class="h-list">
-                <button class="a-goal-chip" id="qc-add-date"></button>
-                <button class="a-goal-chip" id="qc-add-cnt"></button>
-              </div>
-              <button class="page-cta" id="qc-add-save" data-i18n="addSave">保存</button>
+            <!-- Page 4 · 最佳战绩速览(完整维度在二级页;改版恢复——追加记录改为打卡记录页入口) -->
+            <div class="qcard page" id="qc-best">
+              <div class="page-title" data-i18n="bestTitle">最佳战绩</div>
+              <div class="h-list" id="a-qbest"></div>
+              <button class="page-cta" id="qc-best-go" data-i18n="viewAll">查看全部</button>
             </div>
           </div>
         </div>
@@ -780,18 +787,11 @@
         <button class="corner-btn right" id="a-mode-tips">Tips</button>
       </div>
 
-      <!-- 排行榜二级页 -->
+      <!-- 排行榜二级页(改版:小屏免点按——三榜横滑 Page View,圆点指示;第一榜再右滑 = 返回) -->
       <div class="a-history" id="a-board">
-        <div class="h-title" data-i18n="boardTodayTitle">今日排行榜</div>
-        <div class="hbody">
-          <div class="a-chip-row">
-            <button class="a-goal-chip sm" id="ab-round" data-i18n="boardRound">自由单轮</button>
-            <button class="a-goal-chip sm" id="ab-timed" data-i18n="boardTimed">1 分钟</button>
-            <button class="a-goal-chip sm" id="ab-streak" data-i18n="boardStreak">连胜</button>
-          </div>
-          <div class="h-list" id="a-board-list"></div>
-          <div class="board-foot" id="a-board-foot"></div>
-        </div>
+        <div class="h-title" data-i18n="boardTodayTitle">排行榜</div>
+        <div class="card-dots bd-dots" id="bd-dots"></div>
+        <div class="bd-vp"><div class="bd-pages" id="bd-pages"></div></div>
         <div class="flip-hint" id="a-board-sub"></div>
         <button class="corner-btn left ov-back">‹</button>
       </div>
@@ -815,6 +815,20 @@
       <div class="a-history" id="a-best">
         <div class="h-title" data-i18n="bestTitle">最佳战绩</div>
         <div class="hbody"><div class="set-rows" id="a-best-rows" style="width:64%;"></div></div>
+        <button class="corner-btn left ov-back">‹</button>
+      </div>
+
+      <!-- 追加记录二级页(8-18 决议功能;改版:入口移至打卡记录页右下「补记」,不再占一级卡位) -->
+      <div class="a-history" id="a-add">
+        <div class="h-title" data-i18n="addTitle">追加记录</div>
+        <div class="page-sub" data-i18n="addSub">补记过往跳绳 · 不计入榜单</div>
+        <div class="hbody">
+          <div class="h-list">
+            <button class="a-goal-chip" id="qc-add-date"></button>
+            <button class="a-goal-chip" id="qc-add-cnt"></button>
+          </div>
+          <button class="page-cta" id="qc-add-save" data-i18n="addSave">保存</button>
+        </div>
         <button class="corner-btn left ov-back">‹</button>
       </div>
 
@@ -882,11 +896,12 @@
         <!-- 分享翻面(迷你海报+二维码)暂缓:等分享模块(海报/落地页/App 记录分享)整体设计后一起上 -->
       </div>
 
-      <!-- 历史打卡记录（覆盖层，点按任意处返回） -->
+      <!-- 历史打卡记录（覆盖层）:右下「补记」进入追加记录二级页 -->
       <div class="a-history" id="a-history">
         <div class="h-title" data-i18n="recTitle">打卡记录</div>
         <div class="hbody"><div class="h-list" id="a-history-list"></div></div>
         <button class="corner-btn left ov-back">‹</button>
+        <button class="corner-btn right" id="a-hist-add" data-i18n="addBtn">补记</button>
       </div>
 
       <!-- 庆祝页:config 驱动的原子模块(见下方 celebrationShow);三行=范围/状态/徽章 -->
@@ -1015,7 +1030,7 @@
         <span class="st">结果页</span><span class="ar">→</span>
         <span class="st">新纪录恭喜页<br><small style="color:var(--stage-soft)">点「完成」后弹出</small></span>
       </div>
-      <div class="note">一级 tab 三个(8-18 定稿):打卡记录 · 排行榜(自由单轮 / 1 分钟 / 连续打卡三榜,按月度刷新)· 追加记录(手动补记);最佳战绩 / 动作要领 / 设置为覆盖层——<b>返回 = 右滑手势 或 左下角 ‹ 按钮</b>(触屏设备无"点按空白返回"),首页数据区块点按直达。</div>
+      <div class="note">一级卡四页(会后修订):首页 · 打卡记录 · 排行榜 · 最佳战绩速览;排行榜三榜(自由单轮 / 1 分钟 / 连续打卡)为<b>横滑 Page View</b>(小屏免点按,圆点指示,月度刷新);追加记录(手动补记)从打卡记录页右下「补记」进入;动作要领 / 设置为覆盖层——<b>返回 = 右滑手势 或 左下角 ‹ 按钮</b>(触屏设备无"点按空白返回"),首页数据区块点按直达。</div>
     </div>
     <div class="card">
       <h2>训练屏节奏(课中反馈引擎)</h2>
@@ -1237,7 +1252,7 @@ zh: {
   passFootDay: (d, n) => `再坚持 ${d} 天超过 ${n}`, dayUnit: n => `${n} 天`,
   setTitle: '设置', setGoal: '自由跳目标', setLen: '限时时长',
   setRemind: '每日提醒', setVoice: '教练语音', setBgm: '背景音乐', setQuiet: '安静模式',
-  addTitle: '追加记录', addSub: '补记过往跳绳 · 不计入榜单', addSave: '保存',
+  addTitle: '追加记录', addSub: '补记过往跳绳 · 不计入榜单', addSave: '保存', addBtn: '补记',
   addSaved: (d, n) => `${d} 补记 ${n} 下`, modeNote: '仅识别并脚跳 · 交替跳不计数',
   goalVal: g => g === 0 ? '自由跳' : `${g} 下`, lenVal: m => `${m} 分钟`,
   off: '关', on: '开', adult: '成人',
@@ -1326,7 +1341,7 @@ en: {
   passFootDay: (d, n) => `${d}d to pass ${n}`, dayUnit: n => `${n}d`,
   setTitle: 'Settings', setGoal: 'Freestyle goal', setLen: 'Timed length',
   setRemind: 'Reminder', setVoice: 'Coach voice', setBgm: 'Music', setQuiet: 'Quiet mode',
-  addTitle: 'Add Record', addSub: 'Backfill past jumps · not ranked', addSave: 'Save',
+  addTitle: 'Add Record', addSub: 'Backfill past jumps · not ranked', addSave: 'Save', addBtn: 'Add',
   addSaved: (d, n) => `${d} +${n} logged`, modeNote: 'Both-feet jumps only',
   goalVal: g => g === 0 ? 'Free' : `${g}`, lenVal: m => `${m} min`,
   off: 'Off', on: 'On', adult: 'Adult',
@@ -2885,10 +2900,12 @@ $('a-bono-idle').addEventListener('click', () => { audio(); cycleOutfit(1); });
 /* ------------------------------------------------------------
    排行榜独立模块（Atom）：Top3 + 你的邻近区间 + 超越目标提示
    核心原则：永远给"再跳几下就能超过谁"的可爬升感
+   改版:小屏免点按——三榜(自由单轮/1分钟/连续打卡)做成横滑 Page View,
+   顶部圆点指示当前榜;右滑在第一榜时 = 返回(与全局右滑返回一致)
    ------------------------------------------------------------ */
-let aBoardScope = 'round';
-function renderABoard() {
-  const kind = aBoardScope;
+const BD_KINDS = ['round', 'timed', 'streak'];
+let bdIdx = 0;
+function bdPanel(kind) {
   const list = fakeBoard(kind);
   const me = myRank(kind);
   const merged = list.map(u => ({ name: u.name, count: u.count, me: false }));
@@ -2908,27 +2925,36 @@ function renderABoard() {
   for (let i = Math.max(3, meIdx - 1); i <= Math.min(merged.length - 1, meIdx); i++) {
     rows.push(row(i, merged[i]));
   }
-  $('a-board-list').innerHTML = rows.join('');
-
   const above = meIdx > 0 ? merged[meIdx - 1] : null;
   const d = above ? above.count - me.count + 1 : 0;
-  $('a-board-foot').textContent = !above ? L.first
+  const foot = !above ? L.first
     : kind === 'streak' ? L.passFootDay(d, above.name) : L.passFoot(d, above.name);
-  $('a-board-sub').textContent = L.boardSubs[kind];
-  $('ab-round').classList.toggle('dim', kind !== 'round');
-  $('ab-timed').classList.toggle('dim', kind !== 'timed');
-  $('ab-streak').classList.toggle('dim', kind !== 'streak');
+  const name = kind === 'round' ? L.boardRound : kind === 'timed' ? L.boardTimed : L.boardStreak;
+  return `<div class="bd-page"><div class="bd-name">${name}</div>` +
+    `<div class="h-list">${rows.join('')}</div>` +
+    `<div class="board-foot">${foot}</div></div>`;
+}
+function setBoardPage(i) {
+  bdIdx = Math.max(0, Math.min(BD_KINDS.length - 1, i));
+  $('bd-pages').style.transform = `translateX(-${bdIdx * 100 / BD_KINDS.length}%)`;
+  document.querySelectorAll('#bd-dots .cdot').forEach((d, j) => d.classList.toggle('on', j === bdIdx));
+  $('a-board-sub').textContent = L.boardSubs[BD_KINDS[bdIdx]];
+}
+function renderABoard(page) {
+  $('bd-dots').innerHTML = '<span class="cdot"></span>'.repeat(BD_KINDS.length);
+  $('bd-pages').innerHTML = BD_KINDS.map(bdPanel).join('');
+  setBoardPage(page || 0);
 }
 
 /* ------------------------------------------------------------
-   首页 Quick Cards：滑动切换 [首页][打卡记录][排行榜][追加记录](8-18:一级 tab 三个)
+   首页 Quick Cards：滑动切换 [首页][打卡记录][排行榜][最佳战绩速览](改版恢复)
    ------------------------------------------------------------ */
 let cardIdx = 0, swiped = false, swX = null;
 const CARD_N = 4;
 function setCard(i) {
   cardIdx = Math.max(0, Math.min(CARD_N - 1, i));
   $('a-cards').style.transform = `translateX(-${cardIdx * 100 / CARD_N}%)`;
-  document.querySelectorAll('.cdot').forEach((d, j) => d.classList.toggle('on', j === cardIdx));
+  document.querySelectorAll('#a-dots .cdot').forEach((d, j) => d.classList.toggle('on', j === cardIdx));   /* 只作用首页卡组圆点(榜单页有自己的圆点) */
   $('a-hint-l').style.visibility = cardIdx > 0 ? 'visible' : 'hidden';
   $('a-hint-r').style.visibility = cardIdx < CARD_N - 1 ? 'visible' : 'hidden';
 }
@@ -2997,10 +3023,16 @@ function renderQuickCards() {
   $('a-qboard').innerHTML = list.slice(0, 3).map((u, i) =>
     `<div class="hrow"><span class="hd done">${i + 1}</span>` +
     `<span class="nm">${u.name}</span><span class="hc">${u.count}</span></div>`).join('');
-  /* Page 4 · 追加记录:补记表单(日期 × 下数) */
-  renderAddForm();
+  /* Page 4 · 最佳战绩速览:4 条核心维度,完整 7 维度在二级页 */
+  $('a-qbest').innerHTML = [
+    [L.bestRound, profile.bestSession], [L.best1, profile.bests[1]],
+    [L.best2, profile.bests[2]], [L.bestDay, maxDaily()],
+  ].map(([lab, v]) =>
+    `<div class="hrow"><span class="hday" style="min-width:6.4em;text-align:left;">${lab}</span>` +
+    `<span class="hc">${v || '—'}</span></div>`).join('');
 }
-/* 追加记录(8-18 决议):点日期在近 7 天循环,点下数在档位循环;保存仅落打卡与累计,
+/* 追加记录(8-18 决议;改版:独立二级页,入口在打卡记录页右下「补记」):
+   点日期在近 7 天循环,点下数在档位循环;保存仅落打卡与累计,
    不计 best、不上榜(防刷),连胜不追溯(连胜判定以服务端为准) */
 let addOff = -1, addCntI = 1;
 const ADD_CNTS = [50, 100, 150, 200, 300, 500];
@@ -3029,7 +3061,12 @@ $('qc-add-save').addEventListener('click', (e) => {
   profile.total += v;
   saveProfile();
   speak(L.addSaved(k.slice(5).replace('-', '/'), v));   /* 补记确认改语音反馈 */
+  $('a-add').classList.remove('show');   /* 保存即回打卡记录页,新增行立即可见 */
+  renderHistory();
   bump();
+});
+$('a-hist-add').addEventListener('click', (e) => {
+  e.stopPropagation(); audio(); renderAddForm(); $('a-add').classList.add('show');
 });
 function renderBest() {
   const mr = maxDailyRounds(), ms2 = profile.maxStreak || profile.streak;
@@ -3090,11 +3127,9 @@ $('qc-rec-go').addEventListener('click', () => {
 $('qc-board-go').addEventListener('click', () => {
   if (swiped) return; audio(); renderABoard(); $('a-board').classList.add('show');
 });
-['ab-round', 'ab-timed', 'ab-streak'].forEach(id => $(id).addEventListener('click', (e) => {
-  e.stopPropagation(); audio();
-  aBoardScope = id === 'ab-round' ? 'round' : id === 'ab-timed' ? 'timed' : 'streak';
-  renderABoard();
-}));
+$('qc-best-go').addEventListener('click', () => {
+  if (swiped) return; audio(); renderBest(); $('a-best').classList.add('show');
+});
 
 /* 日卡:打卡记录行点入,一屏完整成绩图(轮数/用时在此完整呈现);
    设备截图功能配合分享,卡片图同时自动同步手机 App 云相册(接口见 backend-spec) */
@@ -3160,7 +3195,7 @@ $('a-history-btn').addEventListener('click', (e) => {
 /* 返回交互(会后修订):触屏设备不存在"点按空白返回"——
    所有二级覆盖层统一 = 左下角 ‹ 返回按钮 + 右滑返回手势(阈值 60px);
    动作要领幻灯片保留"点按翻页"(末张点按完成) */
-['a-history', 'a-board', 'a-best', 'a-set', 'a-daycard', 'a-tips'].forEach(id => {
+['a-history', 'a-add', 'a-best', 'a-set', 'a-daycard', 'a-tips'].forEach(id => {
   const el = $(id);
   let sx = null;
   el.addEventListener('pointerdown', e => { sx = e.clientX; });
@@ -3169,6 +3204,22 @@ $('a-history-btn').addEventListener('click', (e) => {
     sx = null;
   });
 });
+/* 排行榜 Page View 手势:左滑下一榜,右滑上一榜;第一榜再右滑 = 返回 */
+(() => {
+  const el = $('a-board');
+  let sx = null;
+  el.addEventListener('pointerdown', e => { sx = e.clientX; });
+  el.addEventListener('pointerup', e => {
+    if (sx === null) return;
+    const dx = e.clientX - sx; sx = null;
+    if (dx < -60) {
+      if (bdIdx < BD_KINDS.length - 1) { audio(); setBoardPage(bdIdx + 1); }
+    } else if (dx > 60) {
+      if (bdIdx > 0) { audio(); setBoardPage(bdIdx - 1); }
+      else { audio(); el.classList.remove('show'); }
+    }
+  });
+})();
 document.querySelectorAll('.ov-back').forEach(b => b.addEventListener('click', (e) => {
   e.stopPropagation(); audio();
   b.closest('.a-history').classList.remove('show');
