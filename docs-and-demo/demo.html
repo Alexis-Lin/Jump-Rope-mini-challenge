@@ -2089,14 +2089,14 @@ let comboHold = false;   /* 原型「状态速览」冻结连击用(真实跳跃
 /* 热血等级:普通 0(连击<10)/ 热血1(连击≥10,静止交替点亮)/ 热血2(连击≥30,交替+转动) */
 const bloodLv = () => S.combo >= 30 ? 2 : S.combo >= 10 ? 1 : 0;
 
-/* 光芒条纹(8-26 二次修订):开机随机生成一次——条纹宽 4–9°、间隔 8–20°,
+/* 光芒条纹(8-26 二次修订):开机随机生成一次——条纹宽 7–14°、间隔 6–14°(点亮区适当宽于留黑区),
    交错分成 A/B 两组作 mask(颜色由 CSS 底色给),热血1 两组交替点亮、热血2 加整体转动 */
 (function buildRayMasks() {
   const A = ['#0000 0deg'], B = ['#0000 0deg'];
   let ang = Math.random() * 8, k = 0;
   while (ang < 356) {
-    const w = 4 + Math.random() * 5;
-    const gap = 8 + Math.random() * 12;
+    const w = 7 + Math.random() * 7;
+    const gap = 6 + Math.random() * 8;
     const e = Math.min(359.5, ang + w);
     (k % 2 ? B : A).push(`#0000 ${ang.toFixed(1)}deg, #fff ${ang.toFixed(1)}deg ${e.toFixed(1)}deg, #0000 ${e.toFixed(1)}deg`);
     ang += w + gap; k++;
