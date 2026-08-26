@@ -104,7 +104,7 @@ async function shootLang(lang) {
   await page.waitForFunction(() => S.screen === 'jump', null, { timeout: 5000 });
   await page.waitForTimeout(600);
   for (let i = 0; i < 12; i++) { await ev(() => registerJump()); await page.waitForTimeout(300); }
-  await noToast(); await page.waitForTimeout(500);
+  await noToast(); await page.waitForTimeout(150);   /* 连击窗口 0.7s:快拍,保住热血1 状态 */
   await shot('09-jumping');
   await ev(() => { registerJump(); $('a-toast').classList.remove('show'); });
   await page.waitForTimeout(90); await noToast();

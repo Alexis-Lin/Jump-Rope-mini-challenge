@@ -475,12 +475,22 @@
     display: none;
   }
   .a-combo.on { display: block; }
-  .a-combo.c0 { color: #AEB8B1; }
-  .a-combo.c1 { color: #FFA62C; }
-  .a-combo.c2 { color: #FFBA32; }
-  .a-combo.c3 { color: #FFCC36; }
-  .a-combo.c4 { color: #FFDC6E; }
-  .a-combo.c5 { color: #FFF6DC; text-shadow: 0 0 .5em rgba(255,219,128,.8); }
+  .a-combo.c0 { color: #AEB8B1; }                                             /* 普通 */
+  .a-combo.c1 { color: #FFA62C; }                                             /* 热血1 */
+  .a-combo.c2 { color: #FFF6DC; text-shadow: 0 0 .5em rgba(255,219,128,.8); } /* 热血2 */
+  /* 热血蓄力槽(8-26):普通→热血1→热血2 三段进度,位于连击标签下方 */
+  .a-meter {
+    position: absolute; top: 40.6%; left: 50%; transform: translateX(-50%);
+    width: 5.4em; height: .3em; border-radius: .15em;
+    background: rgba(255,255,255,.10); z-index: 3; display: none; overflow: hidden;
+  }
+  .a-meter.on { display: block; }
+  .a-meter i { display: block; height: 100%; width: 0; border-radius: inherit; transition: width .15s linear; }
+  .a-meter.m0 i { background: #7FE3A8; }
+  .a-meter.m1 i { background: #FFA62C; }
+  .a-meter.m2 i { background: linear-gradient(90deg, #FFDB80, #FFF6DC); box-shadow: 0 0 .4em rgba(255,219,128,.7); }
+  /* 限时进度弧最后 10s 转暖橙 */
+  #a-ring-arc.warn { stroke: #FFB020; }
   /* 爆气气场(8-25 试验):连击≥20 火柴人金色气场(超级赛亚人式),档位越高越亮;
      中心与风火轮同心(50%,62%),断连随 opacity 过渡熄灭 */
   .aura {
@@ -893,7 +903,6 @@
           <circle id="a-ring-arc" cx="233" cy="233" r="226" fill="none" stroke="#23C766" stroke-width="13"
                   stroke-linecap="round" stroke-dasharray="1420.0" stroke-dashoffset="1420.0"
                   transform="rotate(-90 233 233)"></circle>
-          <g id="a-ring-ticks" style="display:none"></g>
         </svg>
         <canvas class="skel" id="a-skel" width="466" height="466"></canvas>
         <div class="a-timer" id="a-timer"></div>
@@ -904,6 +913,7 @@
           </div>
         </div>
         <div class="a-combo" id="a-combo-lab"></div>
+        <div class="a-meter" id="a-meter"><i id="a-meter-fill"></i></div>
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
         <!-- 暂停控制面板:出框自动 / 单击屏幕手动 两个入口共用;空白处点按=继续 -->
         <div class="pauseveil" id="a-pause">
@@ -1075,7 +1085,7 @@
         <tr><td><b>每一跳</b></td><td>五声音阶"叮" + 数字砸入回弹 + 脚下金色透视涟漪(同帧,延迟 <100ms)</td></tr>
         <tr><td><b>每 10 下</b></td><td>数字重击(1.9×+震屏)+ 火柴人全身金光 0.5s + 语音报数 + 50% 概率小彩带</td></tr>
         <tr><td><b>每 20 下</b></td><td>+2★ 飞星;15% 概率彩蛋双倍 +4★ + 彩带雨 + 专属播报</td></tr>
-        <tr><td><b>连击 Combo</b></td><td>(8-25 试验)两跳间隔 ≤2s 连击 +1,断连(&gt;2s)归零;<b>每满 20 连击 = 1★</b>+语音庆祝;连击 20/40/60/80/100 → 风火轮档1–5"爆气"+ 火柴人金色气场,断连即熄;计数下方连击标签(≥10 显示)</td></tr>
+        <tr><td><b>连击 Combo</b></td><td>(8-26 定稿)两跳间隔 <b>≤0.7s</b> 连击 +1,断连归零;连击 10 → <b>热血1</b>(轻微缓慢光芒),连击 30 → <b>热血2</b>(热烈光芒交替+强气场);<b>热血2 内每保持 20 下 = 1★</b>(连击 50/70/90…)+语音庆祝;计数下方 COMBO 标签(第 5 次起)+ 三段热血蓄力槽</td></tr>
         <tr><td><b>每 50 下</b></td><td>换绳色(星星已改由连击奖励)</td></tr>
         <tr><td><b>隐藏数字</b></td><td>每天 55–99 换一个,踩中 +5★ + 彩带 + 专属播报</td></tr>
         <tr><td><b>达标</b></td><td>彩带 + 数字转暖 + "继续冲!"——绝不打断,51、52 继续数</td></tr>
@@ -1088,7 +1098,7 @@
       <table>
         <tr><td>环(目标/自由)</td><td>一圈 = 一个目标(自由跳 50),跳满清零重画</td></tr>
         <tr><td>环(限时)</td><td><b>60 格时间刻度环</b>:每格=总时长/60(1'=1s/格),逢五长刻度;剩余=亮格从尾端逐格熄灭,最后 10s 转暖橙</td></tr>
-        <tr><td>星星 ★</td><td><b>连击奖励:每满 20 连击一颗</b>(8-25 试验,原每 50 一颗废止;荣誉刻度,全模式统一,不入账);>4 颗收敛为 ★×N</td></tr>
+        <tr><td>星星 ★</td><td><b>连击奖励:热血2 内每保持 20 下一颗</b>(连击 50/70/90…,8-26 定稿;荣誉刻度,全模式统一,不入账);>4 颗收敛为 ★×N</td></tr>
         <tr><td>货币星</td><td>整20 +2 / 彩蛋 ×2 / 隐藏数字 +5 / 达标 +10 → 结算入账,消耗于换装/场景/补签卡</td></tr>
       </table>
     </div>
@@ -1211,7 +1221,7 @@
         <tr><th>项</th><th>规则</th><th>生成</th></tr>
         <tr><td>整十报数</td><td>每 10 下;被更高优占用时让位</td><td>整十句全预生成(10–990 共 99 条;≥1000 只报整百)</td></tr>
         <tr><td>整三十激励/指导</td><td>鼓励/指导五五开,同条本轮不重复</td><td>预生成(池 13 条)</td></tr>
-        <tr><td>连击报星</td><td>每 20 连击一次(压过整十,8-25 试验)</td><td>预生成</td></tr>
+        <tr><td>连击报星</td><td>热血2 内每保持 20 下一次(连击 50/70/90…,压过整十);进入热血2 时播一次"热血全开"</td><td>预生成</td></tr>
         <tr><td>PB 追逐 / 节奏轻推</td><td>每轮各 ≤1 次</td><td>模板+TTS / 预生成</td></tr>
         <tr><td>趣味彩蛋</td><td>自由跳 >3min 启用,~90s 窗口 35% 概率,每轮 ≤3</td><td>预生成(池 ≥20 条按日轮换)</td></tr>
         <tr><td>开场白 / 结算总结 / 榜单播报</td><td>见上卡;动态数字与昵称必须 TTS</td><td>云 TTS 预取,弱网回落无变量兜底句</td></tr>
@@ -1333,8 +1343,8 @@ zh: {
   spTest: m => `${m} 分钟限时测试，全力以赴！请站到镜头前`,
   spStart: o => `${o}。请站到镜头前`,
   cd: ['三', '二', '一', 'Body Park！'], sp30: '还有三十秒', sp10: '最后十秒，冲刺！',
-  spCombo: n => n >= 100 ? `${n} 连击！超级状态！` : n >= 60 ? `${n} 连击，火力全开！` : `连击 ${n}，奖励一颗星！`,
-  comboLab: n => `连击 ×${n}`, spTen: (n, ch) => `${n} 下，${ch}`,
+  spCombo: n => n >= 90 ? `${n} 连击！超级状态！` : n >= 70 ? `${n} 连击，火力全开！` : `连击 ${n}，奖励一颗星！`,
+  spBlood2: '热血全开！保持节奏！', comboLab: n => `连击 ${n}`, spTen: (n, ch) => `${n} 下，${ch}`,
   spLucky: n => `哇，踩中今天的隐藏数字${n}，奖励五颗星！`,
   spGoal: '目标达成！继续保持！', spTop3: '进入全球前三！', spTop1: '全球第一！保持住！',
   spTestBest: (c, r) => `${c} 下，新纪录${r ? `，体测评级${r}` : ''}！`,
@@ -1423,8 +1433,8 @@ en: {
   spTest: m => `${m}-minute timed test. Give it your all! Step in front of the camera`,
   spStart: o => `${o} Step in front of the camera`,
   cd: ['Three', 'Two', 'One', 'Body Park!'], sp30: 'Thirty seconds left', sp10: 'Final ten seconds. Sprint!',
-  spCombo: n => n >= 100 ? `${n} combo — super mode!` : n >= 60 ? `${n} combo, full power!` : `${n} combo — bonus star!`,
-  comboLab: n => `COMBO ×${n}`, spTen: (n, ch) => `${n}! ${ch}`,
+  spCombo: n => n >= 90 ? `${n} combo — super mode!` : n >= 70 ? `${n} combo, full power!` : `${n} combo — bonus star!`,
+  spBlood2: 'Full power! Hold the rhythm!', comboLab: n => `COMBO ${n}`, spTen: (n, ch) => `${n}! ${ch}`,
   spLucky: n => `Wow, you hit today's lucky number ${n}. Five bonus stars!`,
   spGoal: 'Goal reached! Keep it up!', spTop3: 'Top three worldwide!', spTop1: 'World number one! Hold it!',
   spTestBest: (c, r) => `${c} — new record${r ? `, rated ${r}` : ''}!`,
@@ -1577,9 +1587,9 @@ const S = {
   celebPending: false,     // 结果页点「完成」后待弹的恭喜页(8-18:与结果页解耦)
   skipOpening: false,      // 「再跳一轮」不重复播开场白
   ropeCol: ROPE_COLORS[0], // 本轮绳色（开轮随机，每满一圈换新色）
-  combo: 0,                // 连击:两跳间隔 ≤2s 累积,断开归零(8-25 试验)
+  combo: 0,                // 连击:两跳间隔 ≤0.7s 累积,断开归零(8-26 定稿)
   comboMax: 0,             // 本轮最高连击
-  comboStars: 0,           // 连击奖励星:每满 20 连击 +1★(取代旧"每 50 下一星")
+  comboStars: 0,           // 连击奖励星:热血2 内每保持 20 下 +1★(连击 50/70/90…)
   lastJumpT: 0,            // 上一跳时间戳(连击窗口判定)
   seq: 0,                  // 同步序号
 };
@@ -1878,32 +1888,6 @@ function showScreens() {
    逢五长刻度（表盘感）；剩余时间 = 亮格，从尾端逐格熄灭；
    最后 10s 剩余刻度转暖橙。离散熄灭天然适配 15fps。
    ------------------------------------------------------------ */
-(function buildTicks() {
-  const g = document.getElementById('a-ring-ticks');
-  if (!g) return;
-  let h = '';
-  for (let i = 0; i < 60; i++) {
-    const a = (i / 60) * 2 * Math.PI - Math.PI / 2;
-    const major = i % 5 === 0;
-    const r1 = major ? 218 : 222, r2 = major ? 234 : 231;
-    h += `<line x1="${(233 + r1 * Math.cos(a)).toFixed(1)}" y1="${(233 + r1 * Math.sin(a)).toFixed(1)}"` +
-         ` x2="${(233 + r2 * Math.cos(a)).toFixed(1)}" y2="${(233 + r2 * Math.sin(a)).toFixed(1)}"` +
-         ` stroke-width="${major ? 5 : 3.5}" stroke-linecap="round"/>`;
-  }
-  g.innerHTML = h;
-})();
-let lastTickState = '';
-function updateTicks(remFrac, urgent) {
-  const lit = Math.ceil(Math.max(0, Math.min(1, remFrac)) * 60);
-  const key = lit + (urgent ? 'u' : '');
-  if (key === lastTickState) return;
-  lastTickState = key;
-  const col = urgent ? '#FFB020' : '#23C766';
-  [...$('a-ring-ticks').children].forEach((el, i) => {
-    el.setAttribute('stroke', i < lit ? col : 'rgba(255,255,255,.10)');
-  });
-}
-
 let lastRenderedScreen = null;
 let lastRenderedOutfit = null;
 function render() {
@@ -1929,29 +1913,29 @@ function render() {
   const ringUnit = S.goal > 0 ? S.goal : 50;
   const lapPct = (S.count % ringUnit) / ringUnit;
   const lap = Math.floor(S.count / 50);
+  /* 外圈(8-26 定稿):自由=按目标(50/100/200)顺时针蓄满(满环自动重置);
+     限时=按设定时长正计时逐渐填满(最后 10s 转暖橙)——两种模式共用同一条进度弧 */
   const testRing = S.goal === TEST && inJump;
-  $('a-ring-ticks').style.display = testRing ? '' : 'none';
-  $('a-ring-arc').style.display = testRing ? 'none' : '';
-  $('a-ring-base').style.display = testRing ? 'none' : '';
-  if (testRing) {
-    updateTicks(1 - sessionElapsed() / testMs(), testMs() - sessionElapsed() <= 10000);
-  } else {
-    $('a-ring-arc').style.strokeDashoffset = 1420.0 * (1 - lapPct);
-  }
+  const ringPct = testRing ? Math.min(1, sessionElapsed() / testMs()) : lapPct;
+  $('a-ring-arc').style.strokeDashoffset = 1420.0 * (1 - ringPct);
+  $('a-ring-arc').classList.toggle('warn', testRing && testMs() - sessionElapsed() <= 10000);
   /* 星星行 = 连击奖励星(每满 20 连击一颗,8-25 试验) */
   $('a-lapstars').textContent = fmtStars(S.comboStars);
 
-  /* 燃起来档位(8-25 试验改版:与连击挂钩——"爆气"状态,全模式统一):
-     连击 20/40/60/80/100 → 档1橙…档5白热(封顶);断连(>2s 无跳)即全部熄灭;
-     火柴人同步金色气场(超级赛亚人式爆气),档位越高越亮 */
-  const fire = Math.min(5, Math.floor(S.combo / 20));
-  const rayCls = 'rays' + (inJump && fire > 0 ? ' on f' + fire : '');
-  $('a-rays').className = rayCls;
-  $('a-aura').className = 'aura' + (inJump && fire > 0 ? ' on u' + fire : '');
-  /* 连击标签:≥10 显示,颜色随档位升温;断连即隐 */
-  const comboOn = inJump && S.combo >= 10;
+  /* 热血状态视觉(8-26 定稿,全模式统一):
+     普通=无光;热血1(连击≥10)=轻微缓慢光芒+微气场;热血2(连击≥30)=热烈光芒交替+强气场;
+     断连(>0.7s 无跳)即全部熄灭回普通 */
+  const lv = inJump ? bloodLv() : 0;
+  $('a-rays').className = 'rays' + (lv === 1 ? ' on f1' : lv === 2 ? ' on f5' : '');
+  $('a-aura').className = 'aura' + (lv === 1 ? ' on u1' : lv === 2 ? ' on u5' : '');
+  /* 连击标签:第 5 次起显示 COMBO[n];颜色随热血等级升温;断连即隐 */
+  const comboOn = inJump && S.combo >= 5;
   $('a-combo-lab').textContent = comboOn ? L.comboLab(S.combo) : '';
-  $('a-combo-lab').className = 'a-combo' + (comboOn ? ' on c' + fire : '');
+  $('a-combo-lab').className = 'a-combo' + (comboOn ? ' on c' + lv : '');
+  /* 热血蓄力槽:普通=蓄向热血1(0→10)/热血1=蓄向热血2(10→30)/热血2=每 20 下一星循环 */
+  const mPct = lv === 0 ? S.combo / 10 : lv === 1 ? (S.combo - 10) / 20 : ((S.combo - 30) % 20) / 20;
+  $('a-meter').className = 'a-meter' + (inJump ? ' on m' + lv : '');
+  $('a-meter-fill').style.width = (Math.max(0, Math.min(1, mPct)) * 100).toFixed(1) + '%';
 
   /* 课中计时（第一行，小字）；测试模式显示剩余时间 */
   const rawMs = S.goal === TEST ? Math.max(0, testMs() - sessionElapsed()) : sessionElapsed();
@@ -2116,11 +2100,13 @@ const fmtTime = (ms) => {
 const sessionElapsed = () => S.elapsedMs + (S.runSince ? Date.now() - S.runSince : 0);
 const testMs = () => (S.testMin || 1) * 60000;
 const FREE_CAP_MS = 30 * 60000;   /* 自由跳单轮上限（8-18 定稿:30 分钟强制终止,用户不可改;参数服务端可配） */
-const COMBO_GAP = 2000;   /* 连击窗口:两跳间隔 ≤2s 才算连击(8-25 试验,参数可调) */
+const COMBO_GAP = 700;   /* 连击窗口:两跳间隔 ≤0.7s 才算连击(8-26 定稿,参数可调——节奏/耐力约束) */
+/* 热血等级:普通 0(连击<10)/ 热血1(连击≥10,轻微缓慢光芒)/ 热血2(连击≥30,热烈光芒交替) */
+const bloodLv = () => S.combo >= 30 ? 2 : S.combo >= 10 ? 1 : 0;
 let testMark30 = false, testMark10 = false, capMark1 = false;
 setInterval(() => {
   if (S.screen !== 'jump' || S.paused || !S.runSince) return;
-  /* 断连监测:超 2s 未跳 → 连击归零,爆气(风火轮/气场/标签)即时熄灭 */
+  /* 断连监测:超 0.7s 未跳 → 连击归零,热血状态(光芒/气场/标签/蓄力槽)即时熄灭 */
   if (S.combo > 0 && performance.now() - S.lastJumpT > COMBO_GAP) {
     S.combo = 0; bump();
   }
@@ -2130,7 +2116,8 @@ setInterval(() => {
     if (rem <= 0) { endSession(); return; }
     $('a-timer').textContent = fmtTime(rem);
     $('a-timer').classList.toggle('urgent', rem <= 10000);
-    updateTicks(rem / testMs(), rem <= 10000);
+    $('a-ring-arc').style.strokeDashoffset = 1420.0 * (1 - Math.min(1, sessionElapsed() / testMs()));
+    $('a-ring-arc').classList.toggle('warn', rem <= 10000);
     if (rem <= 30000 && !testMark30) { testMark30 = true; speak(L.sp30); }
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak(L.sp10); }
   } else {
@@ -2197,19 +2184,28 @@ function registerJump() {
   if (S.screen !== 'jump' || S.paused) return;
   S.count++;
   profile.total++;
-  /* 连击(8-25 试验):两跳间隔 ≤2s 连击 +1,超窗归 1;
-     每满 20 连击 = 1★ + 语音庆祝(取代旧"每 50 下一星"——鼓励一口气不休息);
-     连击档位同时驱动爆气视觉(风火轮 + 火柴人金色气场),断连即熄 */
+  /* 连击(8-26 定稿):两跳间隔 ≤0.7s 连击 +1,超窗归 1(耐力/节奏约束);
+     热血状态:连击 10 → 热血1(轻微缓慢光芒),连击 30(热血1 内再 20)→ 热血2(热烈光芒交替);
+     热血2 内每保持 20 下(连击 50/70/90…)= +1★ + 语音庆祝;断连归零回普通 */
   const nowT = performance.now();
+  const prevLv = bloodLv();
   S.combo = (nowT - S.lastJumpT <= COMBO_GAP) ? S.combo + 1 : 1;
   S.lastJumpT = nowT;
   if (S.combo > S.comboMax) S.comboMax = S.combo;
-  const comboCele = S.combo % 20 === 0;
-  if (comboCele) {
+  const newLv = bloodLv();
+  const comboStar = S.combo >= 50 && (S.combo - 30) % 20 === 0;   /* 热血2 内每 20 下一星 */
+  let comboCele = comboStar;
+  if (comboStar) {
     S.comboStars++;
     sndStar(); flyStar($('atomRoot'));
-    if (S.combo >= 60) confetti($('atomRoot'), Math.min(8 + S.combo / 10, 20));
+    if (S.combo >= 70) confetti($('atomRoot'), Math.min(8 + S.combo / 10, 20));
     speak(L.spCombo(S.combo));
+  } else if (newLv === 2 && prevLv < 2) {   /* 进入热血2:小号角 + 一次性播报 */
+    comboCele = true;
+    sndFanfare();
+    speak(L.spBlood2);
+  } else if (newLv === 1 && prevLv < 1) {   /* 进入热血1:仅音效提示,不打断报数 */
+    sndMilestone();
   }
   sndJump(S.count);
   popCount(S.count % 10 === 0);   /* 逢十用重击版动画 */
@@ -2232,7 +2228,7 @@ function registerJump() {
       sndStar(); flyStar($('atomRoot'));
     }
     if (S.count % 50 === 0) S.ropeCol = pickRopeColor(S.ropeCol);   /* 每满 50 换绳色(星星已改由连击奖励——8-25 试验) */
-    /* 教练语音分层：连击整 20 优先播连击,整 30 鼓励/纠错指导五五开,其余整十只报数 */
+    /* 教练语音分层：连击星/热血2 播报优先,整 30 鼓励/纠错指导五五开,其余整十只报数 */
     if (!(S.goal > 0 && S.count === S.goal) && !comboCele) {
       if (S.count % 30 === 0) {
         const pool = Math.random() < 0.5 ? L.cheers : L.tips;
