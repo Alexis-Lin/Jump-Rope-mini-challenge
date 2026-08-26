@@ -490,6 +490,11 @@
   .a-meter.m0 i { background: #7FE3A8; }
   .a-meter.m1 i { background: #FFA62C; }
   .a-meter.m2 i { background: linear-gradient(90deg, #FFDB80, #FFF6DC); box-shadow: 0 0 .4em rgba(255,219,128,.7); }
+  /* 满槽点亮层(8-26):热血2 槽满(常满金)后,白热层随每 20 下从左到右"点亮";
+     点亮完成 = +1★ + 槽体闪光,随后重新充能循环 */
+  .a-meter .mg { position: absolute; left: 0; top: 0; background: linear-gradient(90deg, #FFF6DC, #FFFFFF); box-shadow: 0 0 .5em rgba(255,246,220,.9); }
+  .a-meter.ignite { animation: meterflash .5s steps(4); }
+  @keyframes meterflash { 0% { box-shadow: 0 0 1em rgba(255,246,220,.95); filter: brightness(1.9); } 100% { filter: brightness(1); } }
   /* 限时进度弧最后 10s 转暖橙 */
   #a-ring-arc.warn { stroke: #FFB020; }
   /* 爆气气场(8-25 试验):连击≥20 火柴人金色气场(超级赛亚人式),档位越高越亮;
@@ -883,7 +888,7 @@
           </div>
         </div>
         <div class="a-combo" id="a-combo-lab"></div>
-        <div class="a-meter" id="a-meter"><i id="a-meter-fill"></i></div>
+        <div class="a-meter" id="a-meter"><i id="a-meter-fill"></i><i class="mg" id="a-meter-glow"></i></div>
         <!-- 荣誉星(8-26 移位):挂在蓄力槽右侧——计数固定居中,不随星数左右偏移 -->
         <div class="a-lapstars" id="a-lapstars"></div>
         <div class="a-bono-slot"><div id="a-bono-jump"></div></div>
@@ -1057,7 +1062,7 @@
         <tr><td><b>每一跳</b></td><td>五声音阶"叮" + 数字砸入回弹 + 脚下金色透视涟漪(同帧,延迟 <100ms)</td></tr>
         <tr><td><b>每 10 下</b></td><td>数字重击(1.9×+震屏)+ 火柴人全身金光 0.5s + 语音报数 + 50% 概率小彩带</td></tr>
         <tr><td><b>每 20 下</b></td><td>+2★ 飞星;15% 概率彩蛋双倍 +4★ + 彩带雨 + 专属播报</td></tr>
-        <tr><td><b>连击 Combo</b></td><td>(8-26 定稿)两跳间隔 <b>≤0.7s</b> 连击 +1,断连归零;连击 10 → <b>热血1</b>(随机宽窄条纹,缓慢转动 ~14s/圈·两组按时间持续交替点亮 ~1.1s/轮),连击 30 → <b>热血2</b>(交替加快 ~0.64s + 转动加快 ~6.5s/圈 + 强气场);<b>热血2 内每保持 20 下 = 1★</b>(连击 50/70/90…,★×N 显示在蓄力槽右侧,计数固定居中)+语音庆祝;计数下方 COMBO 标签(第 5 次起)+ 三段热血蓄力槽(热血2 槽蓄满后常满保持,断连才清空)</td></tr>
+        <tr><td><b>连击 Combo</b></td><td>(8-26 定稿)两跳间隔 <b>≤0.7s</b> 连击 +1,断连归零;连击 10 → <b>热血1</b>(随机宽窄条纹,缓慢转动 ~14s/圈·两组按时间持续交替点亮 ~1.1s/轮),连击 30 → <b>热血2</b>(交替加快 ~0.64s + 转动加快 ~6.5s/圈 + 强气场);<b>热血2 内每保持 20 下 = 1★</b>(连击 50/70/90…,★×N 显示在蓄力槽右侧,计数固定居中)+语音庆祝;计数下方 COMBO 标签(第 5 次起)+ 三段热血蓄力槽(热血2 槽蓄满后常满保持金色,其上<b>白热点亮层</b>每 20 下从左到右充能——点亮完成=+1★+槽体闪光,循环;断连才清空)</td></tr>
         <tr><td><b>每 50 下</b></td><td>换绳色(星星已改由连击奖励)</td></tr>
         <tr><td><b>隐藏数字</b></td><td>每天 55–99 换一个,踩中 +5★ + 彩带 + 专属播报</td></tr>
         <tr><td><b>达标</b></td><td>彩带 + 数字转暖 + "继续冲!"——绝不打断,51、52 继续数</td></tr>
@@ -1918,8 +1923,12 @@ function render() {
   /* 热血蓄力槽:普通=蓄向热血1(0→10)/热血1=蓄向热血2(10→30)/
      热血2=蓄向首星(30→50),蓄满后常满保持(8-26 修订:不按星循环清空),断连才清空;星星仍每 20 下一颗 */
   const mPct = lv === 0 ? S.combo / 10 : lv === 1 ? (S.combo - 10) / 20 : Math.min(1, (S.combo - 30) / 20);
-  $('a-meter').className = 'a-meter' + (inJump ? ' on m' + lv : '');
+  const igniteCls = $('a-meter').classList.contains('ignite') ? ' ignite' : '';   /* 保留点亮闪光,不被重渲染打断 */
+  $('a-meter').className = 'a-meter' + (inJump ? ' on m' + lv : '') + igniteCls;
   $('a-meter-fill').style.width = (Math.max(0, Math.min(1, mPct)) * 100).toFixed(1) + '%';
+  /* 满槽点亮层:槽满(连击≥50)后每 20 下从左到右充能,充满得星归零重来 */
+  const gPct = lv === 2 && S.combo >= 50 ? ((S.combo - 50) % 20) / 20 : 0;
+  $('a-meter-glow').style.width = (gPct * 100).toFixed(1) + '%';
 
   /* 课中计时（第一行，小字）；测试模式显示剩余时间 */
   const rawMs = S.goal === TEST ? Math.max(0, testMs() - sessionElapsed()) : sessionElapsed();
@@ -2204,6 +2213,8 @@ function registerJump() {
   let comboCele = comboStar;
   if (comboStar) {
     S.comboStars++;
+    $('a-meter').classList.add('ignite');   /* 点亮完成:槽体闪光一下 */
+    setTimeout(() => $('a-meter').classList.remove('ignite'), 520);
     sndStar(); flyStar($('atomRoot'));
     if (S.combo >= 70) confetti($('atomRoot'), Math.min(8 + S.combo / 10, 20));
     speak(L.spCombo(S.combo));
