@@ -555,10 +555,11 @@
   /* 8-26 二次修订:条纹宽窄与间隔带随机性——JS 开机生成一次,交错分成 A/B 两组(mask 条纹,底色上色);
      热血1 = 不转动,两组条纹交替点亮(轻微缓慢);热血2 = 交替更快更亮更白 + 整体转动 */
   .rays .rlay { position: absolute; inset: 0; opacity: 0; }
+  /* 交替由 CSS 动画按时间持续进行(与跳跃节拍无关);热血1 ~1.1s 一轮,热血2 ~0.64s 一轮 */
   .rays.lv1 { filter: opacity(.55); }
   .rays.lv1 .rlay { background: #FFA62C; }
-  .rays.lv1 .rlay.ra { animation: rayswap 2.4s linear infinite; }
-  .rays.lv1 .rlay.rb { animation: rayswap 2.4s linear infinite -1.2s; }
+  .rays.lv1 .rlay.ra { animation: rayswap 1.1s linear infinite; }
+  .rays.lv1 .rlay.rb { animation: rayswap 1.1s linear infinite -.55s; }
   .rays.lv2 { filter: opacity(.9); animation: rayspin 6.5s linear infinite; }
   .rays.lv2 .rlay.ra { background: #FFF3D0; animation: rayswap .64s linear infinite; }
   .rays.lv2 .rlay.rb { background: #FFD264; animation: rayswap .64s linear infinite -.32s; }
@@ -1053,7 +1054,7 @@
         <tr><td><b>每一跳</b></td><td>五声音阶"叮" + 数字砸入回弹 + 脚下金色透视涟漪(同帧,延迟 <100ms)</td></tr>
         <tr><td><b>每 10 下</b></td><td>数字重击(1.9×+震屏)+ 火柴人全身金光 0.5s + 语音报数 + 50% 概率小彩带</td></tr>
         <tr><td><b>每 20 下</b></td><td>+2★ 飞星;15% 概率彩蛋双倍 +4★ + 彩带雨 + 专属播报</td></tr>
-        <tr><td><b>连击 Combo</b></td><td>(8-26 定稿)两跳间隔 <b>≤0.7s</b> 连击 +1,断连归零;连击 10 → <b>热血1</b>(随机宽窄条纹,不转动·两组交替点亮),连击 30 → <b>热血2</b>(交替更快更白 + 整体转动 + 强气场);<b>热血2 内每保持 20 下 = 1★</b>(连击 50/70/90…,★ 显示在蓄力槽右侧,计数固定居中)+语音庆祝;计数下方 COMBO 标签(第 5 次起)+ 三段热血蓄力槽(热血2 槽蓄满后常满保持,断连才清空)</td></tr>
+        <tr><td><b>连击 Combo</b></td><td>(8-26 定稿)两跳间隔 <b>≤0.7s</b> 连击 +1,断连归零;连击 10 → <b>热血1</b>(随机宽窄条纹,不转动·两组按时间持续交替点亮 ~1.1s/轮),连击 30 → <b>热血2</b>(交替加快 ~0.64s + 整体转动 + 强气场);<b>热血2 内每保持 20 下 = 1★</b>(连击 50/70/90…,★×N 显示在蓄力槽右侧,计数固定居中)+语音庆祝;计数下方 COMBO 标签(第 5 次起)+ 三段热血蓄力槽(热血2 槽蓄满后常满保持,断连才清空)</td></tr>
         <tr><td><b>每 50 下</b></td><td>换绳色(星星已改由连击奖励)</td></tr>
         <tr><td><b>隐藏数字</b></td><td>每天 55–99 换一个,踩中 +5★ + 彩带 + 专属播报</td></tr>
         <tr><td><b>达标</b></td><td>彩带 + 数字转暖 + "继续冲!"——绝不打断,51、52 继续数</td></tr>
@@ -1897,14 +1898,15 @@ function render() {
   const ringPct = testRing ? Math.min(1, sessionElapsed() / testMs()) : lapPct;
   $('a-ring-arc').style.strokeDashoffset = 1420.0 * (1 - ringPct);
   $('a-ring-arc').classList.toggle('warn', testRing && testMs() - sessionElapsed() <= 10000);
-  /* 星星行 = 连击奖励星(每满 20 连击一颗,8-25 试验) */
-  $('a-lapstars').textContent = fmtStars(S.comboStars);
+  /* 星星 = 连击奖励星,挂蓄力槽右侧,数量统一 ★×N(8-26) */
+  $('a-lapstars').textContent = S.comboStars > 0 ? `★×${S.comboStars}` : '';
 
   /* 热血状态视觉(8-26 定稿,全模式统一):
      普通=无光;热血1(连击≥10)=轻微缓慢光芒+微气场;热血2(连击≥30)=热烈光芒交替+强气场;
      断连(>0.7s 无跳)即全部熄灭回普通 */
   const lv = inJump ? bloodLv() : 0;
-  $('a-rays').className = 'rays' + (lv > 0 ? ' on lv' + lv : '');
+  const rayCls = 'rays' + (lv > 0 ? ' on lv' + lv : '');
+  if ($('a-rays').className !== rayCls) $('a-rays').className = rayCls;   /* 仅变化时写入:交替动画按时间持续,不随跳跃重启 */
   $('a-aura').className = 'aura' + (lv === 1 ? ' on u1' : lv === 2 ? ' on u5' : '');
   /* 连击标签:第 5 次起显示 COMBO[n];颜色随热血等级升温;断连即隐 */
   const comboOn = inJump && S.combo >= 5;
