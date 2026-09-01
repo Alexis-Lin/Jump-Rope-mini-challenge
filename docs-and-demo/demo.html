@@ -1181,16 +1181,14 @@
       <div class="note">总时长 ≤9s(2–3 句)。轮次策略:<b>当日首轮完整版;同日再次训练只播 1 句短版</b>("又来啦,今天已经 128 下,这轮继续冲!");结算页「再跳一轮」不播。预生成缓存 key = 日期+语言+数据快照 hash;完全离线回落语音包通用开场句;句 3 按 free/1'/2' 预生成三个变体,选模式后取对应条。播报期间整十报数(P4)让位丢弃(音效照常),破纪录/达标/报星(P0–P2)可打断开场白。</div>
     </div>
     <div class="card">
-      <h2>优先级仲裁(同帧只播最高优,低优丢弃不排队)</h2>
+      <h2>四大类话术 + 仲裁引擎(v0.4:importance × 紧迫系数,抢占阈值 20)</h2>
       <div class="chips">
-        <span class="chip" style="border-color:var(--accent);color:var(--accent)">P0 破纪录</span>
-        <span class="chip">P1 达标 / 时间到</span>
-        <span class="chip">P2 满圈报星 / PB 追逐</span>
-        <span class="chip">P3 整三十激励·指导 / 超越 / 开场白</span>
-        <span class="chip">P4 整十报数</span>
-        <span class="chip">P5 趣味彩蛋</span>
+        <span class="chip" style="border-color:#FFB020;color:#FFB020">🛡️ 安全 imp≈90(出框引导/负荷上限——能打断一切,安静模式豁免)</span>
+        <span class="chip">⏱️ 进程(发令/计数/时间节点/达标/结算)</span>
+        <span class="chip">🎯 动作(引导/节奏/肯定;纠错 V1 休眠)</span>
+        <span class="chip" style="border-color:var(--accent);color:var(--accent)">❤️ 情感(记忆对比/庆祝/激励/安抚——三大聚焦投入点)</span>
       </div>
-      <div class="note">P0/P1 可打断 P3–P5;反向永不打断;同优先级后到丢弃(排队会导致"事件过去了才说")。课中<b>零浮层弹窗</b>(会后定稿):一切事件反馈 = 语音 + 既有画面元素(数字重击/变色 · 金光 · 彩带 · 环重置);页面级告知只用整屏遮盖式模块(如恭喜页),不做半透明 toast。</div>
+      <div class="note">priority = importance × (NOW 1.5 / SOON 1.0 / WHENEVER 0.6);高出正在播 20 分才打断,否则丢弃不排队;同 cooldownKey 冷却防复读;<b>默认沉默</b>——除计数外话语类每分钟 ≤2 句,最后 10 秒只留安全+过渡。课中<b>零浮层弹窗</b>:一切事件反馈 = 语音 + 既有画面元素;页面级告知只用整屏遮盖式模块。完整事件表见 audio-voice-strategy.md §4.4。</div>
     </div>
     <div class="card">
       <h2>频控防疲劳 + 生成方式</h2>
@@ -1199,11 +1197,14 @@
         <tr><td>整十报数</td><td>每 10 下;被更高优占用时让位</td><td>整十句全预生成(10–990 共 99 条;≥1000 只报整百)</td></tr>
         <tr><td>整三十激励/指导</td><td>鼓励/指导五五开,同条本轮不重复</td><td>预生成(池 13 条)</td></tr>
         <tr><td>连击报星</td><td>热血2 内每保持 20 下一次(连击 50/70/90…,压过整十);进入热血2 时播一次"热血全开"</td><td>预生成</td></tr>
-        <tr><td>PB 追逐 / 节奏轻推</td><td>每轮各 ≤1 次</td><td>模板+TTS / 预生成</td></tr>
+        <tr><td>PB 追逐 / 目标追逐 / 节奏轻推</td><td>每轮各 ≤1 次(目标追逐=自由跳差 10 下)</td><td>模板+TTS / 预生成</td></tr>
+        <tr><td><b>记忆对比(v0.4 聚焦①)</b></td><td>课中越过昨天成绩的瞬间 1 句 + 结算小结追加对比句 + 恭喜页报纪录跨度 + 开场白亮点/回归关怀;每轮记忆点 ≤3,48h 不重复,无亮点不硬凑</td><td>混合:课中模板+数字拼接,结算云 TTS 整句(8-28 拍板)</td></tr>
+        <tr><td>断连安慰 / 肯定确认 / 长轮关怀</td><td>连击 ≥30 断掉每轮 ≤2 / 连击稳到 20 每轮 ≤2 / 自由跳 20 分钟一次</td><td>预生成</td></tr>
+        <tr><td>出框引导</td><td>出画自动暂停播"回到画面里来,继续!"(安全类,安静模式也播;手动暂停仍"已暂停")</td><td>预生成</td></tr>
         <tr><td>趣味彩蛋</td><td>自由跳 >3min 启用,~90s 窗口 35% 概率,每轮 ≤3</td><td>预生成(池 ≥20 条按日轮换)</td></tr>
         <tr><td>开场白 / 结算总结 / 榜单播报</td><td>见上卡;动态数字与昵称必须 TTS</td><td>云 TTS 预取,弱网回落无变量兜底句</td></tr>
       </table>
-      <div class="note">V1 暂不启用常规纠错(交替跳识别为后续项,接口保留);启用后同类 ≥20s。语音包估算 ~171 条/语言(opus ≈2.5–3MB)。</div>
+      <div class="note">V1 暂不启用常规纠错(交替跳识别为后续项,接口保留);启用后同类 ≥20s。语音包估算 ~190 条/语言(opus ≈3MB,v0.4 含安全/安抚/肯定新增)。</div>
     </div>
   </section>
 </div>
@@ -1311,7 +1312,18 @@ zh: {
   rated: r => `评级 ${r}`, dailyMet: '每日任务达成',
   unlockLine: ns => `解锁 ${ns.join('、')}！`,
   sceneTag: n => `新场景「${n}」`, outfitTag: n => `新装扮「${n}」`,
-  cheers: ['节奏很稳！', 'ATOM 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！', '越跳越轻松了！', '这节奏，像职业选手！'],
+  cheers: ['节奏很稳！', 'ATOM 快跟不上啦！', '轻盈得像羽毛！', '继续继续！', '状态绝佳！', '越跳越轻松了！', '这节奏，像职业选手！',
+    '呼吸跟上，稳住！', '手腕带绳，就这样！', '越来越有样子了！', '这股劲儿保持住！', '汗水不会骗人！', '你比自己想的更强！', '绳子都追不上你啦！', '专注，就是现在！'],
+  spAway: '回到画面里来，继续！',
+  spYdPass: c => `超过昨天啦！昨天是 ${c} 下`,
+  spGoalNear: '还差 10 下就到目标了！',
+  spSteady: '对，就是这个节奏！',
+  spComfort: '没关系，重新连起来！',
+  spLongRun: '跳了很久了，注意呼吸节奏',
+  cmpYd: d => `，今天比昨天多 ${d} 下`,
+  cmpCombo: c => `，最高连击 ${c}，很能坚持！`,
+  newRecSpan: d => `新纪录！上个纪录保持了 ${d} 天，被你打破啦`,
+  opReturn: d => `${d} 天没见啦，回来就好！慢慢找回节奏，`,
   spPbNear: d => `离你的最高纪录只差 ${d} 下，冲！`,
   spPbBreak: '新纪录诞生！现在每一下都在刷新它！',
   rBeatBest: d => `超越旧纪录 ${d} 下`, rToBest: d => `差 ${d} 下破纪录`, rFirstBest: '首个纪录达成！',
@@ -1401,7 +1413,18 @@ en: {
   rated: r => `Rating: ${r}`, dailyMet: 'Daily goal met',
   unlockLine: ns => `Unlocked ${ns.join(', ')}!`,
   sceneTag: n => `new scene “${n}”`, outfitTag: n => `new outfit “${n}”`,
-  cheers: ['Steady rhythm!', "ATOM can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!', 'Smoother every jump!', 'Pro-level rhythm!'],
+  cheers: ['Steady rhythm!', "ATOM can't keep up!", 'Light as a feather!', 'Keep it going!', 'On fire!', 'Smoother every jump!', 'Pro-level rhythm!',
+    'Breathe with it, hold steady!', 'Wrists doing the work — nice!', 'Looking sharper every round!', 'Keep that energy!', 'Sweat never lies!', "You're stronger than you think!", "The rope can't catch you!", 'Focus — right now!'],
+  spAway: "Step back in — let's keep going!",
+  spYdPass: c => `Past yesterday already! Yesterday was ${c}`,
+  spGoalNear: '10 more to your goal!',
+  spSteady: "Yes, that's the rhythm!",
+  spComfort: "No worries — chain it up again!",
+  spLongRun: "You've been at it a while — mind your breathing",
+  cmpYd: d => `, ${d} more than yesterday`,
+  cmpCombo: c => `, best combo ${c} — great endurance!`,
+  newRecSpan: d => `New record! Your old one stood for ${d} days`,
+  opReturn: d => `${d} days away — welcome back! Ease into it, `,
   spPbNear: d => `${d} away from your all-time best — go!`,
   spPbBreak: 'New record! Every jump extends it now!',
   rBeatBest: d => `Beat your best by ${d}`, rToBest: d => `${d} to record`, rFirstBest: 'First record set!',
@@ -1470,6 +1493,15 @@ function buildOpening() {
   const call = S.goal === TEST ? L.opCallTimed(S.testMin)
     : profile.goalNum > 0
     ? L.opCalls[daily.openingI % L.opCalls.length](profile.goalNum) : L.opFree;
+  /* v0.4 回归关怀:断练 ≥3 天后的当日首轮,用回归句替代常规欢迎 */
+  if (profile.lastGreet !== tk) {
+    const past = Object.keys(profile.history).filter(k => k < tk && profile.history[k].count > 0).sort();
+    const lastDay = past[past.length - 1];
+    if (lastDay) {
+      const gap = Math.round((new Date(tk) - new Date(lastDay)) / 86400000);
+      if (gap >= 3) { profile.lastGreet = tk; saveProfile(); return L.opReturn(gap) + call; }
+    }
+  }
   if (profile.lastGreet === tk)
     return rec && rec.count > 0 ? L.opAgain(rec.count) : L.opBack(call);
   profile.lastGreet = tk; saveProfile();
@@ -2039,6 +2071,9 @@ function startSession(g) {
   if (g !== undefined) { S.goal = g; profile.goal = g; saveProfile(); }
   S.screen = 'ready'; S.count = 0; S.earned = 0; S.bgStep = 0; S.paused = false;
   S.combo = 0; S.comboMax = 0; S.comboStars = 0; S.lastJumpT = 0;
+  /* v0.4 记忆对比与关怀类:每轮限次标记 + 昨日快照 */
+  S.ydCount = (profile.history[dayKeyOffset(-1)] || {}).count || 0;
+  S.ydPassSaid = false; S.okayN = 0; S.comfortN = 0; S.longSaid = false; S.pbSpan = 0;
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false; S.celebPending = false;
   S.minIvl = 0; S.slowWarned = false;
@@ -2123,6 +2158,8 @@ setInterval(() => {
   if (S.screen !== 'jump' || S.paused || !S.runSince) return;
   /* 断连监测:超 0.7s 未跳 → 连击归零,热血状态(光芒/气场/标签/蓄力槽)即时熄灭 */
   if (!comboHold && S.combo > 0 && performance.now() - S.lastJumpT > COMBO_GAP) {
+    /* v0.4 断连安慰:高连击(≥30)断掉的挫败瞬间给一句,每轮 ≤2 次 */
+    if (S.combo >= 30 && S.comfortN < 2) { S.comfortN++; speak(L.spComfort); }
     S.combo = 0; bump();
   }
   if (S.goal === TEST) {
@@ -2141,6 +2178,9 @@ setInterval(() => {
     if (sessionElapsed() >= FREE_CAP_MS) { endSession(); return; }   /* 上限:前 1 分钟已语音预告,结算页自会总结 */
     if (sessionElapsed() >= FREE_CAP_MS - 60000 && !capMark1) {
       capMark1 = true; speak(L.spCapSoon);
+    }
+    if (sessionElapsed() >= 1200000 && !S.longSaid) {   /* v0.4 长轮关怀:20 分钟一次 */
+      S.longSaid = true; speak(L.spLongRun);
     }
   }
 }, 250);
@@ -2224,6 +2264,23 @@ function registerJump() {
     speak(L.spBlood2);
   } else if (newLv === 1 && prevLv < 1) {   /* 进入热血1:仅音效提示,不打断报数 */
     sndMilestone();
+  }
+  /* v0.4 三类聚焦落地(低频,每轮限次;与报数同帧时压过报数):
+     ① 课中记忆对比——越过昨天成绩的"那一瞬间"播,记忆感最强的位置(8-28 拍板)
+     ② 目标追逐——自由跳差 10 下到目标
+     ③ 肯定确认——连击稳到 20(热血1 内),每轮 ≤2 次 */
+  if (!comboCele) {
+    if (!S.ydPassSaid && S.ydCount >= 30 && S.count === S.ydCount + 1) {
+      S.ydPassSaid = true; comboCele = true;
+      skel.glowT0 = performance.now();
+      speak(L.spYdPass(S.ydCount));
+    } else if (S.goal > 0 && !S.goalHit && S.count === S.goal - 10) {
+      comboCele = true;
+      speak(L.spGoalNear);
+    } else if (S.combo === 20 && S.okayN < 2) {
+      S.okayN++; comboCele = true;
+      speak(L.spSteady);
+    }
   }
   sndJump(S.count);
   popCount(S.count % 10 === 0);   /* 逢十用重击版动画 */
@@ -2332,11 +2389,16 @@ function endSession() {
   /* 8-18 决议:训练完成默认直接进结果页;解锁新纪录的恭喜页改在用户点「完成」后单独弹出
      (前后端逻辑解耦;课中达标/破纪录瞬间已有即时庆祝,不再插页打断) */
   S.celebPending = S.newBest;
+  /* v0.4 记忆小结:收尾总结追加 1 句"当天最特别"的对比(超昨天 > 最高连击;无亮点不硬凑) */
+  const ydAll = (profile.history[dayKeyOffset(-1)] || {}).count || 0;
+  const todayAll = todayCount();   /* 课中态 todayCount 已含本轮实时数 */
+  const cmp = ydAll > 0 && todayAll > ydAll ? L.cmpYd(todayAll - ydAll)
+    : S.comboMax >= 20 ? L.cmpCombo(S.comboMax) : '';
   if (S.goal === TEST) {
     const rateTxt = S.testMin === 1 ? rateTest(S.count) : '';
-    speak(S.newBest ? L.spTestBest(S.count, rateTxt) : L.spTestEnd(S.testMin, S.count, rateTxt));
+    speak((S.newBest ? L.spTestBest(S.count, rateTxt) : L.spTestEnd(S.testMin, S.count, rateTxt)) + cmp);
   } else {
-    speak(goalMet ? L.spEndGood(S.count) : L.spEnd);
+    speak((goalMet ? L.spEndGood(S.count) : L.spEnd) + cmp);
   }
 
   /* 打卡与档案结算 */
@@ -2357,7 +2419,11 @@ function endSession() {
   profile.history[tk] = rec;
   profile.stars += S.earned;
   profile.sessions = (profile.sessions || 0) + 1;
-  if (S.count > (profile.bestSession || 0)) profile.bestSession = S.count;   /* 单轮 PB */
+  if (S.count > (profile.bestSession || 0)) {   /* 单轮 PB + 纪录跨度(恭喜页"上个纪录保持了 N 天") */
+    S.pbSpan = profile.bestAt ? Math.max(0, Math.round((new Date(tk) - new Date(profile.bestAt)) / 86400000)) : 0;
+    profile.bestAt = tk;
+    profile.bestSession = S.count;
+  }
 
   /* 解锁判定（借鉴 JRC：达标解锁场景，累计解锁装扮） */
   const unlocks = [];
@@ -2390,7 +2456,8 @@ function pauseSession(v, by) {
   if (!v && !S.runSince) S.runSince = Date.now();
   if (v) {
     $('a-pause-sub').textContent = S.pauseBy === 'tap' ? L.pausedTap : L.pausedSub;
-    speak(L.spPause);
+    /* v0.4 拍板:出框自动暂停用教练口吻引导(安全类,安静模式也应播);手动点按仍报"已暂停" */
+    speak(S.pauseBy === 'tap' ? L.spPause : L.spAway);
     /* 暂停超 3 分钟自动结算(成绩保存;复用现有课程 暂停/切后台自动暂停/超时结束 生命周期——8-18 确认,可配 3–5min) */
     pauseEndTimer = setTimeout(() => { if (S.paused && S.screen === 'jump') endSession(); }, 180000);
   }
@@ -2515,7 +2582,9 @@ function celeConfetti(pb) {
 function finishResult() {
   if (S.screen === 'result' && S.celebPending) {
     S.celebPending = false;
-    celebrationShow({ scope: 'round', state: 'done', perf: 'pb', onDone: goHome });
+    celebrationShow({ scope: 'round', state: 'done', perf: 'pb',
+      speak: S.pbSpan >= 2 ? L.newRecSpan(S.pbSpan) : undefined,   /* v0.4:报纪录跨度,记忆感 */
+      onDone: goHome });
     return;
   }
   goHome();
