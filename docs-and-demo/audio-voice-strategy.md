@@ -103,6 +103,8 @@ priority = importance × 紧迫系数
 
 ### 4.4 话术交互清单（给程序填的总表；变体列 = 每语言最少条数）
 
+> 逐条完整版（含全部文案变体与录制口径）已拆出独立文档 **[voice-script-list.md](voice-script-list.md)**（8-31）；本表保留仲裁参数概览。工程实现方案见 **[../code/voice-engine-spec.md](../code/voice-engine-spec.md)**。
+
 | 触发事件 | 大类.子类 | imp | urg | 冷却 | 变体 | 生成档位 |
 |---|---|---|---|---|---|---|
 | 出框引导 | 安全.出框 | 90 | NOW | 3s | 2 | 固定 |
@@ -219,6 +221,8 @@ priority = importance × 紧迫系数
 - **「安静模式」快捷档（拍板 Q4）**：设置页第 7 行一键开关 = 语音+BGM 双关、只留 L1 计数音效（夜间/公共场景）；实现即两开关的组合预设（Demo 已落地）。
 
 ## 8. 工程落地
+
+> 端上仲裁引擎/记忆快照/TTS 管线的实现级方案见 [../code/voice-engine-spec.md](../code/voice-engine-spec.md)（8-31）。
 
 ### 8.1 声音素材总清单（v0.4 汇总，交付对账用）
 

@@ -43,6 +43,8 @@ WebView 备选方案：设备 WebView（Chromium ≥90，Canvas 2D）全屏加�
 
 ## 已完整实现 / 工程接力清单
 
+> 语音系统实现请直接看 **[voice-engine-spec.md](voice-engine-spec.md)**（仲裁引擎/记忆快照/TTS 管线，8-31）＋话术数据表 **[../docs-and-demo/voice-script-list.md](../docs-and-demo/voice-script-list.md)**。
+
 ✅ 状态机与训练全套（2026-08-18 评审会决议版）：**3·2·1·BodyPark 即时开跳**（无站位校验，
 presence 仅训练中）、出框/切后台**超 3 分钟自动结算**（复用课程生命周期）、自由跳 **30 分钟上限**
 （强制终止,前 1 分钟语音预告）、**空轮保护**（0 下不落档直接回首页）、限时 1'/2' 默认 1'（**60 格刻度环**，

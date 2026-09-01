@@ -55,6 +55,7 @@
       transform: translateY(-50%);
       flex-direction: column; align-items: stretch; gap: 6px;
       border-radius: 16px; padding: 12px 12px; width: 148px;
+      max-height: calc(100vh - 24px); overflow-y: auto;   /* 按钮组变多后侧栏内滚动 */
     }
     #protobar button { text-align: left; }
     #protobar .sep { width: auto; height: 1px; margin: 3px 0; }
@@ -938,6 +939,7 @@
       </div>
     </div>
     <div class="atom-caption">Atom · 466×466 圆屏 · 15fps 刷新率模拟</div>
+    <div class="atom-caption" id="pb-sub" style="min-height:16px;max-width:466px;color:#7FE3A8"></div>
   </div>
 
 
@@ -1237,6 +1239,18 @@
   <button id="pb-st-full">满槽·★2</button>
   <button id="pb-st-result">结果页</button>
   <button id="pb-st-cele">恭喜页</button>
+  <span class="sep"></span>
+  <span class="tag">语音场景</span>
+  <button id="pb-v-op1">开场·首轮</button>
+  <button id="pb-v-opret">开场·回归</button>
+  <button id="pb-v-yd">越过昨天</button>
+  <button id="pb-v-goal">目标追逐</button>
+  <button id="pb-v-steady">肯定确认</button>
+  <button id="pb-v-comfort">断连安慰</button>
+  <button id="pb-v-blood">热血全开</button>
+  <button id="pb-v-star">连击报星</button>
+  <button id="pb-v-sum">结算小结</button>
+  <button id="pb-v-rec">破纪录跨度</button>
 </div>
 
 <script>
@@ -1806,6 +1820,7 @@ function pickVoice() {
 }
 try { speechSynthesis.onvoiceschanged = pickVoice; pickVoice(); } catch (e) {}
 function speak(text) {
+  try { const el = document.getElementById('pb-sub'); if (el) el.textContent = '\u{1F50A} ' + text; } catch (e) {}
   if (!voiceOn) return;
   try {
     if (!window.speechSynthesis) return;
@@ -2394,11 +2409,12 @@ function endSession() {
   const todayAll = todayCount();   /* 课中态 todayCount 已含本轮实时数 */
   const cmp = ydAll > 0 && todayAll > ydAll ? L.cmpYd(todayAll - ydAll)
     : S.comboMax >= 20 ? L.cmpCombo(S.comboMax) : '';
+  const withCmp = t => cmp ? t.replace(/[！!。.]$/, '') + cmp : t;   /* 拼接前去尾标点,避免「！，」 */
   if (S.goal === TEST) {
     const rateTxt = S.testMin === 1 ? rateTest(S.count) : '';
-    speak((S.newBest ? L.spTestBest(S.count, rateTxt) : L.spTestEnd(S.testMin, S.count, rateTxt)) + cmp);
+    speak(withCmp(S.newBest ? L.spTestBest(S.count, rateTxt) : L.spTestEnd(S.testMin, S.count, rateTxt)));
   } else {
-    speak((goalMet ? L.spEndGood(S.count) : L.spEnd) + cmp);
+    speak(withCmp(goalMet ? L.spEndGood(S.count) : L.spEnd));
   }
 
   /* 打卡与档案结算 */
@@ -3420,6 +3436,47 @@ function pbGoto(k) {
 [['pb-st-idle', 'idle'], ['pb-st-mode', 'mode'], ['pb-st-jump', 'jump'], ['pb-st-hot1', 'hot1'],
  ['pb-st-hot2', 'hot2'], ['pb-st-full', 'full'], ['pb-st-result', 'result'], ['pb-st-cele', 'cele']
 ].forEach(([id, k]) => $(id).addEventListener('click', () => pbGoto(k)));
+/* 语音场景速览(仅原型控制条,8-31):一键试听 v0.4 关键播报,画面与话术同步摆位;
+   参数全为示意值,不写档案;字幕镜像见 speak() */
+function pbVoice(k) {
+  if (k === 'op1') {
+    pbGoto('jump');
+    speak(L.opWelcome(LANG === 'zh' ? '小雨' : 'Zoe') + L.opNth(18) + L.opStreak(6) + L.opDate(new Date()) + L.opCalls[0](200));
+  } else if (k === 'opret') {
+    pbGoto('jump');
+    speak(L.opReturn(5) + L.opCalls[2](200));
+  } else if (k === 'yd') {
+    pbGoto('jump'); S.count = 41; skel.glowT0 = performance.now(); bump();
+    speak(L.spYdPass(40));
+  } else if (k === 'goal') {
+    pbGoto('jump'); S.count = 190; bump();
+    speak(L.spGoalNear);
+  } else if (k === 'steady') {
+    pbGoto('hot1'); S.combo = 20; bump();
+    speak(L.spSteady);
+  } else if (k === 'comfort') {
+    pbGoto('jump'); S.combo = 0; bump();
+    speak(L.spComfort);
+  } else if (k === 'blood') {
+    pbGoto('hot2'); sndFanfare();
+    speak(L.spBlood2);
+  } else if (k === 'star') {
+    pbGoto('full'); S.combo = 50; S.comboStars = 1; bump();
+    sndStar(); flyStar($('atomRoot'));
+    speak(L.spCombo(50));
+  } else if (k === 'sum') {
+    pbGoto('result');
+    speak(L.spEndGood(132).replace(/[！!。.]$/, '') + L.cmpYd(12));
+  } else if (k === 'rec') {
+    pbGoto('result');
+    celebrationShow({ scope: 'round', state: 'done', perf: 'pb',
+      speak: L.newRecSpan(10), onDone: () => { S.screen = 'idle'; bump(); } });
+  }
+}
+[['pb-v-op1', 'op1'], ['pb-v-opret', 'opret'], ['pb-v-yd', 'yd'], ['pb-v-goal', 'goal'],
+ ['pb-v-steady', 'steady'], ['pb-v-comfort', 'comfort'], ['pb-v-blood', 'blood'],
+ ['pb-v-star', 'star'], ['pb-v-sum', 'sum'], ['pb-v-rec', 'rec']
+].forEach(([id, k]) => $(id).addEventListener('click', () => pbVoice(k)));
 /* 「初始状态」开关:ON = 快照当前档案 → 切换为全新空账号(演示空状态/新手开场白);OFF = 恢复快照 */
 let freshBak = null;
 $('pb-fresh').addEventListener('click', () => {
