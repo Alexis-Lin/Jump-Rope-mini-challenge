@@ -166,6 +166,9 @@ GET /voice/memory-snapshot →
 
 ## 8. 里程碑建议
 
+> **9-2 精简提案生效时走 V1-Lite 路径**（见 audio-voice-strategy.md §10）：§2/§3 的打分仲裁引擎、话术表 OTA、48h 去重**整体后置到 V2**；V1 用三档固定优先级（高:出框/破纪录/越昨/达标/时间到 · 中:开场白/结算/时间节点 · 低:整十报数）+ 每 intent 一个每轮布尔位实现，语音包 ~130 条纯离线，记忆快照缩到 4 字段（yesterday_count / best_session / best_at / streak）。下表 M-A/M-C 对应并简化为 M-A′/M-B′ 两步。
+
+
 | 阶段 | 内容 | 依赖 |
 |---|---|---|
 | M-A | 仲裁引擎 + voice_table.json + 固定包播放（P1–P12、A1–A2、E1–E7 无槽位变体） | 无 |
