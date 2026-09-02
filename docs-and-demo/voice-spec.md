@@ -57,7 +57,7 @@
 | 破纪录 | 超过历史单轮 PB 的那一下（PB ≥30，每轮 1 次） | 「新纪录诞生！现在每一下都在刷新它！」（fanfare＋金光＋彩带） |
 | 目标达成 | 第 1 次到目标 | 「目标达成！继续保持！」（fanfare） |
 | 每满环庆祝 | 目标 ×2、×3…（每环 1 次） | 「{c} 下达成！继续冲！」（fanfare） |
-| 结算小结 | 训练停止（**≤2 句，端上固定句＋数字拼接，不做云端动态生成**） | 达标：「一共 {c} 下，太棒了」／未达标：「本轮结束，辛苦啦」／超时自动保存：「先帮你把成绩存好啦，一共 {c} 下」＋对比句 1 条（超昨天：「今天比昨天多 {d} 下」＞最高连击 ≥20：「最高连击 {c}，很能坚持！」＞无亮点沉默） |
+| 结算小结 | 训练停止（**简单庆祝＋小结，≤2 句**；端上固定句＋数字拼接，不做云端动态生成；伴随结算音效，破 PB 的大庆祝留给恭喜页） | 达标：「一共 {c} 下，太棒了」／未达标：「本轮结束，辛苦啦」／超时自动保存：「先帮你把成绩存好啦，一共 {c} 下」＋对比句 1 条（超昨天：「今天比昨天多 {d} 下」＞最高连击 ≥20：「最高连击 {c}，很能坚持！」＞无亮点沉默） |
 | 纪录跨度 | 破 PB 后点「完成」，恭喜页（旧纪录 ≥2 天） | 「新纪录！上个纪录保持了 {d} 天，被你打破啦」 |
 | ⏸ 目标追逐 | 自由跳差目标 10 下 | 「还差 10 下就到目标了！」 |
 | ⏸ 断连安慰 | 连击 ≥30 断掉（每轮 ≤2） | 「没关系，重新连起来！」 |
@@ -231,6 +231,117 @@ GET /voice/memory-snapshot →
 - **三档实现**：`tier(intent)` 查表；同帧比档位；高档 `tts_stop()` 掐断在播；低档让位即弃。每轮限次 = 布尔位，`session_start` 清零。
 - **话术做成配置**（`voice_table.json`：intent → 档位/限次/变体/生成方式），代码只认 intent；V1 可先硬编码，V2 再 OTA。
 - **事件接入点对照 Demo**：`registerJump()`（整十/越昨/破纪录/达标/满环）、看门狗（停跳链/报时/限时节点/上限/长轮）、`pauseSession()`（三种暂停）、`endSession()`（小结拼接）、发令后（开场白）、恭喜页（跨度句）。
+### 7.1 前端伪代码（设备端，全部离线可算）
+
+```c
+/* ---- 三档播放器:整个语音系统唯一的"说话出口" ---- */
+enum tier { LOW, MID, HIGH };          /* 低:整十报数 中:开场白/小结/报时/节点 高:庆祝/流程/安全 */
+void say(tier t, clip c) {
+    if (quiet_mode && !is_system_safety(c)) return;   /* 安静模式只留系统安全句 */
+    if (voice_playing && t <= playing_tier) return;   /* 同档/低档让位,直接丢弃不排队 */
+    voice_stop();                                     /* 高档掐断在播 */
+    voice_play(c); playing_tier = t;                  /* L3 BGM 自动 duck -50% */
+}
+
+/* ---- 每跳回调(计数管线) ---- */
+void on_jump(int n) {
+    sfx(ding[n % 5]); if (n % 10 == 0) sfx(thud);     /* L1 永不缺席 */
+    idle_t0 = now(); stall_said = false;              /* 停跳链清零 */
+    if (n == snap.yd + 1 && snap.yd >= 30 && !said.yd)      { said.yd = 1; say(HIGH, tpl_yd_pass(snap.yd)); }
+    else if (n > snap.pb && snap.pb >= 30 && !said.pb)      { said.pb = 1; sfx(fanfare); say(HIGH, pb_break); }
+    else if (goal > 0 && n == goal)                          { sfx(fanfare); say(HIGH, goal_hit); }
+    else if (goal > 0 && n > goal && n % goal == 0)          { sfx(fanfare); say(HIGH, tpl_lap(n)); }
+    else if (n % 10 == 0)                                    say(LOW, num_clip(n));
+}
+
+/* ---- 250ms 看门狗 ---- */
+void tick() {
+    if (paused || !in_session) return;
+    ms idle = count > 0 ? now() - idle_t0 : session_elapsed();
+    if (idle > 30s && mode == FREE) { do_pause(BY_IDLE); return; }   /* 30s 无跳动→自动暂停 */
+    if (idle > 10s && !stall_said && stall_n < 3)
+        { stall_said = true; stall_n++; say(MID, count ? stall_nudge : start_nudge); }
+    if (mode == TIMED) {                                             /* 限时:节点+到点结算 */
+        if (remain() <= 0)   { settle(false); return; }
+        if (remain() <= 10s) once(mark10, say(MID, last10));
+        else if (remain() <= 30s) once(mark30, say(MID, last30));
+    } else {                                                         /* 自由:上限+报时+关怀 */
+        if (elapsed() >= 30min) { settle(true); return; }
+        if (elapsed() >= 29min) once(cap, say(MID, cap_soon));
+        if (new_minute() && idle < 10s && min != 20 && min < 29) say(MID, tpl_elapsed(min));
+        if (elapsed() >= 20min) once(care, say(MID, long_run));
+    }
+}
+
+/* ---- 暂停生命周期(三入口统一) ---- */
+void do_pause(by) {                       /* BY_TAP 手动 / BY_AWAY 出框(系统级) / BY_IDLE 停跳30s */
+    pause_clock();
+    say(by == BY_TAP ? MID : HIGH, pause_line(by));      /* 后台切出:静默,不 say */
+    after(3min, () => settle_or_zero(saved = true));     /* 超时:停止并保存 */
+}
+void on_resume()     { idle_t0 = now(); cancel(3min_timer); }
+void on_background() { do_pause(SILENT); }               /* 声音通道还给系统 */
+/* 崩溃兜底:每 10 下或每 10s 落快照;启动时发现未结算快照 → 补结算 */
+
+/* ---- 结算(简单庆祝+小结,≤2 句) ---- */
+void settle(bool saved_by_timeout) {
+    if (count == 0) { say(MID, zero_round); go_home(); return; }     /* 空轮保护 */
+    sfx(settle_chord);
+    clip line1 = saved_by_timeout ? tpl_saved(count)
+               : goal_met         ? tpl_done_good(count) : done_plain;
+    clip line2 = today > snap.yd && snap.yd > 0 ? tpl_vs_yd(today - snap.yd)
+               : combo_max >= 20                ? tpl_combo(combo_max) : NONE;
+    say(MID, join(line1, line2));                        /* 就这两句,不再多 */
+    persist_round();                                     /* 含 best_at 更新 */
+    if (new_pb) pending_cele = true;                     /* 恭喜页在点「完成」后 */
+}
+void on_finish_tap() { if (pending_cele) { cele_show(); say(HIGH, span_days >= 2 ? tpl_span(span_days) : new_rec); } }
+
+/* ---- 开场白(§2.5 决策表直译) ---- */
+void opening() {
+    if (again_tap || quiet_mode) return;                        /* V-E */
+    if (no_history)               { say(MID, hello_new + date + call()); return; }   /* V-A */
+    if (first_today && snap.days_since_active >= 3)
+                                  { say(MID, tpl_return(snap.days_since_active) + call()); return; }  /* V-C */
+    if (!first_today)             { say(MID, today_count ? tpl_again(today_count) : back + call()); return; } /* V-D */
+    clip who = snap.nick_clip ? snap.nick_clip : welcome_plain;  /* V-B:缺哪层砍哪层 */
+    clip hl  = pick_rotate(streak_line, yd_line, pb_line, total_line);   /* 可为空 */
+    say(MID, who + nth(sessions) + hl + date + call());
+}
+```
+
+### 7.2 后端伪代码（只有三件慢事）
+
+```python
+# ① 记忆快照:开轮前拉取(端上缓存,离线用上一份)
+def memory_snapshot(user):
+    h = history(user)
+    yd = h.get(today() - 1)
+    return {
+        "yesterday_count": max(0, yd.count - yd.manual) if yd else 0,   # 对比只用实测(待定确认)
+        "best_session": user.best_session,
+        "best_at": user.best_at,                                        # 唯一新增字段
+        "streak": user.streak,
+        "days_since_active": today() - last_day_with_jumps(h),
+        "nick_clip": clip_key(user.nick) or None,
+    }
+
+# ② 昵称音频:设置/修改昵称时一次性生成(没有每日管线)
+def on_nick_change(user, nick):
+    audio = tts(f"{nick}，欢迎回来！", voice="coach_v1")   # 失败静默,端上回落无称呼版
+    return store_clip(user, audio)
+
+# ③ 结算落档(既有训练上报里顺带维护语音所需字段)
+def on_session_end(user, r):          # r = {count, ms, mode, started_at, manual=0}
+    d = date(r.started_at)            # 跨天轮按开轮日期(待定确认)
+    day = history(user).setdefault(d, Day())
+    day.count += r.count; day.best = max(day.best, r.count); day.ms += r.ms
+    if r.count > user.best_session:
+        user.best_session, user.best_at = r.count, d      # best_at 支撑"纪录跨度"句
+    update_streak(user, d)            # 既有逻辑不变
+# 语音包 OTA = 静态资源分发,走既有通道;快照/昵称接口失败时端上按 §2.5.4 降级,永不阻塞
+```
+
 - **里程碑**：M-A′ 固定包＋三档规则＋流程句（无后端依赖）→ M-B′ 快照 4 字段＋`best_at` 落库＋三个对比场景＋昵称 clip 接口。
 - **QA 验收**：① 整十与高档同帧只播高档、音效照常 ② 报时播放中破纪录 → 掐断改播 ③ 停跳 10s/30s 链与 3 分钟结算路径互斥、暂停时长不计入停跳计时 ④ 断网整轮语音正常、记忆类静默 ⑤ 安静模式出框仍有系统提示 ⑥ 空轮/新用户/昨日<30/PB<30 各静默场景不误触发。
 
