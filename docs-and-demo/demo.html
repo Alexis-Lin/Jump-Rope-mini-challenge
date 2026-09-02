@@ -2163,7 +2163,7 @@ function startSession(g) {
   /* v0.4 记忆对比与关怀类:每轮限次标记 + 昨日快照 */
   S.ydCount = (profile.history[dayKeyOffset(-1)] || {}).count || 0;
   S.ydPassSaid = false; S.okayN = 0; S.comfortN = 0; S.longSaid = false; S.pbSpan = 0;
-  S.timeSayN = 0;   /* 自由跳报时:已播到第几个 3 分钟节点 */
+  S.timeSayN = 0;   /* 自由跳报时:已播到第几分钟 */
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false; S.celebPending = false;
   S.minIvl = 0; S.slowWarned = false;
@@ -2269,10 +2269,11 @@ setInterval(() => {
     if (sessionElapsed() >= FREE_CAP_MS - 60000 && !capMark1) {
       capMark1 = true; speak(L.spCapSoon);
     }
-    /* 自由跳报时(9-2 拍板):每满 3 分钟播已跳时长(参数可调);与长轮关怀同帧时后者优先 */
-    const tmN = Math.floor(sessionElapsed() / 180000);
-    if (tmN > S.timeSayN && !(sessionElapsed() >= 1200000 && !S.longSaid)) {
-      S.timeSayN = tmN; speak(L.spElapsed(tmN * 3));
+    /* 自由跳报时(9-2 修订):每满 1 分钟播已跳时长;第 20 分钟让位长轮关怀、第 29 分钟起让位上限预告 */
+    const tmN = Math.floor(sessionElapsed() / 60000);
+    if (tmN > S.timeSayN) {
+      S.timeSayN = tmN;
+      if (tmN !== 20 && tmN < 29) speak(L.spElapsed(tmN));
     }
     if (sessionElapsed() >= 1200000 && !S.longSaid) {   /* v0.4 长轮关怀:20 分钟一次 */
       S.longSaid = true; speak(L.spLongRun);
@@ -3545,7 +3546,7 @@ function pbVoice(k) {
     sndStar(); flyStar($('atomRoot'));
     speak(L.spCombo(50));
   } else if (k === 'time') {
-    pbGoto('jump'); S.elapsedMs = 6 * 60000; S.timeSayN = 2; bump();   /* 冻结看门狗重播 */
+    pbGoto('jump'); S.elapsedMs = 6 * 60000; S.timeSayN = 6; bump();   /* 冻结看门狗重播 */
     speak(L.spElapsed(6));
   } else if (k === 'sum') {
     pbGoto('result');
