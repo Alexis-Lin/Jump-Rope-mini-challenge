@@ -1407,6 +1407,9 @@ zh: {
   spSteady: '对，就是这个节奏！',
   spComfort: '没关系，重新连起来！',
   spStall: '歇好了吗？我们接着跳！',
+  spStall30: '还在吗？再歇一会儿，我就先帮你把成绩存起来咯',
+  spStart0: '准备好了就起跳吧！',
+  spIdleEnd: c => `先帮你把成绩存好啦，一共 ${c} 下`,
   spLongRun: '跳了很久了，注意呼吸节奏',
   spElapsed: m => `已经跳了 ${m} 分钟啦`,
   cmpYd: d => `，今天比昨天多 ${d} 下`,
@@ -1510,6 +1513,9 @@ en: {
   spSteady: "Yes, that's the rhythm!",
   spComfort: "No worries — chain it up again!",
   spStall: "Ready again? Let's keep jumping!",
+  spStall30: "Still there? Rest much longer and I'll save your score for now",
+  spStart0: 'Jump in whenever you are ready!',
+  spIdleEnd: c => `Saved your score for now — ${c} total`,
   spLongRun: "You've been at it a while — mind your breathing",
   spElapsed: m => `${m} minutes in — keep going!`,
   cmpYd: d => `, ${d} more than yesterday`,
@@ -2167,7 +2173,7 @@ function startSession(g) {
   S.ydCount = (profile.history[dayKeyOffset(-1)] || {}).count || 0;
   S.ydPassSaid = false; S.okayN = 0; S.comfortN = 0; S.longSaid = false; S.pbSpan = 0;
   S.timeSayN = 0;   /* 自由跳报时:已播到第几分钟 */
-  S.stallN = 0; S.stallSaid = false;   /* 停跳鼓励(9-2):每轮 ≤2 次,每次停跳只提醒一遍 */
+  S.stallN = 0; S.stallSaid = false; S.stall30Said = false; S.idleEnded = false;   /* 停跳升级链(9-2) */
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false; S.celebPending = false;
   S.minIvl = 0; S.slowWarned = false;
@@ -2256,12 +2262,21 @@ setInterval(() => {
     if (S.combo >= 30 && S.comfortN < 2) { S.comfortN++; speak(L.spComfort); }
     S.combo = 0; bump();
   }
-  /* 停跳鼓励(9-2 拍板):跳过之后原地停 ≥15s(未出框未暂停)→ 轻声招呼继续;
-     每次停跳只说一遍(再跳解锁),每轮 ≤2 次 */
-  if (!comboHold && S.count > 0 && !S.stallSaid && S.stallN < 2
-      && performance.now() - S.lastJumpT > 15000) {
-    S.stallSaid = true; S.stallN++;
-    speak(L.spStall);
+  /* 停跳升级链(9-2 修订):人在画面里、未暂停,但绳停了——
+     10s 鼓励(每轮 ≤3 次) → 30s 再提示+结算预告(仅自由跳) → 60s 自动结算落档;
+     开局没起跳走 sessionElapsed 计时,60s 触发空轮保护(不落档回首页);
+     主动暂停/出框暂停不进本链(watchdog 已 paused 早退,走 3 分钟暂停生命周期);
+     限时模式只保留 10s 鼓励(时间自己会到,不抢结算) */
+  const idleMs = S.count > 0 ? performance.now() - S.lastJumpT : sessionElapsed();
+  if (!comboHold) {
+    if (idleMs > 60000 && S.goal !== TEST) { S.idleEnded = true; endSession(); return; }
+    if (idleMs > 30000 && S.goal !== TEST && !S.stall30Said) {
+      S.stall30Said = true; S.stallSaid = true;   /* 本次停跳的 10s 档一并视为已说 */
+      speak(L.spStall30);
+    } else if (idleMs > 10000 && !S.stallSaid && S.stallN < 3) {
+      S.stallSaid = true; S.stallN++;
+      speak(S.count > 0 ? L.spStall : L.spStart0);
+    }
   }
   if (S.goal === TEST) {
     /* 1 分钟测试：读秒倒计时 + 节点语音 + 时间到自动结算 */
@@ -2284,7 +2299,7 @@ setInterval(() => {
     const tmN = Math.floor(sessionElapsed() / 60000);
     if (tmN > S.timeSayN) {
       S.timeSayN = tmN;
-      if (tmN !== 20 && tmN < 29) speak(L.spElapsed(tmN));
+      if (tmN !== 20 && tmN < 29 && idleMs < 10000) speak(L.spElapsed(tmN));   /* 停跳中不报时 */
     }
     if (sessionElapsed() >= 1200000 && !S.longSaid) {   /* v0.4 长轮关怀:20 分钟一次 */
       S.longSaid = true; speak(L.spLongRun);
@@ -2350,7 +2365,7 @@ function registerJump() {
      热血状态:连击 10 → 热血1(轻微缓慢光芒),连击 30(热血1 内再 20)→ 热血2(热烈光芒交替);
      热血2 内每保持 20 下(连击 50/70/90…)= +1★ + 语音庆祝;断连归零回普通 */
   comboHold = false;   /* 真实跳跃解除「状态速览」冻结 */
-  S.stallSaid = false;   /* 重新起跳 → 停跳鼓励重新武装 */
+  S.stallSaid = false; S.stall30Said = false;   /* 重新起跳 → 停跳链重新武装 */
   const nowT = performance.now();
   const prevLv = bloodLv();
   S.combo = (nowT - S.lastJumpT <= COMBO_GAP) ? S.combo + 1 : 1;
@@ -2507,7 +2522,7 @@ function endSession() {
     const rateTxt = S.testMin === 1 ? rateTest(S.count) : '';
     speak(withCmp(S.newBest ? L.spTestBest(S.count, rateTxt) : L.spTestEnd(S.testMin, S.count, rateTxt)));
   } else {
-    speak(withCmp(goalMet ? L.spEndGood(S.count) : L.spEnd));
+    speak(withCmp(S.idleEnded ? L.spIdleEnd(S.count) : goalMet ? L.spEndGood(S.count) : L.spEnd));
   }
 
   /* 打卡与档案结算 */
@@ -2562,7 +2577,7 @@ function pauseSession(v, by) {
   clearTimeout(pauseEndTimer);
   /* 计时随暂停停表 */
   if (v && S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
-  if (!v && !S.runSince) S.runSince = Date.now();
+  if (!v && !S.runSince) { S.runSince = Date.now(); if (S.count > 0) S.lastJumpT = performance.now(); }   /* 恢复:暂停时长不计入停跳链 */
   if (v) {
     $('a-pause-sub').textContent = S.pauseBy === 'tap' ? L.pausedTap : L.pausedSub;
     /* v0.4 拍板:出框自动暂停用教练口吻引导(安全类,安静模式也应播);手动点按仍报"已暂停" */
