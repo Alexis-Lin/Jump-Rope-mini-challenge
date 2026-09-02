@@ -1157,7 +1157,7 @@
   </section>
   <section id="t6">
     <div class="card">
-      <h2>三层音频架构(完整策略:<a href="audio-voice-strategy.md">audio-voice-strategy.md</a>)</h2>
+      <h2>三层音频架构(完整定稿:<a href="voice-spec.md">voice-spec.md</a>——9-2 整合,唯一事实源)</h2>
       <table>
         <tr><th>层</th><th>内容</th><th>音量</th><th>打断</th><th>可关</th></tr>
         <tr><td><b>L1 音效</b></td><td>计数叮(五声音阶步进)/逢十重击/得星/倒计时/发令/fanfare —— 9 条新制干声,不复用课程音效</td><td>100%</td><td>永不被打断</td><td>不可关(计数确认)</td></tr>
@@ -1190,7 +1190,7 @@
         <span class="chip">🎯 动作(引导/节奏/肯定;纠错 V1 休眠)</span>
         <span class="chip" style="border-color:var(--accent);color:var(--accent)">❤️ 情感(记忆对比/庆祝/激励/安抚——三大聚焦投入点)</span>
       </div>
-      <div class="note">priority = importance × (NOW 1.5 / SOON 1.0 / WHENEVER 0.6);高出正在播 20 分才打断,否则丢弃不排队;同 cooldownKey 冷却防复读;<b>默认沉默</b>——除计数外话语类每分钟 ≤2 句,最后 10 秒只留安全+过渡。课中<b>零浮层弹窗</b>:一切事件反馈 = 语音 + 既有画面元素;页面级告知只用整屏遮盖式模块。完整事件表见 audio-voice-strategy.md §4.4。</div>
+      <div class="note">priority = importance × (NOW 1.5 / SOON 1.0 / WHENEVER 0.6);高出正在播 20 分才打断,否则丢弃不排队;同 cooldownKey 冷却防复读;<b>默认沉默</b>——除计数外话语类每分钟 ≤2 句,最后 10 秒只留安全+过渡。课中<b>零浮层弹窗</b>:一切事件反馈 = 语音 + 既有画面元素;页面级告知只用整屏遮盖式模块。完整清单见 voice-spec.md §2(V1 落地简化为三档优先级,见 §3)。</div>
     </div>
     <div class="card">
       <h2>播报决策逻辑树(每个语音时机都走同一棵树;全量端上运行——8-31 拍板)</h2>
@@ -1260,7 +1260,7 @@
             <text x="380" y="544" text-anchor="middle">播出登记:同类冷却计时 · 每轮限次 +1 · 记忆去重日志(48h)</text>
           </g>
         </svg>
-        <figcaption class="note" style="margin-top:8px">安全类候选(imp≈90 × NOW 1.5 = 135)天然高过一切、且被安静模式豁免;记忆对比类另受「每轮 ≤3 条」总预算约束。整棵树连同话术表全部跑在设备端,断网课中语音零影响——服务端只在开轮前下发记忆快照与预生成 TTS(详见 code/voice-engine-spec.md)。</figcaption>
+        <figcaption class="note" style="margin-top:8px">安全类候选(imp≈90 × NOW 1.5 = 135)天然高过一切、且被安静模式豁免;记忆对比类另受「每轮 ≤3 条」总预算约束。整棵树连同话术表全部跑在设备端,断网课中语音零影响——服务端只在开轮前下发记忆快照与昵称音频(详见 voice-spec.md §5/§7)。V1 落地把打分简化为三档固定优先级(voice-spec.md §3),本图为通用模型。</figcaption>
       </figure>
     </div>
     <div class="card">
@@ -1407,7 +1407,8 @@ zh: {
   spSteady: '对，就是这个节奏！',
   spComfort: '没关系，重新连起来！',
   spStall: '歇好了吗？我们接着跳！',
-  spStall30: '还在吗？再歇一会儿，我就先帮你把成绩存起来咯',
+  spIdlePause: '歇久啦，先帮你暂停，回来点一下继续！',
+  pausedIdle: '停跳自动暂停 · 点按继续',
   spStart0: '准备好了就起跳吧！',
   spIdleEnd: c => `先帮你把成绩存好啦，一共 ${c} 下`,
   spLongRun: '跳了很久了，注意呼吸节奏',
@@ -1513,7 +1514,8 @@ en: {
   spSteady: "Yes, that's the rhythm!",
   spComfort: "No worries — chain it up again!",
   spStall: "Ready again? Let's keep jumping!",
-  spStall30: "Still there? Rest much longer and I'll save your score for now",
+  spIdlePause: "Taking a longer break? Paused for you — tap to resume!",
+  pausedIdle: 'Auto-paused · tap to resume',
   spStart0: 'Jump in whenever you are ready!',
   spIdleEnd: c => `Saved your score for now — ${c} total`,
   spLongRun: "You've been at it a while — mind your breathing",
@@ -1576,7 +1578,7 @@ function applyStatic() {
   });
 }
 /* ------------------------------------------------------------
-   今日开场白（策略定稿,详见手册「语音播报策略」页签 / audio-voice-strategy.md §4.5）:
+   今日开场白（策略定稿,详见手册「语音播报策略」页签 / voice-spec.md §2.2）:
    · 时机:3·2·1·BodyPark 发令后开播(边跳边听,绝不阻塞开跳);首页阶段零语音(8-18)
    · 内容当日确定 → 进入 APP 时即预生成 TTS 缓存;发令时未就绪 → 本轮静默跳过,不补播
    · 结构(≤3 句 ≤9s):称呼欢迎(+第 N 次) → 数据亮点 1 条(按轮次轮换) → 今日召唤(绑定所选模式)
@@ -2173,7 +2175,7 @@ function startSession(g) {
   S.ydCount = (profile.history[dayKeyOffset(-1)] || {}).count || 0;
   S.ydPassSaid = false; S.okayN = 0; S.comfortN = 0; S.longSaid = false; S.pbSpan = 0;
   S.timeSayN = 0;   /* 自由跳报时:已播到第几分钟 */
-  S.stallN = 0; S.stallSaid = false; S.stall30Said = false; S.idleEnded = false;   /* 停跳升级链(9-2) */
+  S.stallN = 0; S.stallSaid = false; S.idleEnded = false;   /* 停跳链(9-2 终版):10s 提示/30s 自动暂停 */
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false; S.celebPending = false;
   S.minIvl = 0; S.slowWarned = false;
@@ -2262,18 +2264,14 @@ setInterval(() => {
     if (S.combo >= 30 && S.comfortN < 2) { S.comfortN++; speak(L.spComfort); }
     S.combo = 0; bump();
   }
-  /* 停跳升级链(9-2 修订):人在画面里、未暂停,但绳停了——
-     10s 鼓励(每轮 ≤3 次) → 30s 再提示+结算预告(仅自由跳) → 60s 自动结算落档;
-     开局没起跳走 sessionElapsed 计时,60s 触发空轮保护(不落档回首页);
-     主动暂停/出框暂停不进本链(watchdog 已 paused 早退,走 3 分钟暂停生命周期);
-     限时模式只保留 10s 鼓励(时间自己会到,不抢结算) */
-  const idleMs = S.count > 0 ? performance.now() - S.lastJumpT : sessionElapsed();
+  /* 停跳链(9-2 终版):人在画面里、未暂停,但绳停了——
+     10s 鼓励一次(每轮 ≤3 次) → 30s 无跳动:前端自动进入暂停(带一句告知);
+     之后统一走暂停生命周期:暂停超 3 分钟 → 自动结算保存(空轮走空轮保护);
+     主动暂停/出框暂停不进本链;限时模式只保留 10s 鼓励(读秒自己会收尾) */
+  const idleMs = S.lastJumpT ? performance.now() - S.lastJumpT : sessionElapsed();
   if (!comboHold) {
-    if (idleMs > 60000 && S.goal !== TEST) { S.idleEnded = true; endSession(); return; }
-    if (idleMs > 30000 && S.goal !== TEST && !S.stall30Said) {
-      S.stall30Said = true; S.stallSaid = true;   /* 本次停跳的 10s 档一并视为已说 */
-      speak(L.spStall30);
-    } else if (idleMs > 10000 && !S.stallSaid && S.stallN < 3) {
+    if (idleMs > 30000 && S.goal !== TEST) { pauseSession(true, 'idle'); return; }
+    if (idleMs > 10000 && !S.stallSaid && S.stallN < 3) {
       S.stallSaid = true; S.stallN++;
       speak(S.count > 0 ? L.spStall : L.spStart0);
     }
@@ -2365,7 +2363,7 @@ function registerJump() {
      热血状态:连击 10 → 热血1(轻微缓慢光芒),连击 30(热血1 内再 20)→ 热血2(热烈光芒交替);
      热血2 内每保持 20 下(连击 50/70/90…)= +1★ + 语音庆祝;断连归零回普通 */
   comboHold = false;   /* 真实跳跃解除「状态速览」冻结 */
-  S.stallSaid = false; S.stall30Said = false;   /* 重新起跳 → 停跳链重新武装 */
+  S.stallSaid = false;   /* 重新起跳 → 停跳链重新武装 */
   const nowT = performance.now();
   const prevLv = bloodLv();
   S.combo = (nowT - S.lastJumpT <= COMBO_GAP) ? S.combo + 1 : 1;
@@ -2577,13 +2575,16 @@ function pauseSession(v, by) {
   clearTimeout(pauseEndTimer);
   /* 计时随暂停停表 */
   if (v && S.runSince) { S.elapsedMs += Date.now() - S.runSince; S.runSince = null; }
-  if (!v && !S.runSince) { S.runSince = Date.now(); if (S.count > 0) S.lastJumpT = performance.now(); }   /* 恢复:暂停时长不计入停跳链 */
+  if (!v && !S.runSince) { S.runSince = Date.now(); S.lastJumpT = performance.now(); }   /* 恢复:停跳计时清零,暂停时长不计入 */
   if (v) {
-    $('a-pause-sub').textContent = S.pauseBy === 'tap' ? L.pausedTap : L.pausedSub;
-    /* v0.4 拍板:出框自动暂停用教练口吻引导(安全类,安静模式也应播);手动点按仍报"已暂停" */
-    speak(S.pauseBy === 'tap' ? L.spPause : L.spAway);
+    $('a-pause-sub').textContent = S.pauseBy === 'tap' ? L.pausedTap
+      : S.pauseBy === 'idle' ? L.pausedIdle : L.pausedSub;
+    /* 出框=教练引导(安全类,安静模式也播);手动点按="已暂停";停跳 30s 自动暂停=告知一句 */
+    speak(S.pauseBy === 'tap' ? L.spPause : S.pauseBy === 'idle' ? L.spIdlePause : L.spAway);
     /* 暂停超 3 分钟自动结算(成绩保存;复用现有课程 暂停/切后台自动暂停/超时结束 生命周期——8-18 确认,可配 3–5min) */
-    pauseEndTimer = setTimeout(() => { if (S.paused && S.screen === 'jump') endSession(); }, 180000);
+    pauseEndTimer = setTimeout(() => {   /* 暂停超 3 分钟:停止并保存记录(9-2 确认;空轮走空轮保护) */
+      if (S.paused && S.screen === 'jump') { S.idleEnded = true; endSession(); }
+    }, 180000);
   }
   bump();
 }

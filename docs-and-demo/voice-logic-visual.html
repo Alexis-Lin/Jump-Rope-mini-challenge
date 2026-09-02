@@ -189,7 +189,8 @@
   <div class="cats">
     <div class="cat safety">
       <h3>🛡️ 安全 <span class="tag">最高优 · 安静模式也照播</span></h3>
-      <div class="ev"><span class="n">出框引导</span><span class="t">人离开画面 → 自动暂停 → <q>回到画面里来，继续！</q></span></div>
+      <div class="ev"><span class="n">出框引导</span><span class="t">人离开画面 → 自动暂停（复用系统级提示）→ <q>回到画面里来，继续！</q></span></div>
+      <div class="ev"><span class="n">停跳链</span><span class="t">停跳 10s → <q>歇好了吗？我们接着跳！</q>；30s 无跳动 → 自动暂停＋<q>歇久啦，先帮你暂停</q>；暂停超 3 分钟 → 自动结算保存</span></div>
       <div class="ev"><span class="n">长轮关怀</span><span class="t">自由跳满 20 分钟 → <q>跳了很久了，注意呼吸节奏</q></span></div>
     </div>
     <div class="cat proc">
@@ -228,14 +229,14 @@
         <span class="chip" style="border-color:var(--amber);color:var(--amber)">出框引导</span>
         <span class="chip" style="border-color:var(--gold);color:var(--gold)">破纪录</span>
         <span class="chip" style="border-color:var(--gold);color:var(--gold)">越过昨天</span>
-        <span class="chip">达标</span><span class="chip">时间到</span>
+        <span class="chip">达标·满环</span><span class="chip">时间到</span><span class="chip">30s 停跳自动暂停</span>
       </div>
     </div>
     <div class="cut"><span class="ar">⬇ 可打断</span>正在播的中档、低档，立刻掐断改播</div>
     <div class="tier mid">
       <div class="tn">中档<small>空闲才播</small></div>
       <div class="chips">
-        <span class="chip">开场白</span><span class="chip">结算小结</span><span class="chip">每分钟报时</span><span class="chip">30s/10s 节点</span><span class="chip">长轮关怀</span>
+        <span class="chip">开场白</span><span class="chip">结算小结</span><span class="chip">每分钟报时</span><span class="chip">30s/10s 节点</span><span class="chip">长轮关怀</span><span class="chip">10s 停跳鼓励</span>
       </div>
     </div>
     <div class="cut"><span class="ar">⬇ 压过</span>同一瞬间的整十报数——报数直接丢弃</div>
@@ -301,6 +302,6 @@
   </div>
 
   <div class="src">
-    口径来源：<code>audio-voice-strategy.md §10</code>（V1 精简范围）· <code>voice-script-list.md</code>（全量话术表）· <code>voice-engine-spec.md</code>（工程实现）。可交互试听：Demo 控制条「语音场景」按钮组。
+    口径来源：<code>voice-spec.md</code>（9-2 整合定稿，唯一事实源：§2 话术清单 · §3 三档优先级 · §4 生命周期边界）。可交互试听：Demo 控制条「语音场景」按钮组。
   </div>
 </div>

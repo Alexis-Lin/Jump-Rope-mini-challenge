@@ -16,7 +16,7 @@ docs-and-demo/                     文档与 Demo(一站式)
 │                                    · Tab2 火柴人渲染说明(实时交互)· Tab3 起 关键逻辑
 │                                    / 接口字段 / 视觉标准;加 ?app=1 = 纯 Demo(设备 WebView 直载)
 ├── jump-rope-mini-prd.md          PRD 完整版(含产品设计说明附录) —— 开发以此为准
-├── audio-voice-strategy.md        课中音频整体策略(音效/BGM/TTS 人声,三层架构+资产清单)
+├── voice-spec.md                  语音交互定稿 V1(三层音频/话术清单/优先级/生命周期边界/素材,唯一事实源)
 ├── meetings/                      评审会纪要存档(08-18 跳绳产品功能方案讨论)
 ├── figure-rendering.md            AI 火柴人渲染说明(33 关键点接口 + 几何 + 动效管线)
 └── ui/                            全部 UI 图(en/ zh/ 各 22 屏 + 火柴人规格卡 PNG)
