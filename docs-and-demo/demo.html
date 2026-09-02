@@ -470,6 +470,19 @@
     font-variant-numeric: tabular-nums;
   }
   /* 连击标签(8-25 试验):计数下方,≥10 显示;颜色随连击档位升温,断连即隐 */
+  /* 课中破 PB 小勋章(9-2 会议):不带数字,闪现后常驻到本轮结束,课后详情页看明细 */
+  .a-pbbadge {
+    position: absolute; top: 23.5%; right: 14%; z-index: 6; pointer-events: none;
+    display: flex; align-items: center; gap: 4px;
+    color: #FFDB80; font-size: 20px; font-weight: 800; letter-spacing: .04em;
+    opacity: 0; transform: scale(.4);
+  }
+  .a-pbbadge.on { animation: pbpop .5s steps(4) forwards; }
+  @keyframes pbpop {
+    0% { opacity: 0; transform: scale(2.4); }
+    60% { opacity: 1; transform: scale(.9); }
+    100% { opacity: 1; transform: scale(1); }
+  }
   .a-combo {
     position: absolute; top: 34.4%; left: 0; right: 0; z-index: 3;
     text-align: center; font-size: var(--t22); font-weight: 800;
@@ -889,6 +902,7 @@
           </div>
         </div>
         <div class="a-combo" id="a-combo-lab"></div>
+        <div class="a-pbbadge" id="a-pbbadge"></div>
         <div class="a-meter" id="a-meter"><i id="a-meter-fill"></i><i class="mg" id="a-meter-glow"></i></div>
         <!-- 荣誉星(8-26 移位):挂在蓄力槽右侧——计数固定居中,不随星数左右偏移 -->
         <div class="a-lapstars" id="a-lapstars"></div>
@@ -1411,6 +1425,11 @@ zh: {
   pausedIdle: '停跳自动暂停 · 点按继续',
   spStart0: '准备好了就起跳吧！',
   spIdleEnd: c => `先帮你把成绩存好啦，一共 ${c} 下`,
+  spDoneQuick: '恭喜你，今日训练已完成！', spIdleQuick: '先帮你把成绩存好啦',
+  spPbQuick: '你打破了单次最佳纪录！',
+  spSum: (c, t, j) => `今天跳了 ${c} 下，用时 ${t}，平均每分钟 ${j} 下`,
+  spSum0: c => `今天跳了 ${c} 下`,
+  cmpJpm: p => `，比上次快了 ${p}%`,
   spLongRun: '跳了很久了，注意呼吸节奏',
   spElapsed: m => `已经跳了 ${m} 分钟啦`,
   cmpYd: d => `，今天比昨天多 ${d} 下`,
@@ -1518,6 +1537,11 @@ en: {
   pausedIdle: 'Auto-paused · tap to resume',
   spStart0: 'Jump in whenever you are ready!',
   spIdleEnd: c => `Saved your score for now — ${c} total`,
+  spDoneQuick: "Congrats — today's training is complete!", spIdleQuick: 'Saved your score for now',
+  spPbQuick: 'You broke your best-round record!',
+  spSum: (c, t, j) => `${c} jumps today in ${t}, averaging ${j} per minute`,
+  spSum0: c => `${c} jumps today`,
+  cmpJpm: p => `, ${p}% faster than last time`,
   spLongRun: "You've been at it a while — mind your breathing",
   spElapsed: m => `${m} minutes in — keep going!`,
   cmpYd: d => `, ${d} more than yesterday`,
@@ -1882,6 +1906,8 @@ function bgmStart() {
 }
 function bgmStop() { clearTimeout(bgmSeq); bgmSeq = null; bgmBpm = 110; }
 const sndGo   = () => tone(880, 0.25, 'sine', 0.16);
+/* 限时最后 10s 时钟滴答(9-2 会议):高低两音交替,与计数叮并行(多路音效) */
+const sndTick = (k) => tone(k % 2 ? 1180 : 880, 0.045, 'square', 0.075);
 const sndMilestone = () => { tone(523,0.12,'sine',0.12); tone(659,0.12,'sine',0.12,0.10); tone(784,0.2,'sine',0.12,0.20); };
 const sndStar = () => { tone(1047,0.1,'sine',0.1); tone(1319,0.18,'sine',0.1,0.08); };
 const sndFanfare = () => { [523,659,784,1047].forEach((f,i)=>tone(f,0.3,'triangle',0.13,i*0.13)); };
@@ -2176,6 +2202,8 @@ function startSession(g) {
   S.ydPassSaid = false; S.okayN = 0; S.comfortN = 0; S.longSaid = false; S.pbSpan = 0;
   S.timeSayN = 0;   /* 自由跳报时:已播到第几分钟 */
   S.stallN = 0; S.stallSaid = false; S.idleEnded = false;   /* 停跳链(9-2 终版):10s 提示/30s 自动暂停 */
+  S.tickSec = 0; clearSettleTimers();
+  $('a-pbbadge').classList.remove('on');
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false; S.celebPending = false;
   S.minIvl = 0; S.slowWarned = false;
@@ -2286,6 +2314,8 @@ setInterval(() => {
     $('a-ring-arc').classList.toggle('warn', rem <= 10000);
     if (rem <= 30000 && !testMark30) { testMark30 = true; speak(L.sp30); }
     if (rem <= 10000 && !testMark10) { testMark10 = true; speak(L.sp10); }
+    const secLeft = Math.ceil(rem / 1000);   /* 最后 10s:每秒一声滴答,与语音/计数叮并行 */
+    if (rem <= 10000 && secLeft !== S.tickSec) { S.tickSec = secLeft; sndTick(secLeft); }
   } else {
     $('a-timer').textContent = fmtTime(sessionElapsed());
     /* 自由跳单轮上限 30 分钟：最后 1 分钟语音预告，届满自动结算（成绩照常落档） */
@@ -2449,6 +2479,7 @@ function registerJump() {
     if (!S.pbNearSaid && gap > 0 && gap <= 10) { S.pbNearSaid = true; speak(L.spPbNear(gap)); }
     if (!S.pbBroken && S.count > S.pbAtStart) {
       S.pbBroken = true;
+      $('a-pbbadge').classList.add('on');       /* PB 小勋章:闪现后常驻到本轮结束 */
       skel.glowT0 = performance.now();          /* 全身金光 */
       confetti($('atomRoot'), 30);
       sndFanfare();
@@ -2520,7 +2551,17 @@ function endSession() {
     const rateTxt = S.testMin === 1 ? rateTest(S.count) : '';
     speak(withCmp(S.newBest ? L.spTestBest(S.count, rateTxt) : L.spTestEnd(S.testMin, S.count, rateTxt)));
   } else {
-    speak(withCmp(S.idleEnded ? L.spIdleEnd(S.count) : goalMet ? L.spEndGood(S.count) : L.spEnd));
+    /* 结算三段式(9-2 会议版):①快句 0 等待 → ②PB 句(+0.9s,不带数字) → ③客观小结(+1.6/2.6s,含 JPM 对比);
+       真机:①②端上固定音频,③走 LLM/模板 hybrid 可晚到——Demo 用定时链模拟节奏 */
+    speak(S.idleEnded ? L.spIdleQuick : goalMet ? L.spDoneQuick : L.spEnd);
+    const jpm = S.elapsedMs > 15000 ? Math.round(S.count / (S.elapsedMs / 60000)) : 0;
+    const jpmUp = profile.lastJpm > 0 && jpm > profile.lastJpm
+      ? Math.round((jpm / profile.lastJpm - 1) * 100) : 0;
+    const extra = jpmUp >= 3 ? L.cmpJpm(jpmUp) : cmp;
+    if (S.newBest) settleTimers.push(setTimeout(() => speak(L.spPbQuick), 900));
+    const line3 = (jpm > 0 ? L.spSum(S.count, fmtTime(S.elapsedMs), jpm) : L.spSum0(S.count)) + extra;
+    settleTimers.push(setTimeout(() => speak(line3), S.newBest ? 2600 : 1600));
+    if (jpm > 0) profile.lastJpm = jpm;   /* JPM 落档:下轮对比"比上次快了 N%" */
   }
 
   /* 打卡与档案结算 */
@@ -2567,6 +2608,8 @@ function endSession() {
   resultTimer = setTimeout(() => { if (S.screen === 'result') goHome(); }, 45000);
 }
 
+let settleTimers = [];   /* 结算三段式的延时句:切屏/新轮即取消,防掐断恭喜页语音 */
+function clearSettleTimers() { settleTimers.forEach(clearTimeout); settleTimers = []; }
 let pauseEndTimer = null;
 function pauseSession(v, by) {
   if (S.screen !== 'jump') return;
@@ -2705,6 +2748,7 @@ function celeConfetti(pb) {
 }
 /* 结果页「完成」:若本轮解锁新纪录,演一次庆祝模块再回首页(恭喜与结果页解耦;宿主在 onDone 导航) */
 function finishResult() {
+  clearSettleTimers();
   if (S.screen === 'result' && S.celebPending) {
     S.celebPending = false;
     celebrationShow({ scope: 'round', state: 'done', perf: 'pb',
@@ -2714,7 +2758,7 @@ function finishResult() {
   }
   goHome();
 }
-function goHome() { S.screen = 'idle'; S.paused = false; S.celebPending = false; clearInterval(cdTimer); clearTimeout(resultTimer); bgmStop(); S.countdown = 0; S.brandFlash = false; bump(); }
+function goHome() { clearSettleTimers(); S.screen = 'idle'; S.paused = false; S.celebPending = false; clearInterval(cdTimer); clearTimeout(resultTimer); bgmStop(); S.countdown = 0; S.brandFlash = false; bump(); }
 
 /* 伪二维码占位（示意图形，非真实二维码） */
 function drawQR(cv) {
@@ -3512,6 +3556,8 @@ $('pb-auto').addEventListener('click', () => { audio(); setAuto(!autoTimer); });
 function pbGoto(k) {
   audio();
   if (autoTimer) setAuto(false);
+  clearSettleTimers();
+  $('a-pbbadge').classList.remove('on');
   comboHold = false;
   clearInterval(cdTimer); clearTimeout(resultTimer);
   cancelAnimationFrame(celeRaf);
