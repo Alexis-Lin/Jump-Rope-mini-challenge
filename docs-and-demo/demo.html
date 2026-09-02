@@ -1323,6 +1323,7 @@
   <button id="pb-v-sum">结算小结</button>
   <button id="pb-v-rec">破纪录跨度</button>
   <button id="pb-v-time">自由报时</button>
+  <button id="pb-v-stall">停跳鼓励</button>
 </div>
 
 <script>
@@ -1405,6 +1406,7 @@ zh: {
   spGoalNear: '还差 10 下就到目标了！',
   spSteady: '对，就是这个节奏！',
   spComfort: '没关系，重新连起来！',
+  spStall: '歇好了吗？我们接着跳！',
   spLongRun: '跳了很久了，注意呼吸节奏',
   spElapsed: m => `已经跳了 ${m} 分钟啦`,
   cmpYd: d => `，今天比昨天多 ${d} 下`,
@@ -1507,6 +1509,7 @@ en: {
   spGoalNear: '10 more to your goal!',
   spSteady: "Yes, that's the rhythm!",
   spComfort: "No worries — chain it up again!",
+  spStall: "Ready again? Let's keep jumping!",
   spLongRun: "You've been at it a while — mind your breathing",
   spElapsed: m => `${m} minutes in — keep going!`,
   cmpYd: d => `, ${d} more than yesterday`,
@@ -2164,6 +2167,7 @@ function startSession(g) {
   S.ydCount = (profile.history[dayKeyOffset(-1)] || {}).count || 0;
   S.ydPassSaid = false; S.okayN = 0; S.comfortN = 0; S.longSaid = false; S.pbSpan = 0;
   S.timeSayN = 0;   /* 自由跳报时:已播到第几分钟 */
+  S.stallN = 0; S.stallSaid = false;   /* 停跳鼓励(9-2):每轮 ≤2 次,每次停跳只提醒一遍 */
   S.goalHit = false; S.totalAtStart = profile.total; S.unlock = '';
   S.elapsedMs = 0; S.runSince = null; S.newBest = false; S.celebPending = false;
   S.minIvl = 0; S.slowWarned = false;
@@ -2252,6 +2256,13 @@ setInterval(() => {
     if (S.combo >= 30 && S.comfortN < 2) { S.comfortN++; speak(L.spComfort); }
     S.combo = 0; bump();
   }
+  /* 停跳鼓励(9-2 拍板):跳过之后原地停 ≥15s(未出框未暂停)→ 轻声招呼继续;
+     每次停跳只说一遍(再跳解锁),每轮 ≤2 次 */
+  if (!comboHold && S.count > 0 && !S.stallSaid && S.stallN < 2
+      && performance.now() - S.lastJumpT > 15000) {
+    S.stallSaid = true; S.stallN++;
+    speak(L.spStall);
+  }
   if (S.goal === TEST) {
     /* 1 分钟测试：读秒倒计时 + 节点语音 + 时间到自动结算 */
     const rem = testMs() - sessionElapsed();
@@ -2339,6 +2350,7 @@ function registerJump() {
      热血状态:连击 10 → 热血1(轻微缓慢光芒),连击 30(热血1 内再 20)→ 热血2(热烈光芒交替);
      热血2 内每保持 20 下(连击 50/70/90…)= +1★ + 语音庆祝;断连归零回普通 */
   comboHold = false;   /* 真实跳跃解除「状态速览」冻结 */
+  S.stallSaid = false;   /* 重新起跳 → 停跳鼓励重新武装 */
   const nowT = performance.now();
   const prevLv = bloodLv();
   S.combo = (nowT - S.lastJumpT <= COMBO_GAP) ? S.combo + 1 : 1;
@@ -3545,6 +3557,9 @@ function pbVoice(k) {
     pbGoto('full'); S.combo = 50; S.comboStars = 1; bump();
     sndStar(); flyStar($('atomRoot'));
     speak(L.spCombo(50));
+  } else if (k === 'stall') {
+    pbGoto('jump'); S.count = 58; bump();
+    speak(L.spStall);
   } else if (k === 'time') {
     pbGoto('jump'); S.elapsedMs = 6 * 60000; S.timeSayN = 6; bump();   /* 冻结看门狗重播 */
     speak(L.spElapsed(6));
@@ -3559,7 +3574,7 @@ function pbVoice(k) {
 }
 [['pb-v-op1', 'op1'], ['pb-v-opret', 'opret'], ['pb-v-yd', 'yd'], ['pb-v-goal', 'goal'],
  ['pb-v-steady', 'steady'], ['pb-v-comfort', 'comfort'], ['pb-v-blood', 'blood'],
- ['pb-v-star', 'star'], ['pb-v-sum', 'sum'], ['pb-v-rec', 'rec'], ['pb-v-time', 'time']
+ ['pb-v-star', 'star'], ['pb-v-sum', 'sum'], ['pb-v-rec', 'rec'], ['pb-v-time', 'time'], ['pb-v-stall', 'stall']
 ].forEach(([id, k]) => $(id).addEventListener('click', () => pbVoice(k)));
 /* 「初始状态」开关:ON = 快照当前档案 → 切换为全新空账号(演示空状态/新手开场白);OFF = 恢复快照 */
 let freshBak = null;
