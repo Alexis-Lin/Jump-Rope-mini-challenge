@@ -1,0 +1,344 @@
+<title>跳绳语音播报图解</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap">
+<style>
+  /* 单主题页面:沿用跳绳小挑战的舞台视觉(黑底/品牌绿/打击金),所有颜色显式着色 */
+  :root {
+    --bg: #101312;
+    --panel: #181D1A;
+    --panel2: #141816;
+    --line: #2B332E;
+    --ink: #F2F4F2;
+    --dim: #8D9591;
+    --green: #23C766;
+    --green-soft: #7FE3A8;
+    --gold: #FFDB80;
+    --amber: #FFB020;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    margin: 0;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 48px 22px 80px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px; letter-spacing: .28em; color: var(--green);
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  h1 {
+    font-size: 34px; font-weight: 900; margin: 0 0 6px; letter-spacing: .02em;
+    text-wrap: balance;
+  }
+  .sub { color: var(--dim); margin: 0 0 8px; max-width: 42em; }
+  h2 {
+    font-size: 20px; font-weight: 700; margin: 56px 0 6px;
+    display: flex; align-items: baseline; gap: 10px;
+  }
+  h2 .no { font-family: var(--mono); font-size: 12px; color: var(--green); letter-spacing: .1em; }
+  .lede { color: var(--dim); margin: 0 0 20px; max-width: 46em; }
+  .lede b { color: var(--ink); font-weight: 500; }
+
+  /* ---- §1 三层声音通道 ---- */
+  .lanes { display: flex; flex-direction: column; gap: 0; }
+  .lane {
+    display: grid; grid-template-columns: 132px 1fr 168px; gap: 16px;
+    align-items: center;
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 16px 18px;
+  }
+  .lane + .lane { border-top: none; }
+  .lane:first-child { border-radius: 12px 12px 0 0; }
+  .lane:last-child { border-radius: 0 0 12px 12px; }
+  .lane .lname { font-weight: 700; line-height: 1.4; }
+  .lane .lname small { display: block; font-weight: 400; font-size: 12px; color: var(--dim); }
+  .lane .lrule {
+    font-size: 12px; text-align: right; color: var(--dim); line-height: 1.6;
+    border-left: 1px solid var(--line); padding-left: 14px;
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip {
+    font-size: 12px; line-height: 1; padding: 6px 10px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--ink); background: var(--panel2);
+    white-space: nowrap;
+  }
+  .chip.dim { color: var(--dim); border-style: dashed; }
+  .duck {
+    display: flex; align-items: center; gap: 10px; justify-content: center;
+    font-size: 12px; color: var(--dim); padding: 4px 0;
+    border-left: 1px solid var(--line); border-right: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .duck b { color: var(--green-soft); font-weight: 500; }
+
+  /* ---- §2 类型卡组 ---- */
+  .cats { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .cats { grid-template-columns: 1fr; } .lane { grid-template-columns: 1fr; } .lane .lrule { border-left: none; padding-left: 0; text-align: left; } }
+  .cat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 14px; }
+  .cat h3 { margin: 0 0 2px; font-size: 15px; font-weight: 700; display: flex; gap: 8px; align-items: baseline; }
+  .cat h3 .tag { font-size: 11px; font-weight: 400; color: var(--dim); }
+  .cat.safety h3 { color: var(--amber); }
+  .cat.mem h3 { color: var(--gold); }
+  .cat.proc h3 { color: var(--green-soft); }
+  .ev { display: grid; grid-template-columns: 8.5em 1fr; gap: 4px 12px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .ev:first-of-type { border-top: none; margin-top: 8px; }
+  .ev .n { font-weight: 500; }
+  .ev .t { color: var(--dim); }
+  .ev .t q { color: var(--ink); font-style: normal; quotes: "「" "」"; }
+  .ev.v11 .n, .ev.v11 .t, .ev.v11 .t q { color: var(--dim); }
+  .ev.v11 .n::after { content: " V1.1"; font-family: var(--mono); font-size: 10px; color: var(--dim); opacity: .8; }
+
+  /* ---- §3 优先级阶梯 ---- */
+  .ladder { display: flex; flex-direction: column; gap: 0; max-width: 760px; }
+  .tier {
+    border: 1px solid var(--line); background: var(--panel);
+    padding: 14px 20px; display: grid; grid-template-columns: 9em 1fr; gap: 14px; align-items: center;
+  }
+  .tier .tn { font-weight: 700; line-height: 1.45; }
+  .tier .tn small { display: block; font-weight: 400; font-size: 12px; color: var(--dim); }
+  .tier.hi { border-left: 3px solid var(--gold); border-radius: 12px 12px 0 0; }
+  .tier.hi .tn { color: var(--gold); }
+  .tier.mid { border-left: 3px solid var(--green); border-top: none; }
+  .tier.mid .tn { color: var(--green-soft); }
+  .tier.lo { border-left: 3px solid var(--dim); border-top: none; border-radius: 0 0 12px 12px; }
+  .tier.lo .tn { color: var(--dim); }
+  .cut {
+    display: flex; align-items: center; gap: 8px; padding: 2px 0 2px 22px;
+    font-size: 12px; color: var(--dim);
+  }
+  .cut .ar { color: var(--gold); font-family: var(--mono); }
+  .lrules { margin: 18px 0 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13px; color: var(--dim); max-width: 760px; }
+  .lrules li::before { content: "— "; color: var(--green); }
+  .lrules b { color: var(--ink); font-weight: 500; }
+
+  /* ---- §4 时间轴例子 ---- */
+  .case { margin-top: 26px; }
+  .case h3 { font-size: 15px; font-weight: 700; margin: 0 0 2px; }
+  .case .ctx { font-size: 13px; color: var(--dim); margin: 0 0 12px; }
+  .strip-box { overflow-x: auto; padding-bottom: 6px; }
+  .strip { display: flex; align-items: stretch; gap: 0; min-width: max-content; }
+  .beat {
+    width: 172px; flex: none; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 10px; padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 5px;
+  }
+  .beat .bt { font-family: var(--mono); font-size: 11px; color: var(--dim); display: flex; justify-content: space-between; align-items: center; }
+  .beat .say { font-size: 13px; line-height: 1.55; }
+  .beat .say small { display: block; font-size: 11px; color: var(--dim); }
+  .lay { font-size: 10px; font-family: var(--mono); letter-spacing: .06em; padding: 2px 7px; border-radius: 999px; line-height: 1.5; white-space: nowrap; }
+  .lay.sfx { color: #A9B3AE; border: 1px solid var(--line); }
+  .lay.hi  { color: #131512; background: var(--gold); font-weight: 700; }
+  .lay.mid { color: #fff; background: var(--green); font-weight: 700; }
+  .lay.lo  { color: var(--dim); border: 1px solid var(--dim); }
+  .lay.saf { color: #131512; background: var(--amber); font-weight: 700; }
+  .beat.dead { border-style: dashed; background: var(--panel2); }
+  .beat.dead .say { color: var(--dim); text-decoration: line-through; text-decoration-color: rgba(141,149,145,.7); }
+  .dtag { font-size: 10px; color: var(--amber); font-family: var(--mono); }
+  .join { flex: none; display: flex; align-items: center; padding: 0 4px; color: var(--dim); font-family: var(--mono); }
+  .join.cutj { color: var(--gold); font-weight: 700; }
+  .sfxline { font-size: 12px; color: var(--dim); margin: 8px 2px 0; }
+  .sfxline b { color: #A9B3AE; font-weight: 500; }
+
+  .callout {
+    margin-top: 40px; border: 1px dashed var(--amber); border-radius: 12px;
+    padding: 14px 20px; font-size: 13px; color: var(--dim); max-width: 760px;
+  }
+  .callout b { color: var(--amber); font-weight: 700; }
+  .src { margin-top: 44px; font-size: 12px; color: var(--dim); border-top: 1px solid var(--line); padding-top: 14px; }
+  .src code { font-family: var(--mono); font-size: 11px; color: var(--green-soft); }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Body Park · 跳绳小挑战 · Voice V1</div>
+  <h1>语音播报图解</h1>
+  <p class="sub">一页看懂：有哪几类声音、各自什么时候响、谁能打断谁——按 9-2 精简口径（V1-Lite），全部逻辑跑在设备端。</p>
+
+  <h2><span class="no">01</span>声音分三层，互不抢通道</h2>
+  <p class="lede">音效走独立通道<b>永不被打断</b>；教练人声一次只说一句；背景音乐永远垫底。三层是并行的——人声再热闹，每一跳的计数「叮」都不会丢。</p>
+  <div class="lanes">
+    <div class="lane">
+      <div class="lname">L1 · 音效<small>计数确认，不可关</small></div>
+      <div class="chips">
+        <span class="chip">计数叮（每一跳）</span><span class="chip">逢十重击</span><span class="chip">得星</span>
+        <span class="chip">倒计时哔</span><span class="chip">发令锣</span><span class="chip">破纪录 fanfare</span><span class="chip">PB 啪啪</span>
+      </div>
+      <div class="lrule">独立通道<br>永不被打断</div>
+    </div>
+    <div class="lane">
+      <div class="lname">L2 · 教练人声<small>单通道 · 一次一句</small></div>
+      <div class="chips">
+        <span class="chip" style="border-color:var(--amber);color:var(--amber)">🛡️ 安全</span>
+        <span class="chip" style="border-color:var(--green);color:var(--green-soft)">⏱️ 进程节奏</span>
+        <span class="chip" style="border-color:var(--gold);color:var(--gold)">❤️ 记忆与庆祝</span>
+        <span class="chip dim">🎯 动作指导（V1 只留最小集）</span>
+      </div>
+      <div class="lrule">高优先级<br>可掐断低优先级</div>
+    </div>
+    <div class="duck">↑ 人声播出时，BGM 自动压低 −50%</div>
+    <div class="lane">
+      <div class="lname">L3 · BGM<small>跳频自适应变速</small></div>
+      <div class="chips"><span class="chip">五声音阶节奏循环 · 96–128 BPM 跟随跳频</span></div>
+      <div class="lrule">永远垫底<br>不打断任何层</div>
+    </div>
+  </div>
+
+  <h2><span class="no">02</span>每类人声的触发条件</h2>
+  <p class="lede">V1 只保留下面这些；标 <span style="font-family:var(--mono);font-size:11px">V1.1</span> 的是候补，逐条打开。触发条件全部是端上本地判断——不等网络。</p>
+  <div class="cats">
+    <div class="cat safety">
+      <h3>🛡️ 安全 <span class="tag">最高优 · 安静模式也照播</span></h3>
+      <div class="ev"><span class="n">出框引导</span><span class="t">人离开画面 → 自动暂停（复用系统级提示）→ <q>回到画面里来，继续！</q></span></div>
+      <div class="ev"><span class="n">停跳链</span><span class="t">停跳 10s → <q>歇好了吗？我们接着跳！</q>；30s 无跳动 → 自动暂停＋<q>歇久啦，先帮你暂停</q>；暂停超 3 分钟 → 自动结算保存</span></div>
+      <div class="ev"><span class="n">长轮关怀</span><span class="t">自由跳满 20 分钟 → <q>跳了很久了，注意呼吸节奏</q></span></div>
+    </div>
+    <div class="cat proc">
+      <h3>⏱️ 进程节奏 <span class="tag">让训练有拍子</span></h3>
+      <div class="ev"><span class="n">发令</span><span class="t">点开始 → 3·2·1·<q>Body Park！</q>（品牌声）</span></div>
+      <div class="ev"><span class="n">整十报数</span><span class="t">每逢 10 下 → <q>五十</q>（固定音频）</span></div>
+      <div class="ev"><span class="n">报时</span><span class="t">自由跳每满 1 分钟 → <q>已经跳了 3 分钟啦</q></span></div>
+      <div class="ev"><span class="n">限时节点</span><span class="t">剩 30 秒 / 最后 10 秒 → <q>最后十秒，冲刺！</q></span></div>
+      <div class="ev"><span class="n">时间到</span><span class="t">限时读秒归零 → 自动结算播报</span></div>
+      <div class="ev"><span class="n">上限预告</span><span class="t">自由跳第 29 分钟 → <q>还有一分钟到三十分钟上限</q></span></div>
+    </div>
+    <div class="cat mem">
+      <h3>❤️ 记忆与庆祝 <span class="tag">「它记得住我」的时刻</span></h3>
+      <div class="ev"><span class="n">开场白</span><span class="t">发令后（当日首轮）→ 称呼（有昵称点名）＋寒暄记忆（断练 ≥3 天 &gt; 连胜 &gt; 昨日成绩，取 1 条）＋今日召唤</span></div>
+      <div class="ev"><span class="n">越过昨天</span><span class="t">第「昨日总数＋1」下（昨日 ≥30）→ <q>超过昨天啦！昨天是 40 下</q></span></div>
+      <div class="ev"><span class="n">破纪录</span><span class="t">超过历史单轮最高的那一下 → <q>新纪录诞生！</q></span></div>
+      <div class="ev"><span class="n">结算小结</span><span class="t">训练停止 → 收尾＋对比句共 ≤2 句：<q>一共 132 下，太棒了，今天比昨天多 12 下</q></span></div>
+      <div class="ev"><span class="n">纪录跨度</span><span class="t">破 PB 后点「完成」→ 恭喜页 <q>上个纪录保持了 10 天，被你打破啦</q></span></div>
+      <div class="ev v11"><span class="n">目标追逐</span><span class="t">差目标 10 下 → <q>还差 10 下就到目标了！</q></span></div>
+      <div class="ev v11"><span class="n">断连安慰</span><span class="t">高连击断掉 → <q>没关系，重新连起来！</q></span></div>
+    </div>
+    <div class="cat">
+      <h3>🎯 动作指导 <span class="tag">V1 收到最小 —— 跳绳动作简单，产品定位是鼓励动起来</span></h3>
+      <div class="ev v11"><span class="n">节奏轻推</span><span class="t">明显掉速且已进入状态 → <q>别停，跟上 ATOM 的节奏！</q></span></div>
+      <div class="ev v11"><span class="n">肯定确认</span><span class="t">连击稳到 20 → <q>对，就是这个节奏！</q></span></div>
+      <div class="ev"><span class="n">姿态纠错</span><span class="t">V2 待识别能力，接口保留</span></div>
+    </div>
+  </div>
+
+  <h2><span class="no">03</span>优先级：三档阶梯，规则只有三条</h2>
+  <p class="lede">V1 不打分——每句话落在三档之一。<b>同一瞬间只播最高档</b>；没播出去的那句直接丢掉，不排队补播（事件过去了才说，比不说更尴尬）。</p>
+  <div class="ladder">
+    <div class="tier hi">
+      <div class="tn">高档<small>可掐断一切</small></div>
+      <div class="chips">
+        <span class="chip" style="border-color:var(--amber);color:var(--amber)">出框引导</span>
+        <span class="chip" style="border-color:var(--gold);color:var(--gold)">破纪录</span>
+        <span class="chip" style="border-color:var(--gold);color:var(--gold)">越过昨天</span>
+        <span class="chip">达标·满环</span><span class="chip">时间到</span><span class="chip">30s 停跳自动暂停</span>
+      </div>
+    </div>
+    <div class="cut"><span class="ar">⬇ 可打断</span>正在播的中档、低档，立刻掐断改播</div>
+    <div class="tier mid">
+      <div class="tn">中档<small>空闲才播</small></div>
+      <div class="chips">
+        <span class="chip">开场白</span><span class="chip">结算小结</span><span class="chip">每分钟报时</span><span class="chip">30s/10s 节点</span><span class="chip">长轮关怀</span><span class="chip">10s 停跳鼓励</span>
+      </div>
+    </div>
+    <div class="cut"><span class="ar">⬇ 压过</span>同一瞬间的整十报数——报数直接丢弃</div>
+    <div class="tier lo">
+      <div class="tn">低档<small>让位即弃</small></div>
+      <div class="chips"><span class="chip dim">整十报数（音效照常，只丢人声）</span></div>
+    </div>
+  </div>
+  <ul class="lrules">
+    <li><b>同帧取高</b>：一个瞬间冒出两句，只播档位高的那句。</li>
+    <li><b>高档抢话筒</b>：高档事件出现时，正在播的中低档立刻被掐断。</li>
+    <li><b>不排队</b>：让位的句子直接丢弃 —— 默认沉默，宁可少说。</li>
+  </ul>
+  <div class="callout"><b>安静模式</b>：一键关掉人声＋BGM，只留每跳的计数音效——唯一例外是出框安全句，照播。</div>
+
+  <h2><span class="no">04</span>开场白：五种版本，三句槽位</h2>
+  <p class="lede">整轮唯一一段成段的话——证明「我认识你、我记得你」。铁律：首页零语音；<b>Body Park！发令之后才开口</b>（边跳边听，不阻塞开跳）；总时长 ≤9 秒。</p>
+  <div class="cats">
+    <div class="cat mem">
+      <h3>五种版本 <span class="tag">按序判断，命中即止</span></h3>
+      <div class="ev"><span class="n">不播</span><span class="t">「再跳一轮」／安静模式</span></div>
+      <div class="ev"><span class="n">新手版</span><span class="t">第一次跳 → <q>欢迎来跳绳！我是 ATOM。今天是 9 月 2 日，目标 200 下，我们来试一下！</q></span></div>
+      <div class="ev"><span class="n">回归版</span><span class="t">断练 ≥3 天 → <q>5 天没见啦，回来就好！慢慢找回节奏，{召唤}</q></span></div>
+      <div class="ev"><span class="n">常规完整版</span><span class="t">当日首轮 → 称呼＋第 N 次＋记忆亮点＋日期＋召唤（右侧展开）</span></div>
+      <div class="ev"><span class="n">同日短版</span><span class="t">今天已跳过 → <q>又来啦！今天已经跳了 128 下，这轮继续冲！</q></span></div>
+    </div>
+    <div class="cat">
+      <h3>三句槽位（完整版） <span class="tag">缺哪层砍哪层，不空播不等待</span></h3>
+      <div class="ev"><span class="n">① 称呼</span><span class="t">有昵称点名 <q>小雨，欢迎回来！</q>（设置昵称时一次性生成音频）；没写 → <q>欢迎回来！</q>；可加 <q>这是你的第 18 次跳绳</q></span></div>
+      <div class="ev"><span class="n">② 记忆亮点</span><span class="t">四选一按轮次轮换：连胜 &gt; 昨日成绩 &gt; 单轮纪录 &gt; 累计；一条没有就静默不硬凑</span></div>
+      <div class="ev"><span class="n">③ 今日召唤</span><span class="t">绑定刚选的模式：<q>向 200 下出发！</q>（4 条按日轮换）／<q>一分钟限时，全力冲刺！</q></span></div>
+    </div>
+  </div>
+  <div class="callout" style="border-color:var(--gold)"><b style="color:var(--gold)">连起来的听感</b>：「小雨，欢迎回来！这是你的第 18 次跳绳。已经连续打卡 6 天啦。今天是 9 月 2 日，向 200 下出发！」——连来 7 天，7 天听到的开场白都不一样。</div>
+
+  <h2><span class="no">05</span>停下来之后：停跳链与暂停</h2>
+  <p class="lede">人在画面里但绳停了 → 走停跳链；三种暂停入口之后统一走 3 分钟超时保存。<b>结算权只有一处</b>：暂停超 3 分钟。</p>
+  <div class="cats">
+    <div class="cat safety">
+      <h3>停跳链 <span class="tag">任何一跳清零重来；限时模式只有 10s 档</span></h3>
+      <div class="ev"><span class="n">10 秒</span><span class="t">鼓励一次（每轮 ≤3 次）：<q>歇好了吗？我们接着跳！</q>；开局没起跳换 <q>准备好了就起跳吧！</q></span></div>
+      <div class="ev"><span class="n">30 秒</span><span class="t"><b style="color:var(--amber)">自动进入暂停</b>＋<q>歇久啦，先帮你暂停，回来点一下继续！</q></span></div>
+    </div>
+    <div class="cat">
+      <h3>暂停之后 <span class="tag">手动点按 / 出框 / 停跳 30s 三入口统一</span></h3>
+      <div class="ev"><span class="n">恢复</span><span class="t">停跳计时清零（暂停时长不计入），接着跳</span></div>
+      <div class="ev"><span class="n">超 3 分钟</span><span class="t">自动结算保存：<q>先帮你把成绩存好啦，一共 132 下</q>（空轮不落档回首页）</span></div>
+      <div class="ev"><span class="n">切后台/回 Home</span><span class="t">立即静默暂停（后台绝不出声）；超 3 分钟静默结算，成绩在打卡记录里</span></div>
+      <div class="ev"><span class="n">进程被杀</span><span class="t">课中每 10 下/10s 落快照，下次启动补结算——成绩不丢</span></div>
+    </div>
+  </div>
+
+  <h2><span class="no">06</span>实际播报长什么样</h2>
+  <p class="lede">三段真实场景（昨天跳了 40 下、历史最高 350 下的用户）。每格是一句话；虚线格是<b>被规则干掉、实际没播出来</b>的那句。</p>
+
+  <div class="case">
+    <h3>例 1 · 平静的第一分钟（自由跳，目标 200）</h3>
+    <p class="ctx">没有任何冲突时的样子：发令 → 边跳边听开场白 → 报数 → 报时。</p>
+    <div class="strip-box"><div class="strip">
+      <div class="beat"><span class="bt">0:00 <span class="lay sfx">音效</span></span><span class="say">发令锣＋「Body Park！」<small>品牌声，之后立刻开跳</small></span></div>
+      <span class="join">→</span>
+      <div class="beat" style="width:224px"><span class="bt">0:02 <span class="lay mid">人声·中</span></span><span class="say">「小雨，欢迎回来！已经连续打卡 6 天啦。目标 200 下，我们来试一下！」<small>开场白：称呼＋寒暄记忆＋召唤</small></span></div>
+      <span class="join">→</span>
+      <div class="beat"><span class="bt">0:14 · 第 10 下 <span class="lay lo">人声·低</span></span><span class="say">「十」<small>叮＋逢十重击同帧响</small></span></div>
+      <span class="join">→</span>
+      <div class="beat"><span class="bt">0:27 · 第 30 下 <span class="lay lo">人声·低</span></span><span class="say">「三十」</span></div>
+      <span class="join">→</span>
+      <div class="beat"><span class="bt">1:00 <span class="lay mid">人声·中</span></span><span class="say">「已经跳了 1 分钟啦」<small>自由模式每满 1 分钟报时</small></span></div>
+    </div></div>
+    <p class="sfxline">底下一直在响：<b>每一跳一声计数叮</b>（五声音阶轮转）＋ BGM 垫底 —— 全程不中断。</p>
+  </div>
+
+  <div class="case">
+    <h3>例 2 · 撞车的两个瞬间</h3>
+    <p class="ctx">左幕：低档让位（同一下两句话抢话筒）。右幕：高档抢话筒（一句正在播，被掐断）。</p>
+    <div class="strip-box"><div class="strip">
+      <div class="beat dead"><span class="bt">第 40 下 <span class="lay lo">人声·低</span></span><span class="say">「四十」</span><span class="dtag">✕ 让位丢弃，不补播</span></div>
+      <span class="join cutj">同帧</span>
+      <div class="beat" style="width:206px"><span class="bt">第 40 下 <span class="lay hi">人声·高</span></span><span class="say">「超过昨天啦！昨天是 39 下」<small>越过昨天（昨日 39，第 40 下越线）</small></span></div>
+      <span class="join" style="padding:0 18px">‖</span>
+      <div class="beat dead"><span class="bt">3:00 <span class="lay mid">人声·中</span></span><span class="say">「已经跳了 3 分…」</span><span class="dtag">✕ 播到一半被掐断</span></div>
+      <span class="join cutj">抢占→</span>
+      <div class="beat" style="width:212px"><span class="bt">3:01 · 第 351 下 <span class="lay hi">人声·高</span></span><span class="say">「新纪录诞生！现在每一下都在刷新它！」<small>越过旧 PB 350 的那一下</small></span></div>
+    </div></div>
+    <p class="sfxline">两个瞬间里，<b>逢十重击、fanfare 音效都照常响</b>——只有人声那条通道在做取舍。</p>
+  </div>
+
+  <div class="case">
+    <h3>例 3 · 收尾三段式（9-2 会议版：分句层层推进，不压在一起）</h3>
+    <p class="ctx">快句 0 等待即播 → 破了纪录才有 PB 句（不带数字）→ 客观小结可晚 1–2 秒到（用户已在看结果页，慢了不尬）；破 PB 再进恭喜页。</p>
+    <div class="strip-box"><div class="strip">
+      <div class="beat" style="width:196px"><span class="bt">点完成/停下 <span class="lay mid">人声·中</span></span><span class="say">「恭喜你，今日训练已完成！」<small>① 快句：端上固定音频，0 等待</small></span></div>
+      <span class="join">+0.8s</span>
+      <div class="beat" style="width:196px"><span class="bt">若破纪录 <span class="lay mid">人声·中</span></span><span class="say">「你打破了单次最佳纪录！」<small>② PB 句：固定素材、不带数字，按 PB 类型取条</small></span></div>
+      <span class="join">+1–2s</span>
+      <div class="beat" style="width:250px"><span class="bt">结果页 <span class="lay mid">人声·中</span></span><span class="say">「今天跳了 372 下，用时 3 分钟，平均每分钟 124 下，比上次快了 16%」<small>③ 客观小结：LLM/模板 hybrid，含 JPM 对比</small></span></div>
+      <span class="join">→</span>
+      <div class="beat" style="width:224px"><span class="bt">恭喜页 <span class="lay hi">人声·高</span></span><span class="say">「新纪录！上个纪录保持了 12 天，被你打破啦」<small>riser→fanfare＋啪啪，纪录跨度收尾</small></span></div>
+    </div></div>
+  </div>
+
+  <div class="src">
+    口径来源：<code>voice-spec.md</code>（9-2 整合定稿，唯一事实源：§2 话术清单 · §3 三档优先级 · §4 生命周期边界）。可交互试听：Demo 控制条「语音场景」按钮组。
+  </div>
+</div>

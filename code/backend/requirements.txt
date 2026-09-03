@@ -1,0 +1,5 @@
+fastapi>=0.115
+uvicorn>=0.30
+redis>=5.0
+pydantic>=2.7
+fakeredis>=2.23   # 仅冒烟自测用（python app.py smoke）
